@@ -1,6 +1,5 @@
-#用于病毒序列比对，在宏基因组中的流行性分析
+#用于病毒序列比对，在宏基因组中的丰度分析
 mkdir 01_fastp
-#
 /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/parallel-fastq-dump --sra-id /zfssz7/pub/database/ftp.ncbi.nih.gov/sra/sra-instant/reads/ByStudy/sra/ERP/ERP013/ERP013562/ERR1190587/ERR1190587.sra --threads 4 -T 01_fastp --split-3 --gzip -O 01_fastp     #parallel-fastq-dump是fastq-dump的并行版本，速度更快
 /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/miniconda_20211218/miniconda/bin/fastp -i 01_fastp/*_1.fastq.gz -o 01_fastp/ERR1190587_1.fq -I 01_fastp/*_2.fastq.gz -O 01_fastp/ERR1190587_2.fq -5 -3 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R 01_fastp/out.prefix -l 30 1>01_fastp/fastp.result 2>r1.fastp.sh.err
 /usr/bin/rm -rf 01_fastp/*_1.fastq.gz 01_fastp/*_2.fastq.gz     #删除原始数据，只保留清洗后的数据
@@ -24,13 +23,11 @@ tar -cvf - 02_host/rmhost_2.fastq | /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1
 /ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/samtools idxstats 03_bowtie2/mapped_bowtie2.bam > 03_bowtie2/mapped_bowtie2.bam.idxstats #samtools idxstats是samtools的主要功能，用于统计比对上的序列的信息
 
 
-
-
-
-/ldfssz1/ST_META/share/User/zhujie/.conda/envs/bioenv/bin/fastq-dump /hwfssz1/pub/database/ftp.ncbi.nih.gov/sra/sra-instant/reads/ByStudy/sra/ERP/ERP016/ERP016813//ERR1578619/ERR1578619.sra --split-3 --gzip -O ERR1578619
-/ldfssz1/ST_META/share/User/zhujie/.conda/envs/bioenv/bin/bowtie2 -p 20 -x /ldfssz1/ST_INFECTION/P17Z10200N0246_Phage_XMF/USER/xingbo/03.phage_anno/gut_phage/fa_20220916/fa/fa_20220916_89.fa -1 ERR1578619/*1.f*q.gz -2 ERR1578619/*2.f*q.gz --very-sensitive-local | /ldfssz1/ST_META/share/User/zhujie/.conda/envs/bioenv/bin/samtools view -bS -F 4 | /ldfssz1/ST_META/share/User/zhujie/.conda/envs/bioenv/bin/samtools sort -@ 20 -o ERR1578619/bowtie2.bam
-/ldfssz1/ST_META/share/User/zhujie/.conda/envs/bioenv/bin/samtools view -h ERR1578619/bowtie2.bam > ERR1578619/bowtie2.sam
+#用于进行流行度分析
+/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/parallel-fastq-dump /hwfssz1/pub/database/ftp.ncbi.nih.gov/sra/sra-instant/reads/ByStudy/sra/ERP/ERP016/ERP016813//ERR1578619/ERR1578619.sra --threads 4 -T 01_fastp --split-3 --gzip -O 01_fastp
+/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/maha/bin/bowtie2 -p 20 -x /ldfssz1/ST_INFECTION/P17Z10200N0246_Phage_XMF/USER/xingbo/03.phage_anno/gut_phage/fa_20220916/fa/fa_20220916_89.fa -1 ERR1578619/*1.f*q.gz -2 ERR1578619/*2.f*q.gz --very-sensitive-local | /ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/samtools view -bS -F 4 | /ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/samtools sort -@ 20 -o ERR1578619/bowtie2.bam
+/ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/samtools view -h ERR1578619/bowtie2.bam > ERR1578619/bowtie2.sam
 /jdfssz1/ST_HEALTH/P20Z10200N0206/fengqikai/software/Anaconda3-2021.05/envs/soapcoverage/2.7.7/bin/soap.coverage -cvg -sam -p 5 -i ERR1578619/bowtie2.sam -refsingle /ldfssz1/ST_INFECTION/P17Z10200N0246_Phage_XMF/USER/xingbo/03.phage_anno/gut_phage/fa_20220916/fa/fa_20220916_89.fa -o ERR1578619/coverage.txt
-/ldfssz1/ST_META/share/User/zhujie/.conda/envs/bioenv/bin/samtools index ERR1578619/bowtie2.bam
-/ldfssz1/ST_META/share/User/zhujie/.conda/envs/bioenv/bin/samtools stats ERR1578619/bowtie2.bam > ERR1578619/bowtie2.bam.stats
-/ldfssz1/ST_META/share/User/zhujie/.conda/envs/bioenv/bin/samtools idxstats ERR1578619/bowtie2.bam > ERR1578619/bowtie2.bam.idxstats
+/ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/samtools index ERR1578619/bowtie2.bam
+/ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/samtools stats ERR1578619/bowtie2.bam > ERR1578619/bowtie2.bam.stats
+/ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/samtools idxstats ERR1578619/bowtie2.bam > ERR1578619/bowtie2.bam.idxstats

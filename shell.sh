@@ -17,7 +17,7 @@ ll -a                       #同上
 
 git clone https://github.com/XiaofangJ/PhaseFinder #从github上下载PhaseFinder软件
 
-watch -n 1 -d 'A command'    #每隔1秒执行一次A命令，-d表示高亮输出发生变化的地方
+watch -n 1 -d 'A command'    #每隔1秒执行一次A command，-d表示高亮输出发生变化的地方
 
 realpath A                  #显示文件A的绝对路径
 
@@ -32,7 +32,7 @@ nl -n ln A > B              #给A文件的每一行加上行号，输出到B文�
                             #nl命令的-n选项表示行号的格式，ln表示行号左对齐，可以换成rn表示行号右对齐，rz表示行号右对齐且前面补0
 \\
 
-#在后台执行命令
+#后台运行命令
 command 1>out 2>err &       #将command的正常输出重定向到out文件中，报错信息输出到err文件中
 nohup command &             #在后台执行命令，不要大批量使用，报错输出到nohup.out文件中。大批量需投递任务
 top/htop                    #查询后台
@@ -40,6 +40,11 @@ top -u lizhuoran1           #查询该用户的jobs，top下按q可以 退出
 jobs                        #查询后台运行的任务状态
 jobs -l                     #查询后台运行的任务状态，显示jobsID
 kill jobID                  #终止对应ID的后台任务
+
+#命令嵌套
+ll `cat list`               #将list文件中的每一行内容作为参数传递给ll命令
+ll $(cat list)              #同上，二者等价
+ll $(cat $(which bowtie2))  #将which bowtie2命令的输出作为参数传递给cat命令，再将cat命令的输出作为参数传递给ll命令,多重嵌套只能使用$()，不能使用``
 
 #任务投递
 qsub -cwd -q st.q -P P17Z10200N0246 -l vf=50g,num_proc=8 -binding linear:8          #普通节点，任务运行无时间限制，等待时间长
@@ -84,7 +89,6 @@ grep "a" -A 1 A             #在A文件匹配含有a的每一行，并输出该�
 grep "a" -v A               #在A文件中匹配含有a的每一行，但输出不匹配行
 grep -wvf A B               #在B文件中匹配不含有A文件中任何一行的每一行,并输出，A应为B的子集，-w表示精确匹配，-v表示取反，-f表示从文件中读取内容
 grep -wf A B                #在B文件中匹配含有A文件中任何一行的每一行,并输出，A应为B的子集
-
 rg -i "a" A                 #在A文件中匹配含有a的每一行，rg是grep的替代品，速度更快，-i表示忽略大小写
 rg -i "a" -A 1 A            #在A文件匹配含有a的每一行，并输出该行和下一行
 rg -i "a" -v A              #在A文件中匹配含有a的每一行，但输出不匹配行
