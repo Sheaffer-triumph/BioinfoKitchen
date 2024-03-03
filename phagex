@@ -1,0 +1,229 @@
+#!/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/amita/bin/python
+import os
+import sys
+import argparse
+
+#Pre-defined software paths
+FASTP = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/miniconda_20211218/miniconda/bin/fastp"
+SEQTK = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqtk"
+SEQKIT = "/ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/seqkit"
+SPADES = "/ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/spades.py"
+PROKKA = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/prokka"
+QUAST = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/quast/bin/quast"
+QUAST_PYTHON = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/quast/bin/python"
+SELECT_6K = "/ldfssz1/ST_INFECTION/P17Z10200N0246_Phage_XMF/USER/limin/share/select_up_6k.py"
+TOOK_LONGEST = "/ldfssz1/ST_INFECTION/P17Z10200N0246_Phage_XMF/USER/limin/share/took_longest.pl"
+PRODIGAL = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/share/02_annotation/software/Prodigal/prodigal"
+BLASTP = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/miniconda_20211218/miniconda/bin/blastp"
+NR_PHAGE_DB = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/limin/nr_phage.fasta"
+PHMMER = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/share/02_annotation/software/hmmer-3.1b2/bin/phmmer"
+UNIREF_DB = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/share/02_annotation/db/uniref/uniref_phage.fasta"
+UNIPROTKB_DB = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/share/02_annotation/db/uniprotkb/uniprotkb_phage.fasta"
+HMMSCAN = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/share/02_annotation/software/hmmer-3.1b2/bin/hmmscan"
+PFAM_PATH = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/share/02_annotation/db/Pfam/Pfam-A.hmm"
+HMMER_UNIQ = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/share/02_annotation/software/hmmer_hit_uniq.py"
+GET_RESULT_PY = "/ldfssz1/ST_INFECTION/P17Z10200N0246_Phage_XMF/USER/limin/phage_maker/negative_db_based_NCBI10774/re_annotation/get_result.py"
+RESULT2GFF = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/share/02_annotation/software/result2gff_1.py"
+SEQRET = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqret"
+
+parser = argparse.ArgumentParser(description="PHAGEX: a collection of tools for phage genome assembly and annotation", formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("-i", "--input", type=argparse.FileType('r'), required=False, help="Input file, the file should contain the sample ID and the path of the fastq file.\nSupports multi-line list.\nEg: CPB0207 /path/to/sample1_1.fastq.gz /path/to/sample1_2.fastq.gz")
+parser.add_argument("-o", "--outpath", type=str,  required=False, help="Output path, need to use absolute path")
+parser.add_argument("-p", "--phred", type=int, required=False, help="33 or 64")
+parser.add_argument("-v", "--version", action='version', version='Version: 1.1\nRelease date: Nov 21, 2023', help="Print script version")
+
+subparsers = parser.add_subparsers(dest='command')
+#only-annotation
+oa_parser = subparsers.add_parser("oa", aliases=['only-annotation'], help="If you only need to annotate the phage genome, you can use this parameter to skip the assembly step")
+oa_parser.add_argument("-i", "--input", type=str, required=True, help="Input file, the file should be a fasta file")
+oa_parser.add_argument("-o", "--outpath", type=str, required=True, help="Output path, recommend to use absolute path")
+
+args = parser.parse_args()
+
+if args.command == 'oa':
+    if args.input is not None and args.outpath is not None:
+        fasta = args.input
+        outpath = args.outpath
+    else:
+        oa_parser.print_help()
+        sys.exit(1)
+    
+    sampleid = os.path.basename(fasta).split(".")[0]
+    
+    os.makedirs(os.path.join(outpath, sampleid), exist_ok=False)
+    with open(os.path.join(outpath, sampleid, f"{sampleid}_anno.sh"), "w") as f:
+        f.write("#!/usr/bin/bash\n")
+        f.write("set -e\n\n")
+        f.write("mkdir -p r1.prodigal\n")
+        f.write(f"{PRODIGAL} -i {fasta} -o r1.prodigal/{sampleid}_genome.prodigal.gff -a r1.prodigal/{sampleid}_genome.proteins.faa -d r1.prodigal/{sampleid}_genome.genes.fasta -f gff -c -p meta\n")
+        f.write("\n")
+        f.write("mkdir -p r2.blastp\n")
+        f.write(f"{BLASTP} -query r1.prodigal/{sampleid}_genome.proteins.faa -db {NR_PHAGE_DB} -evalue 1e-5 -max_target_seqs 1 -out r2.blastp/{sampleid}_genome.proteins.blastp.txt -outfmt \"6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore\"\n")
+        f.write("\n")
+        f.write("mkdir -p r3.phmmer\n")
+        f.write(f"{PHMMER} -E 1e-5 -o r3.phmmer/uniref.output.txt --tblout r3.phmmer/uniref.tblout.txt r1.prodigal/{sampleid}_genome.proteins.faa {UNIREF_DB}\n")
+        f.write(f"grep '#' -v r3.phmmer/uniref.tblout.txt > r3.phmmer/uniref.tblout.txt.hit\n")
+        f.write(f"{PHMMER} -E 1e-5 -o r3.phmmer/uniprotkb.output.txt --tblout r3.phmmer/uniprotkb.tblout.txt r1.prodigal/{sampleid}_genome.proteins.faa {UNIPROTKB_DB}\n")
+        f.write(f"grep '#' -v r3.phmmer/uniprotkb.tblout.txt > r3.phmmer/uniprotkb.tblout.txt.hit\n")
+        f.write("\n")
+        f.write("mkdir -p r4.hmmscan\n")
+        f.write(f"{HMMSCAN} -E 1e-5 -o r4.hmmscan/pfam.output.txt --tblout r4.hmmscan/pfam.tblout.txt {PFAM_PATH} r1.prodigal/{sampleid}_genome.proteins.faa\n")
+        f.write(f"grep '#' -v r4.hmmscan/pfam.tblout.txt > r4.hmmscan/pfam.tblout.txt.hit\n")
+        f.write("\n")
+        f.write("mkdir -p r5.result\n")
+        f.write(f" r4.hmmscan/pfam.tblout.txt.hit r3.phmmer/uniref.tblout.txt.hit r4.hmmscan/uniprotkb.tblout.txt.hit > r5.result/hmm.hitcat\n")
+        f.write(f"python {HMMER_UNIQ} r5.result/hmm.hit r5.result/hmm.hit.uniq\n")
+        f.write(f"python {GET_RESULT_PY} r2.blastp/{sampleid}_genome/proteins.blastp.txt r5.result/hmm.hit.uniq r5.result/{sampleid}_result.txt\n")
+        f.write("\n")
+        f.write("mkdir -p r6.gbk\n")
+        f.write(f"{RESULT2GFF} r5.result/{sampleid}_result.txt r1.prodigal/{sampleid}_genome.prodigal.gff r6.gbk/{sampleid}_genome.gff\n")
+        f.write(f"{SEQRET} -sequence {fasta} -feature -fformat gff -fopenfile r6.gbk/{sampleid}_genome.gff -osformat genbank -outseq r6.gbk/{sampleid}_genome.gbk\n")            
+        f.write("\n")            
+        f.write("mkdir -p final\n")
+        f.write(f"cp r6.gbk/{sampleid}_genome.gbk r6.gbk/{sampleid}_genome.gff r5.result/{sampleid}_result.txt r1.prodigal/{sampleid}_genome.proteins.faa r1.prodigal/{sampleid}_genome.genes.fasta\n")
+    print("\n")
+    print("-------------------------------------------------------------------------------------------------\n")
+    print(">>>>>>>All sh are generated, please check the  and excute {sampleid}_anno.sh<<<<<<<\n")
+    print("-------------------------------------------------------------------------------------------------\n")
+else:
+    if args.input is not None and args.outpath is not None and args.phred is not None:
+        inputlist = args.input
+        outpath = args.outpath
+        phred = args.phred
+    else:
+        parser.print_help()
+        sys.exit(1)
+    
+    for list in inputlist:
+        list = list.strip()
+        sampleID, fastq1, fastq2 = list.split()
+        #创建文件夹
+        os.makedirs(os.path.join(outpath, sampleID), exist_ok=False)
+        #创建文件
+        #01_fastp
+        with open(os.path.join(outpath, sampleID, "r1_filter.sh"), "w") as f:
+            f.write("mkdir -p 01_fastp\n")
+            if phred == 33:
+                f.write(f"{FASTP} -i {fastq1} -o 01_fastp/{sampleID}_1.fq -I {fastq2} -O 01_fastp/{sampleID}_2.fq -5 -3 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R 01_fastp/out.prefix -l 30 1>01_fastp.result 2>r1.fastp.sh.err\n")
+            else:
+                f.write(f"{FASTP} -i {fastq1} -o 01_fastp/{sampleID}_1.fq -I {fastq2} -O 01_fastp/{sampleID}_2.fq -6 -5 -3 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R 01_fastp/out.prefix -l 30 1>01_fastp.result 2>r1.fastp.sh.err\n")
+        #02_sampling50x
+        with open(os.path.join(outpath, sampleID, "r2_seqtk.sh"), "w") as f:
+            f.write("mkdir -p 02_sampling50x\n")
+            f.write(f"{SEQTK}  sample -s 25   01_fastp/{sampleID}_1.fq    25000 > 02_sampling50x/seqtk_50xdata_v1_1.fq\n")
+            f.write(f"{SEQTK}  sample -s 75   01_fastp/{sampleID}_1.fq    25000 > 02_sampling50x/seqtk_50xdata_v2_1.fq\n")
+            f.write(f"{SEQTK}  sample -s 100  01_fastp/{sampleID}_1.fq    25000 > 02_sampling50x/seqtk_50xdata_v3_1.fq\n")
+            f.write(f"{SEQTK}  sample -s 25   01_fastp/{sampleID}_2.fq    25000 > 02_sampling50x/seqtk_50xdata_v1_2.fq\n")
+            f.write(f"{SEQTK}  sample -s 75   01_fastp/{sampleID}_2.fq    25000 > 02_sampling50x/seqtk_50xdata_v2_2.fq\n")
+            f.write(f"{SEQTK}  sample -s 100  01_fastp/{sampleID}_2.fq    25000 > 02_sampling50x/seqtk_50xdata_v3_2.fq\n")
+            f.write(f"{SEQKIT} sample -s 25   01_fastp/{sampleID}_1.fq -n 25000 > 02_sampling50x/seqkit_50xdata_v1_1.fq\n")
+            f.write(f"{SEQKIT} sample -s 75   01_fastp/{sampleID}_1.fq -n 25000 > 02_sampling50x/seqkit_50xdata_v2_1.fq\n")
+            f.write(f"{SEQKIT} sample -s 100  01_fastp/{sampleID}_1.fq -n 25000 > 02_sampling50x/seqkit_50xdata_v3_1.fq\n")
+            f.write(f"{SEQKIT} sample -s 25   01_fastp/{sampleID}_2.fq -n 25000 > 02_sampling50x/seqkit_50xdata_v1_2.fq\n")
+            f.write(f"{SEQKIT} sample -s 75   01_fastp/{sampleID}_2.fq -n 25000 > 02_sampling50x/seqkit_50xdata_v2_2.fq\n")
+            f.write(f"{SEQKIT} sample -s 100  01_fastp/{sampleID}_2.fq -n 25000 > 02_sampling50x/seqkit_50xdata_v3_2.fq\n")
+        #03_spades
+        with open(os.path.join(outpath, sampleID, "r3_spades.sh"), "w") as f:
+            f.write("mkdir -p 03_spades\n")
+            f.write(f"{SPADES} -k 21,45,63 --careful -1 02_sampling50x/seqtk_50xdata_v1_1.fq -2 02_sampling50x/seqtk_50xdata_v1_2.fq -o 03_spades/kmer_21_45_63/seqtk_v1 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 21,45,63 --careful -1 02_sampling50x/seqtk_50xdata_v2_1.fq -2 02_sampling50x/seqtk_50xdata_v2_2.fq -o 03_spades/kmer_21_45_63/seqtk_v2 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 21,45,63 --careful -1 02_sampling50x/seqtk_50xdata_v3_1.fq -2 02_sampling50x/seqtk_50xdata_v3_2.fq -o 03_spades/kmer_21_45_63/seqtk_v3 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 21,45,63 --careful -1 02_sampling50x/seqkit_50xdata_v1_1.fq -2 02_sampling50x/seqkit_50xdata_v1_2.fq -o 03_spades/kmer_21_45_63/seqkit_v1 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 21,45,63 --careful -1 02_sampling50x/seqkit_50xdata_v2_1.fq -2 02_sampling50x/seqkit_50xdata_v2_2.fq -o 03_spades/kmer_21_45_63/seqkit_v2 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 21,45,63 --careful -1 02_sampling50x/seqkit_50xdata_v3_1.fq -2 02_sampling50x/seqkit_50xdata_v3_2.fq -o 03_spades/kmer_21_45_63/seqkit_v3 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 17,21 --careful -1 02_sampling50x/seqtk_50xdata_v1_1.fq -2 02_sampling50x/seqtk_50xdata_v1_2.fq -o 03_spades/kmer_17_21/seqtk_v1 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 17,21 --careful -1 02_sampling50x/seqtk_50xdata_v2_1.fq -2 02_sampling50x/seqtk_50xdata_v2_2.fq -o 03_spades/kmer_17_21/seqtk_v2 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 17,21 --careful -1 02_sampling50x/seqtk_50xdata_v3_1.fq -2 02_sampling50x/seqtk_50xdata_v3_2.fq -o 03_spades/kmer_17_21/seqtk_v3 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 17,21 --careful -1 02_sampling50x/seqkit_50xdata_v1_1.fq -2 02_sampling50x/seqkit_50xdata_v1_2.fq -o 03_spades/kmer_17_21/seqkit_v1 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 17,21 --careful -1 02_sampling50x/seqkit_50xdata_v2_1.fq -2 02_sampling50x/seqkit_50xdata_v2_2.fq -o 03_spades/kmer_17_21/seqkit_v2 2>r3.spades.err\n")
+            f.write(f"{SPADES} -k 17,21 --careful -1 02_sampling50x/seqkit_50xdata_v3_1.fq -2 02_sampling50x/seqkit_50xdata_v3_2.fq -o 03_spades/kmer_17_21/seqkit_v3 2>r3.spades.err\n")
+            f.write(f"{SPADES} --careful -1 02_sampling50x/seqtk_50xdata_v1_1.fq -2 02_sampling50x/seqtk_50xdata_v1_2.fq -o 03_spades/auto/seqtk_v1 2>r3.spades.err\n")
+            f.write(f"{SPADES} --careful -1 02_sampling50x/seqtk_50xdata_v2_1.fq -2 02_sampling50x/seqtk_50xdata_v2_2.fq -o 03_spades/auoto/seqtk_v2 2>r3.spades.err\n")
+            f.write(f"{SPADES} --careful -1 02_sampling50x/seqtk_50xdata_v3_1.fq -2 02_sampling50x/seqtk_50xdata_v3_2.fq -o 03_spades/auoto/seqtk_v3 2>r3.spades.err\n")
+            f.write(f"{SPADES} --careful -1 02_sampling50x/seqkit_50xdata_v1_1.fq -2 02_sampling50x/seqkit_50xdata_v1_2.fq -o 03_spades/auto/seqkit_v1 2>r3.spades.err\n")
+            f.write(f"{SPADES} --careful -1 02_sampling50x/seqkit_50xdata_v2_1.fq -2 02_sampling50x/seqkit_50xdata_v2_2.fq -o 03_spades/auto/seqkit_v2 2>r3.spades.err\n")
+            f.write(f"{SPADES} --careful -1 02_sampling50x/seqkit_50xdata_v3_1.fq -2 02_sampling50x/seqkit_50xdata_v3_2.fq -o 03_spades/auto/seqkit_v3 2>r3.spades.err\n")
+        #04_select_6k
+        with open(os.path.join(outpath, sampleID, "r4_fa.sh"), "w") as f:
+            f.write("mkdir -p 04_select_6k\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_21_45_63/seqtk_v1/scaffolds.fasta > 04_select_6k/spades_21_45_63_seqtk_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_21_45_63/seqtk_v2/scaffolds.fasta > 04_select_6k/spades_21_45_63_seqtk_v2.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_21_45_63/seqtk_v3/scaffolds.fasta > 04_select_6k/spades_21_45_63_seqtk_v3.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_21_45_63/seqkit_v1/scaffolds.fasta > 04_select_6k/spades_21_45_63_seqkit_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_21_45_63/seqkit_v2/scaffolds.fasta > 04_select_6k/spades_21_45_63_seqkit_v2.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_21_45_63/seqkit_v3/scaffolds.fasta > 04_select_6k/spades_21_45_63_seqkit_v3.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_17_21/seqtk_v1/scaffolds.fasta > 04_select_6k/spades_17_21_seqtk_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_17_21/seqtk_v2/scaffolds.fasta > 04_select_6k/spades_17_21_seqtk_v2.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_17_21/seqtk_v3/scaffolds.fasta > 04_select_6k/spades_17_21_seqtk_v3.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_17_21/seqkit_v1/scaffolds.fasta > 04_select_6k/spades_17_21_seqkit_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_17_21/seqkit_v2/scaffolds.fasta > 04_select_6k/spades_17_21_seqkit_v2.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/kmer_17_21/seqkit_v3/scaffolds.fasta > 04_select_6k/spades_17_21_seqkit_v3.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/auto/seqtk_v1/scaffolds.fasta > 04_select_6k/spades_auto_seqtk_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/auto/seqtk_v2/scaffolds.fasta > 04_select_6k/spades_auto_seqtk_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/auto/seqtk_v3/scaffolds.fasta > 04_select_6k/spades_auto_seqtk_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/auto/seqkit_v1/scaffolds.fasta > 04_select_6k/spades_auto_seqkit_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/auto/seqkit_v2/scaffolds.fasta > 04_select_6k/spades_auto_seqkit_v1.fa\n")
+            f.write(f"python {SELECT_6K} -c 6000 -f 03_spades/auto/seqkit_v3/scaffolds.fasta > 04_select_6k/spades_auto_seqkit_v1.fa\n")
+            f.write(f"cat 04_select_6k/spades_*fa > 04_select_6k/blast.fa\n")
+            f.write(f"perl {TOOK_LONGEST} 04_select_6k/blast.fa 04_select_6k/final.fa 2>took_longest.err\n")
+        #05_quast
+        with open(os.path.join(outpath, sampleID, "r5_quast.sh"), "w") as f:
+            f.write("mkdir -p 05_quast\n")
+            f.write(f"{QUAST_PYTHON} {QUAST} -o 05_quast 04_select_6k/final.fa 2>r5.quast.err\n")
+        #06_prodigal
+        with open(os.path.join(outpath, sampleID, "r6_prodigal.sh"), "w") as f:
+            f.write("mkdir -p 06_prodigal\n")
+            f.write(f"{PRODIGAL} -i 04_select_6k/final.fa -o 06_prodigal/{sampleID}_genome.prodigal.gff -a 06_prodigal/{sampleID}_genome.proteins.faa -d 06_prodigal/{sampleID}_genome.genes.fasta -f gff -c -p meta\n")
+        #07_blastp
+        with open(os.path.join(outpath, sampleID, "r7_blastp.sh"), "w") as f:
+            f.write("mkdir -p 07_blastp\n")
+            f.write(f"{BLASTP} -query 06_prodigal/{sampleID}_genome.proteins.faa -db {NR_PHAGE_DB} -evalue 1e-5 -max_target_seqs 1 -out 07_blastp/{sampleID}_genome.proteins.blastp.txt -outfmt \"6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore\"\n")
+        #08_phmmer
+        with open(os.path.join(outpath, sampleID, "r8_phmmer.sh"), "w") as f:
+            f.write("mkdir -p 08_phmmer\n")
+            f.write(f"{PHMMER} -E 1e-5 -o 08_phmmer/uniref.output.txt --tblout 08_phmmer/uniref.tblout.txt 06_prodigal/{sampleID}_genome.proteins.faa {UNIREF_DB}\n")
+            f.write(f"grep '#' -v 08_phmmer/uniref.tblout.txt > 08_phmmer/uniref.tblout.txt.hit\n")
+            f.write(f"{PHMMER} -E 1e-5 -o 08_phmmer/uniprotkb.output.txt --tblout 08_phmmer/uniprotkb.tblout.txt 06_prodigal/{sampleID}_genome.proteins.faa {UNIPROTKB_DB}\n")
+            f.write(f"grep '#' -v 08_phmmer/uniprotkb.tblout.txt > 08_phmmer/uniprotkb.tblout.txt.hit\n")
+        #09_hmmscan
+        with open(os.path.join(outpath, sampleID, "r9_hmmscan.sh"), "w") as f:
+            f.write("mdkir -p 09_hmmscan\n")
+            f.write(f"{HMMSCAN} -E 1e-5 -o 09_hmmscan/pfam.output.txt --tblout 09_hmmscan/pfam.tblout.txt {PFAM_PATH} 06_prodigal/{sampleID}_genome.proteins.faa\n")
+            f.write(f"grep '#' -v 09_hmmscan/pfam.tblout.txt > 09_hmmscan/pfam.tblout.txt.hit\n")
+        #10_result
+        with open(os.path.join(outpath, sampleID, "r10_result.sh"), "w") as f:
+            f.write("mkdir -p 10_result\n")
+            f.write(f"cat 09_hmmscan/pfam.tblout.txt.hit 08_phmmer/uniref.tblout.txt.hit 08_phmmer/uniprotkb.tblout.txt.hit > 10_result/hmm.hit\n")
+            f.write(f"{HMMER_UNIQ} 10_result/hmm.hit 10_result/hmm.hit.uniq\n")
+            f.write(f"{GET_RESULT_PY} 07_blastp/{sampleID}_genome.proteins.blastp.txt 10_result/hmm.hit.uniq 10_result/{sampleID}_result.txt\n")
+        #11_gff2gbk
+        with open(os.path.join(outpath, sampleID, "r11_gbk.sh"), "w") as f:
+            f.write("mkdir -p 11_gff2gbk\n")
+            f.write(f"{RESULT2GFF} 10_result/{sampleID}_result.txt 06_prodigal/{sampleID}_genome.prodigal.gff 11_gff2gbk/{sampleID}_genome.result.gff\n")
+            f.write(f"{SEQRET} -sequence 04_select_6k/final.fa -feature -fformat gff -fopenfile 06.gff2genebank/{sampleID}_genome.result.gff -osformat genbank -outseq 11_gff2gbk/{sampleID}_genome.gbk\n")
+            f.write("mkdir -p final_result\n")
+            f.write(f"cp 04_select_6k/final.fa 11_gff2gbk/{sampleID}_genome.gbk 11_gff2gbk/{sampleID}_genome.result.gff 10_result/{sampleID}_result.txt 06_prodigal/{sampleID}_genome.proteins.faa 06_prodigal/{sampleID}_genome.genes.fasta final_result\n")
+            f.write(f"mv final_result/final.fa final_result/{sampleID}.fa\n")
+        #run.sh
+        with open(os.path.join(outpath, sampleID, f"run_{sampleID}.sh"), "w") as f:
+            f.write(f"#!/usr/bin/bash\n")
+            f.write(f"set -e\n")
+            f.write(f"cd {outpath}/{sampleID}\n")
+            f.write(f"chmod 754 *\n")
+            f.write(f"sh r1_filter.sh\n")
+            f.write(f"sh r2_seqtk.sh\n")
+            f.write(f"sh r3_spades.sh\n")
+            f.write(f"sh r4_fa.sh\n")
+            f.write(f"sh r5_quast.sh\n")
+            f.write(f"sh r6_prodigal.sh\n")
+            f.write(f"sh r7_blastp.sh\n")
+            f.write(f"sh r8_phmmer.sh\n")
+            f.write(f"sh r9_hmmscan.sh\n")
+            f.write(f"sh r10_result.sh\n")
+            f.write(f"sh r11_gbk.sh\n")
+            f.write(f"tar -cvzf  01_fastp/fastp1_fq.tar.gz 01_fastp/*1.fq --remove-files\n")
+            f.write(f"tar -cvzf  01_fastp/fastp2_fq.tar.gz 01_fastp/*2.fq --remove-files\n")
+    #运行结束，输出提示信息
+    print("\n")
+    print(f">>>All sh are generated, please check the {outpath}/{sampleID} and excute run_{sampleID}.sh<<<")
+    print("\n")
