@@ -1,0 +1,70 @@
+#!/home/zoran/Software/miniconda3/envs/taco/bin/python3.12
+import os
+import sys
+import argparse
+
+parser = argparse.ArgumentParser(description="BACX: a collection of tools for bacterial genome assembly and annotation", formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("-i", "--inputfile", type=argparse.FileType('r'), required=True, help="Input file, the file should contain the sample ID and the path of the fastq file.\nSupports multi-line list.\nEg: Lp0207 /path/to/sample1_1.fastq.gz /path/to/sample1_2.fastq.gz")
+parser.add_argument("-o", "--outpath", type=str, required=True, help="Output path, need to use absolute path")
+parser.add_argument("-p", "--phred", type=int, required=True, help="33 or 64")
+parser.add_argument("-v", "--version", action='version', version='Version: 1.0\nRelease date: Nov 21, 2023', help="Print script version")
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+args = parser.parse_args()
+inputlist = args.inputfile
+outpath = args.outpath
+phred = args.phred
+
+FASTP = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/miniconda_20211218/miniconda/bin/fastp"
+SPADES = "/ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/spades.py"
+PROKKA = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/prokka"
+PERL = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/perl"
+QUAST_PYTHON = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/quast/bin/python"
+QUAST = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/quast/bin/quast"
+
+for list in inputlist:
+    list = list.strip()
+    sampleID, fastq1, fastq2 = list.split()
+    #创建文件夹
+    os.makedirs(os.path.join(outpath, sampleID), exist_ok=False)
+    #创建文件
+    #01_fastp
+    with open(os.path.join(outpath, sampleID, "r1_filter.sh"), "w") as f:
+        f.write(f"mkdir -p 01_fastp\n")
+        if phred == 33:
+            f.write(f"{FASTP} -i {fastq1} -o 01_fastp/{sampleID}_1.fq -I {fastq2} -O 01_fastp/{sampleID}_2.fq -5 -3 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R 01_fastp/out.prefix -l 30 1>01.fastp.result 2>r1.fastp.sh.err\n")
+        else:
+            f.write(f"{FASTP} -i {fastq1} -o 01_fastp/{sampleID}_1.fq -I {fastq2} -O 01_fastp/{sampleID}_2.fq -6 -5 -3 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R 01_fastp/out.prefix -l 30 1>01.fastp.result 2>r1.fastp.sh.err\n")
+    #02_spades
+    with open(os.path.join(outpath, sampleID, "r2_spades.sh"), "w") as f:
+        f.write(f"mkdir -p 02_spades\n")
+        f.write(f"{SPADES} --careful -1 01_fastp/fastp1.fq -2 01_fastp/fastp2.fq -o 02_spades 2>r2.spades.sh.err\n")
+    #03_annotation
+    with open(os.path.join(outpath, sampleID, "r3_annotation.sh"), "w") as f:
+        f.write(f"mkdir -p 03_annotation\n")
+        f.write(f"{PERL} {PROKKA}   --prefix {sampleID} --locustag {sampleID} --addgenes --addmrna --plasmid Plasmid --gcode 11 --outdir 03_annotation   --mincontiglen 100 02_spades/scaffolds.fasta  2>r3.prokka.sh.err\n")
+    #04_quast
+    with open(os.path.join(outpath, sampleID, "r4_quast.sh"), "w") as f:
+        f.write(f"mkdir -p 04_quast\n")
+        f.write(f"{QUAST_PYTHON} {QUAST} -o 04_quast 02_spades/scaffolds.fasta 2>r4.quast.sh.err\n")
+    #05_result
+    with open(os.path.join(outpath, sampleID, "r5_result.sh"), "w") as f:
+        f.write(f"cp 03_spades/scaffolds.fasta {sampleID}.fasta\n")
+    #06_run
+    with open(os.path.join(outpath, sampleID, f"run_{sampleID}.sh"), "w") as f:
+        f.write(f"#!/usr/bin/bash\n")
+        f.write(f"set -e\n")
+        f.write(f"cd {outpath}/{sampleID}\n")
+        f.write(f"chmod 754 *\n")
+        f.write(f"sh r1_fastp.sh\n")
+        f.write(f"sh r2_spades.sh\n")
+        f.write(f"sh r3_annotation.sh\n")
+        f.write(f"sh r4_quast.sh\n")
+        f.write(f"sh r5_result.sh\n")
+        f.write(f"tar -zcvf 01_fastp/fastp1_fq.tar.gz 01_fastp/*1.fa --remove-files\n")
+        f.write(f"tar -zcvf 01_fastp/fastp2_fq.tar.gz 01_fastp/*2.fa --remove-files\n")
+#运行结束，输出提示信息
+print("\n")
+print(f">>>All sh are generated, please check the {outpath}/{sampleID} and excute run_{sampleID}.sh<<<")
+print("\n")

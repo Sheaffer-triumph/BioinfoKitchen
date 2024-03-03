@@ -1,0 +1,80 @@
+#!/home/zoran/Software/miniconda3/envs/taco/bin/python3.12
+import os
+import sys
+import argparse
+
+parser = argparse.ArgumentParser(description="BACK: Assembly and annotation toolset for bacterial genomes processed by Kraken", formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("-i", "--inputfile", type=argparse.FileType('r'), required=True, help="Input file, the file should contain the sample ID, the path of the fastq file, and the bacterial genus.\nSupports multi-line list.\nEg: Lp0207 /path/to/sample1_1.fastq.gz /path/to/sample1_2.fastq.gz Lactobacillus")
+parser.add_argument("-o", "--outpath", type=str, required=True, help="Output path, need to use absolute path")
+parser.add_argument("-p", "--phred", type=int, required=True, help="33 or 64")
+parser.add_argument("-v", "--version", action='version', version='Version: 1.0\nRelease date: Nov 21, 2023', help="Print script version")
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+args = parser.parse_args()
+inputlist = args.inputfile
+outpath = args.outpath
+phred = args.phred
+
+FASTP = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/miniconda_20211218/miniconda/bin/fastp"
+SPADES = "/ldfssz1/ST_HEALTH/P17Z10200N0246/songwenchen/software/anconda2/bin/spades.py"
+PROKKA = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/prokka"
+PERL = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/perl"
+QUAST = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/quast/bin/quast"
+QUAST_PYTHON = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/quast/bin/python"
+KRAKEN = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/kraken2"
+KRAKEN_MINI = "/hwfssz5/ST_HEALTH/P17Z10200N0246/USER/lizhuoran1/software_lib/kraken2/minikraken2_v1_8GB/"
+KRAKEN_MAX = "/ldfssz1/ST_HEALTH/P17Z10200N0246/luoyunzhe/database/kraken_max/maxikraken2_1903_140GB"
+SEQKIT = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqkit"
+CHECKM = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/checkv/bin/checkm"
+
+for list in inputlist:
+    list = list.strip()
+    sampleID, fastq1, fastq2, genus = list.split()
+    #创建文件夹
+    os.makedirs(os.path.join(outpath, sampleID), exist_ok=False)
+    #创建文件
+    #01_fastp
+    with open(os.path.join(outpath, sampleID, "r1_fastp.sh"), "w") as f:
+        f.write(f"mkdir -p 01_fastp\n")
+        if phred == 33:
+            f.write(f"{FASTP} -i {fastq1} -o 01_fastp/{sampleID}_1.fq -I {fastq2} -O 01_fastp/{sampleID}_2.fq -5 -3 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R 01_fastp/out.prefix -l 30 1>01.fastp.sh.std 2>r1.fastp.sh.err\n")
+        else:
+            f.write(f"{FASTP} -i {fastq1} -o 01_fastp/{sampleID}_1.fq -I {fastq2} -O 01_fastp/{sampleID}_2.fq -6 -5 -3 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R 01_fastp/out.prefix -l 30 1>01.fastp.sh.std 2>r1.fastp.sh.err\n")
+    with open(os.path.join(outpath, sampleID, "r2_kraken.sh"), "w") as f:
+        f.write(f"mkdir -p 02_kraken\n")
+        f.write(f"{KRAKEN} --threads 8 --db {KRAKEN_MINI} --paired 01_fastp/{sampleID}_1.fq 01_fastp/{sampleID}_2.fq --classified-out 02_kraken/{sampleID}#.Classified.out --output 02_kraken/kraken.result --report 02_kraken/kraken.report 2>r2.kraken.sh.err\n")
+        f.write(f"for id in `grep {genus} 02_kraken/kraken.report | grep -v phage | grep -v virus | cut -f5`\ndo\ngrep kraken:taxid|$id 02_kraken/{sampleID}_1.Classified.out | awk '{{print $1}}' | sed -e 's/@//g' >> 02_kraken/{sampleID}.extract.id\ngrep kraken:taxid|$id 02_kranken/{sampleID}_2.Classified.out | awk '{{print $1}}' | sed -e 's/@//g' >> 02_kraken/{sampleID}_2.extract.id\ndone\n")
+        f.write(f"{SEQKIT} grep -f 02_kraken/{sampleID}_1.extract.id 02_kraken/{sampleID}_1.Classified.out >> 02_kraken/{sampleID}_1.extract.fq\n")
+        f.write(f"{SEQKIT} grep -f 02_kraken/{sampleID}_2.extract.id 02_kraken/{sampleID}_2.Classified.out >> 02_kraken/{sampleID}_2.extract.fq\n")
+        f.write(f"tar -cvzf 01_fastp/fastp1_fq.tar.gz 01_fastp/fastp1.fq --remove-files\n")
+        f.write(f"tar -cvzf 01_fastp/fastp2_fq.tar.gz 01_fastp/fastp2.fq --remove-files\n")
+    with open(os.path.join(outpath, sampleID, "r3_spades.sh"), "w") as f:
+        f.write(f"mkdir -p 03_spades\n")
+        f.write(f"{SPADES} --careful -1 02_kraken/{sampleID}_1.extract.fq -2 02_kraken/{sampleID}_2.extract.fq -o 03_spades 2>r3.spades.sh.err\n")
+    with open(os.path.join(outpath, sampleID, "r4_quast.sh"), "w") as f:
+        f.write(f"mkdir -p 04_quast\n")
+        f.write(f"{QUAST_PYTHON} {QUAST} -o 04_quast 03_spades/scaffolds.fasta 2>r4.quast.sh.err\n")
+    with open(os.path.join(outpath, sampleID, "r5_annotation.sh"), "w") as f:
+        f.write(f"mkdir -p 05_annotation\n")
+        f.write(f"{PERL} {PROKKA}   --prefix {sampleID} --locustag {sampleID} --addgenes --addmrna --plasmid Plasmid --gcode 11 --outdir 05_annotation   --mincontiglen 100 03_spades/scaffolds.fasta  2>r4.prokka.sh.err\n")
+    with open(os.path.join(outpath, sampleID, "r6_checkm.sh"), "w") as f:
+        f.write(f"mkdir -p 06_checkm\n")
+        f.write(f"cp 03_spades/scaffolds.fasta {sampleID}.fasta\n")
+        f.write(f"{CHECKM} lineage_wf -t 8 -x fa 03_spades/scaffolds.fasta 06_checkm 2>r6.checkm.sh.err\n")
+    with open(os.path.join(outpath, sampleID, f"run_{sampleID}.sh"), "w") as f:
+        f.write(f"#!/usr/bin/bash\n")
+        f.write(f"set -e\n")
+        f.write(f"cd {outpath}/{sampleID}\n")
+        f.write(f"chmod 754 *\n")
+        f.write(f"sh r1_fastp.sh\n")
+        f.write(f"sh r2_kraken.sh\n")
+        f.write(f"sh r3_spades.sh\n")
+        f.write(f"sh r4_quast.sh\n")
+        f.write(f"sh r5_annotation.sh\n")
+        f.write(f"sh r6_checkm.sh\n")
+#运行结束，输出提示信息
+print("\n")
+print("------------------------------------------------------------------------------------------------\n")
+print(">>>>>>>All sh are generated, please check the output directory and excute run_sampleID.sh<<<<<<<\n")
+print("------------------------------------------------------------------------------------------------\n")
