@@ -34,7 +34,7 @@ nl -n ln A > B              #给A文件的每一行加上行号，输出到B文�
 
 #后台运行命令
 command 1>out 2>err &       #将command的正常输出重定向到out文件中，报错信息输出到err文件中
-nohup command &             #在后台执行命令，不要大批量使用，报错输出到nohup.out文件中。大批量需投递任务
+nohup command &             #在后台执行命令，要时刻注意内存和线程的使用情况，报错输出到nohup.out文件中
 top/htop                    #查询后台
 top -u lizhuoran1           #查询该用户的jobs，top下按q可以 退出
 jobs                        #查询后台运行的任务状态
