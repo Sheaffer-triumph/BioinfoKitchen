@@ -217,7 +217,7 @@ seqkit fx2tab --gc A.fa             #计算A序列的GC含量
 seqkit stat A.fa                    #统计A序列长度
 seqkit rmdup -i A.fa > B.fa         #按照序列的ID，将A文件中的序列去重并输出至B文件
 seqkit rmdup -s A.fa > B.fa         #按照序列的序列的相似度，将A文件中的序列去重并输出至B文件，只有完全相同的序列才会被去重
-seqkit grep -n -f A.id B.fa > C.fa  #按照A文件中的ID，将B文件中对应ID的序列提取出来输出至C文件，-n按名字提取，两个文件的ID应该完全一样才可以提取输出。如不加-n，则按照ID默认提取
+seqkit grep -n -f A.id B.fa > C.fa  #按照A文件中的ID，将B文件中对应ID的序列提取出来输出至C文件，-n按名字提取，两个文件的ID要完全一样才可以提取输出。如不加-n，则按照ID默认提取
 seqkit split -i A.fa                #按照序列的ID，将A文件中的序列拆分成单个序列
 seqkit split -p 100 A.fa            #将A文件中的序列拆分成100个序列为一组的文件
 
