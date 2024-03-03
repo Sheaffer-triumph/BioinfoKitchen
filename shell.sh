@@ -179,6 +179,8 @@ iqtree -s algined_tree.fasta -bb 1000 --runs 8 --mem 50G #runs线程；mem内存
 makeblastdb -in A.fasta -dbtype prot -parse_seqids -out index #-in：建库的文件 -dbtype：数据库类型，prot是蛋白质，nucl是核酸，生成一系列以index为前缀的文件，用于建库的序列应写在同一个文件里
 blastp -query MF19343.faa -db alphafold_db.fasta -outfmt 6 -evalue 1e-5 -out result.txt #evalue值一般设置1e-5
 blastn -query CPB1015.fa -db ./index -outfmt "6 qseqid sseqid qcovs qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore" -evalue 1e-5 -out ./CPB1015_blastn.txt #在指定路径查找以index为前缀的文件
+#blast结果解读:
+#qseqid:查询序列的ID sseqid:数据库序列的ID qcovs:查询序列与数据库序列的匹配长度占查询序列的百分比 qcovhsp:查询序列与数据库序列的匹配长度占数据库序列的百分比 pident:匹配的百分比 length:匹配的长度 mismatch:不匹配的长度 gapopen:间隙的长度 qstart:查询序列的起始位置 qend:查询序列的终止位置 sstart:数据库序列的起始位置 send:数据库序列的终止位置 evalue:期望值 bitscore:打分
 
 #checkv流程
 checkv end_to_end input.fa ./checkv -d /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/miniconda_20211218/miniconda/envs/checkv/checkv-db-v1.4 -t 8
