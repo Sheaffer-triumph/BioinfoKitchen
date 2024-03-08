@@ -42,7 +42,6 @@ for list in inputlist:
         f.write(f"{SPADES} --careful -1 01_fastp/fastp1.fq -2 01_fastp/fastp2.fq -o 02_spades 2>r2.spades.sh.err\n")
     #03_annotation
     with open(os.path.join(outpath, sampleID, "r3_annotation.sh"), "w") as f:
-        f.write(f"mkdir -p 03_annotation\n")
         f.write(f"{PERL} {PROKKA}   --prefix {sampleID} --locustag {sampleID} --addgenes --addmrna --plasmid Plasmid --gcode 11 --outdir 03_annotation   --mincontiglen 100 02_spades/scaffolds.fasta  2>r3.prokka.sh.err\n")
     #04_quast
     with open(os.path.join(outpath, sampleID, "r4_quast.sh"), "w") as f:
