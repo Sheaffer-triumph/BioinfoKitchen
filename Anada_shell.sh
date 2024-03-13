@@ -180,7 +180,7 @@ seqkit rmdup -s A.fa > B.fa
 
 #系统进化树
 mafft --auto input.fasta > algined_tree.fasta 2>err         #将输入的蛋白质序列对齐
-iqtree -s algined_tree.fasta -bb 1000 --runs 8 -T 8 --mem 50G  #runs线程；mem内存分配；bb迭代数，1000次耗时很长，可以先不设置迭代
+iqtree -s algined_tree.fasta -bb 1000 --runs 8 -T 8 --mem 50G  #runs进行独立运行的次数，每次运行都会生成一个进化树，最后选择最优的树作为结果；mem内存分配；bb迭代数，1000次耗时很长，可以先不设置迭代；T线程数
 
 #blast比对
 makeblastdb -in A.fasta -dbtype prot -parse_seqids -out index #-in：建库的文件 -dbtype：数据库类型，prot是蛋白质，nucl是核酸，生成一系列以index为前缀的文件，用于建库的序列应写在同一个文件里
