@@ -233,9 +233,3 @@ python
     import pkg_resources
     print(pkg_resources.get_distribution("numpy").version) #查看numpy版本
 \\
-
-#singleton
-cat genome_by_genome_overview.csv | grep "k141" > k141.csv
-cat k141.csv | grep "Sing" > k141.singleton
-cat k141.csv | grep "Out" > k141.outlier
-cat k141.csv | grep "Clu" | cut -f1,10 -d ',' | while read i; do a=`echo $i | cut -d ',' -f1`; b=`echo $i | cut -d ',' -f2`; c=`grep $b genome_by_genome_overview.csv | cut -d ',' -f2-6 | uniq`; for d in $c; do paste <(echo $a) <(echo $d) >> k141.vc.fin; done; done
