@@ -1,3 +1,5 @@
+#不调用entrez直接下载NCBI数据库中的数据
+
 import requests
 import argparse         # 导入argparse模块用于处理命令行参数
 
