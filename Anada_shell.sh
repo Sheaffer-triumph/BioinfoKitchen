@@ -33,10 +33,10 @@ nl -n ln A > B              #给A文件的每一行加上行号，输出到B文�
 \\
 
 #后台运行命令
-command 1>std 2>err &       #将command的正常输出重定向到out文件中，报错信息输出到err文件中，如果command里已经有了重定向，那么这里的重定向会覆盖command里的重定向，则需要去掉1>std，否则其输出会直接输出到std文件中
+command 1>std 2>err &       #将command的正常输出重定向到out文件中，报错信息输出到err文件中。如果command里已经有了重定向，那么这里的重定向会覆盖command里的重定向，则需要去掉1>std，否则其输出会直接输出到std文件中
 nohup command &             #在后台执行命令，要时刻注意内存和线程的使用情况，报错输出到nohup.out文件中
 top/htop                    #查询后台
-top -u lizhuoran1           #查询该用户的jobs，top下按q可以 退出
+top -u lizhuoran1           #查询该用户的jobs，top下按q可以退出
 jobs                        #查询后台运行的任务状态
 jobs -l                     #查询后台运行的任务状态，显示jobsID
 kill jobID                  #终止对应ID的后台任务
@@ -179,7 +179,7 @@ seqkit rmdup -s A.fa > B.fa
     #去冗余，-s表示按照序列的相似度进行去冗余，只有完全相同的序列才会被去冗余
 \\
 
-#系统进化树
+#系统进化树的构建
 mafft --auto input.fasta > algined_tree.fasta 2>err         #将输入的蛋白质序列对齐
 iqtree -s algined_tree.fasta -bb 1000 --runs 8 -T 8 --mem 50G  #runs进行独立运行的次数，每次运行都会生成一个进化树，最后选择最优的树作为结果；mem内存分配；bb迭代数，1000次耗时很长，可以先不设置迭代；T线程数
 
