@@ -13,7 +13,7 @@ cat cluster.id | while read a
     printf ${b}\\t >> cluster.txt
     rg $b genome_by_genome_overview.csv | cut -d',' -f2-7 | grep -v "Unassigned,Unassigned,Unassigned,Unassigned,Unassigned,Unassigned" | sort | uniq > temp
     c=$(cat temp | wc -l)
-    if (( $c == 0))
+    if (( $c == 0 ))
     then
         printf "N/A\n" >> cluster.txt
     elif (( $c == 1))
