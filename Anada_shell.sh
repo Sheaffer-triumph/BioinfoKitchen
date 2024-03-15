@@ -198,8 +198,14 @@ checkv end_to_end input.fa ./checkv -d /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xi
 prokka --prefix ID --locustag ID --addgenes --addmrna --plasmid Plasmid --gcode 11 --outdir A --mincontiglen 100 A.fasta 
 
 #meme流程
-mpirun -np 4 --mca btl vader,self meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -maxw 50 -objfun classic -revcomp -markov_order 0
-mpirun -np 4 --use-hwthread-cpus --mca btl vader,self meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -maxw 50 -objfun classic -revcomp -markov_order 0
+meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -maxw 50 -objfun classic -revcomp -markov_order 0 -p 8
+    #-oc 输出路径
+    #-time 14400表示运行时间为14400秒，到达运行时间后，meme会自动停止运行
+    #-nmotifs 找到的motif数
+    #-minw 6 -maxw 50 表示motif的最小长度为6，最大长度为50
+    #-p 8表示使用8个线程
+#mpirun -np 4 --mca btl vader,self meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -maxw 50 -objfun classic -revcomp -markov_order 0
+#mpirun -np 4 --use-hwthread-cpus --mca btl vader,self meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -maxw 50 -objfun classic -revcomp -markov_order 0
     #-np设置运行的线程数
     #如果需要投递任务，则要在-np后面加--use-hwthread-cpus，将默认slots数量设置为硬件线程数而不是处理器核心数
     #-maxsize后面的数字为字节数，需要大于输入文件的字节数；默认为100000字节
@@ -208,7 +214,7 @@ mpirun -np 4 --use-hwthread-cpus --mca btl vader,self meme A.fasta -dna -oc A -n
     #-nmotifs输出的结果数
     #在多线程运行meme时，报错频繁，运行完后无法将xml文件转换成html文件，大概与mpirun的并联运行有关，可考虑将线程数设置为1重新运行或使用下面的命令。
     #综上，在批量运行meme时，可先以np为4快速运行完后，再统一将xml文件转换成html文件
-meme_xml_to_html meme.xml meme.html #将xml文件转换成html文件，仅用于meme。meme程序运行的最后一步为此步，但在多线程运行时，总是会报错且不运行此步，因此可以在运行完后单独运行此命令。
+#meme_xml_to_html meme.xml meme.html #将xml文件转换成html文件，仅用于meme。meme程序运行的最后一步为此步，但在多线程运行时，总是会报错且不运行此步，因此可以在运行完后单独运行此命令。
 
 #vContact2流程
 source ~/.mamba_init.sh
