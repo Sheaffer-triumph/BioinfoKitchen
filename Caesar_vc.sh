@@ -4,6 +4,7 @@
 
 set -e
 
+grep 
 
 
 cat cluster.id | while read a
