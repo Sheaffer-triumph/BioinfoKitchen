@@ -38,8 +38,9 @@ nohup command &             #在后台执行命令，要注意内存和CPU的使
 top/htop                    #查询后台
 top -u lizhuoran1           #查询该用户的jobs，top下按q可以退出
 jobs                        #查询后台运行的任务状态
-jobs -l                     #查询后台运行的任务状态，显示jobsID
-kill jobID                  #终止对应ID的后台任务
+jobs -l                     #查询后台运行的任务状态，显示jobID
+kill jobID                  #终止对应ID的后台任务，有些时候可能终止不了，需要强制终止
+kill -9 jobID               #强制终止对应ID的后台任务
 
 #命令嵌套
 ll `cat list`               #将list文件中的每一行内容作为参数传递给ll命令
