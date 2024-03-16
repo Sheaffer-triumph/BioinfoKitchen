@@ -4,7 +4,7 @@
 
 set -e
 
-grep "clustered" genome_by_genome_overview.csv | cut -d',' -f1 | grep id > cluster.id   ##此处没有通用代码，根据自己需要，在genome_by_genome_overview.csv中提取形成clustered的样本序列ID，输入至cluster.id
+grep "clustered" genome_by_genome_overview.csv | cut -d',' -f1 | grep id > cluster.id   #此处没有通用代码，根据自己需要，在genome_by_genome_overview.csv中提取形成clustered的样本序列ID，输入至cluster.id
 
 rm cluster.txt
 cat cluster.id | while read a
