@@ -1,5 +1,5 @@
 #条件判断
-if [ $a -eq 1 ]; then echo "1"; else echo "0"; fi       #如果$a等于1，则输出1，否则输出0
+if [ $a -eq 1 ]; then echo "1"; else echo "0"; fi       #如果$a等于1，则输出1，否则输出0；[ ]中的空格是必须的，否则会报错；[]与(( ))的区别是[]是bash的内建命令，而(( ))是bash的语法结构，[]中只能使用特定的操作符进行比较，而(())可以使用算术操作符
 if [ $a -ne 1 ]; then echo "1"; else echo "0"; fi       #如果$a不等于1，则输出1，否则输出0
 if [ $a -gt 1 ]; then echo "1"; else echo "0"; fi       #如果$a大于1，则输出1，否则输出0
 if [ $a -lt 1 ]; then echo "1"; else echo "0"; fi       #如果$a小于1，则输出1，否则输出0
@@ -41,6 +41,13 @@ if (( $a == 1 || $b == 1 )); then echo "1"; else echo "0"; fi  #如果$a等于1�
 if (( $a == 1 && ( $b == 1 || $c == 1 ) )); then echo "1"; else echo "0"; fi  #如果$a等于1并且（$b等于1或者$c等于1），则输出1，否则输出0
 if (( $a == 1 && ( $b == 1 || $c == 1 ) && ( $d == 1 || $e == 1 ) )); then echo "1"; else echo "0"; fi  #如果$a等于1并且（$b等于1或者$c等于1）并且（$d等于1或者$e等于1），则输出1，否则输出0
 if (( $a == 1 && ( $b == 1 || $c == 1 ) && ( $d == 1 || $e == 1 ) && ( $f == 1 || $g == 1 ) )); then echo "1"; else echo "0"; fi  #如果$a等于1并且（$b等于1或者$c等于1）并且（$d等于1或者$e等于1）并且（$f等于1或者$g等于1），则输出1，否则输出0
+if (( a == b )) then echo "1"; else echo "0"; fi         #如果a等于b，则输出1，否则输出0；(())中的空格是可选的，但是建议加上；变量的$符号可以省略，但是建议加上
+if (( a+1 == b )) then echo "1"; else echo "0"; fi       #如果a+1等于b，则输出1，否则输出0
+if (( a-1 == b )) then echo "1"; else echo "0"; fi       #如果a-1等于b，则输出1，否则输出0
+if (( a*2 == b )) then echo "1"; else echo "0"; fi       #如果a*2等于b，则输出1，否则输出0
+if (( a/2 == b )) then echo "1"; else echo "0"; fi       #如果a/2等于b，则输出1，否则输出0
+if (( a%2 == b )) then echo "1"; else echo "0"; fi       #如果a%2等于b，则输出1，否则输出0；%表示取余
+if (( a**2 == b )) then echo "1"; else echo "0"; fi      #如果a的平方等于b，则输出1，否则输出0；**表示幂
 
 #循环
 for i in {1..5}; do echo $i; done                       #i从1到5
