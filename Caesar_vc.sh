@@ -24,7 +24,7 @@ cat cluster.id | while read a
         e=0
         f=1
         until [ $f -gt 1 ]
-        do
+            do
             e=$(expr $e + 1)
             f=$(awk -F ',' -v var=$e '{print $var}' | sort | uniq | wc -l)
         done
