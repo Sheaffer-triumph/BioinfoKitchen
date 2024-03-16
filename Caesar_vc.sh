@@ -22,16 +22,14 @@ cat cluster.id | while read a
         printf "$c\n" >> cluster.txt
     else
         e=0
-        g=1
-        until [ $g -gt 1 ]
+        f=1
+        until [ $f -gt 1 ]
         do
             e=$(expr $e + 1)
-            f=$(awk -F ',' -v var=$e '{print $var}' | sort | uniq)
-            g=$(echo $f | wc -l)
+            f=$(awk -F ',' -v var=$e '{print $var}' | sort | uniq | wc -l)
         done
         printf "$f" >> cluster.txt
-        g=$(expr 6 - $e)
-        for h in $(seq 1 $g)
+        for h in $(seq $e 6)
         do
             printf ",Unassigned" >> cluster.txt
         done
