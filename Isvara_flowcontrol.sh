@@ -41,3 +41,29 @@ if (( $a == 1 || $b == 1 )); then echo "1"; else echo "0"; fi  #如果$a等于1�
 if (( $a == 1 && ( $b == 1 || $c == 1 ) )); then echo "1"; else echo "0"; fi  #如果$a等于1并且（$b等于1或者$c等于1），则输出1，否则输出0
 if (( $a == 1 && ( $b == 1 || $c == 1 ) && ( $d == 1 || $e == 1 ) )); then echo "1"; else echo "0"; fi  #如果$a等于1并且（$b等于1或者$c等于1）并且（$d等于1或者$e等于1），则输出1，否则输出0
 if (( $a == 1 && ( $b == 1 || $c == 1 ) && ( $d == 1 || $e == 1 ) && ( $f == 1 || $g == 1 ) )); then echo "1"; else echo "0"; fi  #如果$a等于1并且（$b等于1或者$c等于1）并且（$d等于1或者$e等于1）并且（$f等于1或者$g等于1），则输出1，否则输出0
+
+#循环
+for i in {1..5}; do echo $i; done                       #i从1到5
+for i in {5..1}; do echo $i; done                       #i从5到1
+for i in $(seq 1 5); do echo $i; done                   #i从1到5
+for i in {1..5..2}; do echo $i; done                    #i从1到5，步长为2，即1 3 5
+for i in $(seq 1 2 5); do echo $i; done                 #i从1到5，步长为2，即1 3 5
+for i in $(seq 5 -1 1); do echo $i; done                #i从5到1，步长为-1，即5 4 3 2 1
+for i in $(seq 5 -2 1); do echo $i; done                #i从5到1，步长为-2，即5 3 1
+for i in $(command)                                     #i从command的输出结果中取值
+for i in `command`                                      #i从command的输出结果中取值
+for((i=1;i<=5;i++)); do echo $i; done                   #i从1到5
+for((i=5;i>=1;i--)); do echo $i; done                   #i从5到1
+for i in a b c; do echo $i; done                        #i从a到c
+for i in $@; do echo $i; done                           #i从命令行参数中取值
+for i in "$@"; do echo $i; done                         #i从命令行参数中取值
+for i in "$*"; do echo $i; done                         #i从命令行参数中取值
+for i in {a..z}; do echo $i; done                       #i从a到z
+for i in {a..z..2}; do echo $i; done                    #i从a到z，步长为2，即a c e g i k m o q s u w y
+while [ condition ]; do command; done                   #当condition为真时，执行command，condition内容可以是变量、命令、数学表达式等，参考条件判断
+until [ condition ]; do command; done                   #当condition为假时，执行command
+while (( condition )); do command; done                 #当condition为真时，执行command
+until (( condition )); do command; done                 #当condition为假时，执行command
+while read line; do echo $line; done < file             #从file中读取每一行，赋值给line，然后输出line
+cat file | while read line; do echo $line; done         #从file中读取每一行，赋值给line，然后输出line
+for i in `cat file`; do echo $i; done                   #从file中读取每一行，赋值给i，然后输出i
