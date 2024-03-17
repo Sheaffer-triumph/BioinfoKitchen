@@ -26,7 +26,7 @@ cat cluster.id | while read a
         until [ $f -gt 1 ]
             do
             e=$(expr $e + 1)
-            f=$(awk -F ',' -v var=$e '{print $var}' | sort | uniq | wc -l)
+            f=$(awk -F ',' -v var=$e '{print $var}' $c | sort | uniq | wc -l)
         done
         printf "$f" >> cluster.txt
         for h in $(seq $e 6)
