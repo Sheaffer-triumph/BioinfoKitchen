@@ -219,6 +219,12 @@ meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -ma
     #综上，在批量运行meme时，可先以np为4快速运行完后，再统一将xml文件转换成html文件
 #meme_xml_to_html meme.xml meme.html #将xml文件转换成html文件，仅用于meme。meme程序运行的最后一步为此步，但在多线程运行时，总是会报错且不运行此步，因此可以在运行完后单独运行此命令。
 
+#fastp过滤
+fastp -i A_1.fastq.gz -o A_1.fq -I A_2.fastq.gz -O A_2.fq -5 -3 -q 20 -c -j fastp.json -h fastp.html -R out.prefix -l 30
+fastp -i A_1.fastq.gz -o A_1.fq.gz -I A_2.fastq.gz -O A_2.fq.gz -5 -3 -q 20 -z 9 -c -j fastp.json -h fastp.html -R out.prefix -l 30
+#-i 输入文件 -o 输出文件 -I 输入文件 -O 输出文件 -5 3端剪切 -q 质量阈值 -c 修剪 -j 输出json文件 -h 输出html文件 -R 输出文件前缀 -l 输出文件长度阈值
+#-z 9表示压缩等级，数字越大压缩效果越好，耗时越长，可选1-9，如果添加-z，输出文件要改为对应的fq.gz后缀
+
 #vContact2流程
 source ~/.mamba_init.sh
 conda activate vcontact2
