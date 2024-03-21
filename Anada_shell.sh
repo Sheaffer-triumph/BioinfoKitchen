@@ -54,6 +54,7 @@ qsub -cwd -l vf=50g,num_proc=8 -P P17Z10200N0246 -binding linear:8 -q st_short.q
                             #设置的进程数与binding数须一致
                             #vf=10g 请求内存，内存过小与core文件的生成有关
 qsub -cwd -l vf=500g,num_proc=30 -P P17Z10200N0246_super -binding linear:30 -q st_supermem.q vc95.sh #大内存节点，使用前需要申请权限http://stblc.genomics.cn/ODMS/resourceManager/resourceRequest
+while read i; do qsub -cwd -q st.q -P P17Z10200N0246 -l vf=80g,num_proc=8 -binding linear:8 megahit.sh $i ; done < list.txt
 qstat                       #显示所有已投递的任务
 qstat -j jobID              #显示详细状态
 qdel id                     #终止对应ID的任务
