@@ -259,3 +259,11 @@ python
     import pkg_resources
     print(pkg_resources.get_distribution("numpy").version) #查看numpy版本
 \\
+
+#shell脚本相关
+#当你运行一个shell脚本时，它会在一个新的子shell中执行。这个子shell会继承父shell的环境变量，但是它们之间的环境变量是隔离的，所以子shell中的变量改变或者目录改变不会影响到父shell。
+#如果你想在运行脚本后保持改变的工作目录，你需要在当前shell中执行脚本，而不是在子shell中，可以使用如下方式执行脚本：
+source A.sh
+. A.sh
+#这两种方式都会在当前shell中执行脚本，而不是在子shell中执行。.是source的简写，两者是等价的。
+#或者在脚本最后加上bash，这样也可以在当前shell中执行脚本
