@@ -227,7 +227,7 @@ fastp -i A_1.fastq.gz -o A_1.fq.gz -I A_2.fastq.gz -O A_2.fq.gz -5 -3 -q 20 -z 9
 #-i 输入文件 -o 输出文件 -I 输入文件 -O 输出文件 -5 3端剪切 -q 质量阈值 -c 修剪 -j 输出json文件 -h 输出html文件 -R 输出文件前缀 -l 输出文件长度阈值
 #-z 9表示压缩等级，数字越大压缩效果越好，耗时越长，可选1-9，如果添加-z，输出文件要改为对应的fq.gz后缀
 
-#宏基因组组装
+#宏基因组组装流程
 fastp -i A_1.fastq.gz -o A_qc_1.fq.gz -I A_2.fastq.gz -O A_qc_2.fq.gz -5 -3 -z 9 -q 20 -c -j fastp.json -h fastp.html -R out.prefix -l 30 #先使用fastp进行质控，过滤低质量序列
 megahit --presets meta-large -t 25 -1 A_qc_1.fq.gz -2 A_qc_2.fq.gz -o megahit_result #使用megahit进行组装，-t 25表示使用25个线程，--presets meta-large表示使用预设的meta-large参数进行组装
 #megahit进行组装时，需要很长时间，同时也会产生很大的中间文件，因此在投递任务时需要注意内存、时间的设置以及磁盘空间。如发现磁盘空间不足，可结束任务，但不要删除中间文件。在磁盘空间充足时，可运行以下命令继续组装
