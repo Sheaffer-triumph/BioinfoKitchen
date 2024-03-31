@@ -42,6 +42,9 @@ jobs -l                     #查询后台运行的任务状态，显示jobID
 kill jobID                  #终止对应ID的后台任务，有些时候可能终止不了，需要强制终止
 kill -9 jobID               #强制终止对应ID的后台任务
 #在遇上kill无法终止的任务时，除kill -9外，还可以在htop中，选择对应的任务，按F9，选择15 SIGTERM或9 SIGKILL，即可终止任务
+ps aux                      #显示所有进程，a表示显示所有进程，u表示显示用户，x表示显示无终端的进程
+ps jobID                    #显示对应ID的进程信息，包括运行时间，cmd命令等
+pwdx jobID                  #显示对应ID的进程所在路径，只能显示当前用户的进程
 
 #命令嵌套
 ll `cat list`               #将list文件中的每一行内容作为参数传递给ll命令
