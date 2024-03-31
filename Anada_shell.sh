@@ -33,14 +33,15 @@ nl -n ln A > B              #给A文件的每一行加上行号，输出到B文�
 \\
 
 #后台运行命令
-command 1>std 2>err &       #将command的正常输出重定向到std中，报错信息输出到err中。如果command里已经有了重定向，那么这里的重定向会覆盖command里的重定向，则需要去掉1>std，否则其输出会直接输出到std文件中
-nohup command &             #在后台执行命令，要注意内存和CPU的使用情况，报错输出到nohup.out文件中
+command 1>std 2>err &       #将command的正常输出重定向到std中，报错信息输出到err中。如果command里已经对输出进行了重定向，那么这里的1>std重定向会覆盖command里的输出重定向，需要去掉1>std，否则输出会直接输出到std文件中
+nohup command &             #在后台执行命令，正常输出和报错都重定向到nohup.out文件中，但不会覆盖command里的输出重定向
 top/htop                    #查询后台
 top -u lizhuoran1           #查询该用户的jobs，top下按q可以退出
 jobs                        #查询后台运行的任务状态
 jobs -l                     #查询后台运行的任务状态，显示jobID
 kill jobID                  #终止对应ID的后台任务，有些时候可能终止不了，需要强制终止
 kill -9 jobID               #强制终止对应ID的后台任务
+#在遇上kill无法终止的任务时，除kill -9外，还可以在htop中，选择对应的任务，按F9，选择15 SIGTERM或9 SIGKILL，即可终止任务
 
 #命令嵌套
 ll `cat list`               #将list文件中的每一行内容作为参数传递给ll命令
