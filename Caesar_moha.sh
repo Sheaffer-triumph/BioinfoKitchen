@@ -5,20 +5,20 @@ source ~/.mamba_init.sh
 
 #DeepVirFinder
 mamba activate dvf
-/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/dvf/bin/dvf -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/10729696.10729696.megahit.scaftigs.fa -o /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result -m /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/DeepVirFinder/models -l 1500 1>dvf.std 2>dvf.err
+/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/dvf/bin/dvf -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa -o /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result -m /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/DeepVirFinder/models -l 1500 1>dvf.std 2>dvf.err
 /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/dvf/bin/dvf.extract /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/*gt1500bp_dvfpred.txt /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/dvfpred.id
-/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqkit grep -n -f /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/dvfpred.id /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/10729696.10729696.megahit.scaftigs.fa > /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/10729696.10729696.megahit.scaftigs.dvfpred.fa
+/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqkit grep -n -f /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/dvfpred.id /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa > /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/...dvfpred.fa
 
 #VirSorter2
 mamba activate virsorter2
-/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/virsorter2/bin/virsorter run -w /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/vs2 -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/10729696.10729696.megahit.scaftigs.fa --min-length 1500 -j 4 all 1>vs2.std 2>vs2.err
+/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/virsorter2/bin/virsorter run -w /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/vs2 -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa --min-length 1500 -j 4 all 1>vs2.std 2>vs2.err
 
 #vibrant
 mamba activate vibrant
-VIBRANT_run.py -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/10729696.10729696.megahit.scaftigs.fa -t 8 -d /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/envs/vibrant/db -m /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/envs/vibrant/model
+VIBRANT_run.py -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa -t 8 -d /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/envs/vibrant/db -m /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/envs/vibrant/model
 
 #dvf+vs2+vibrant去冗余
-cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/vs2/final-viral-combined.fa /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/10729696.10729696.megahit.scaftigs.dvfpred.fa /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/VIBRANT_10729696.10729696.megahit.scaftigs/VIBRANT_phages_10729696.10729696.megahit.scaftigs/10729696.10729696.megahit.scaftigs.phages_combined.fna >> /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/cat_dvf_vs2_vib.fa
+cat vs2/final-viral-combined.fa dvf_result/dvfpred.fa VIBRANT/VIBRANT_phages/...phages_combined.fna >> /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/cat_dvf_vs2_vib.fa
 sed 's/||/ /g' /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/cat_dvf_vs2_vib.fa | awk '{print $1}' > comb_dvf_vs2_vib.awk.fa
 /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqkit rmdup -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/comb_dvf_vs2.fa > /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/comb_dvf_vs2_vib.awk.rmdup.fa
 
