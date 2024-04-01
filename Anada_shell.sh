@@ -11,7 +11,7 @@ source ~/.bashrc    #修改.bashrc文件后，需要使用source命令重新加�
 alias lzr1='cd /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1'    #使用lzr1代替cd /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1命令；其中lzr1不能出现空格
 export TERMINFO=/usr/share/terminfo                             #在使用clear清屏时报错：terminals database is inaccessible，可使用该命令解决，原因未知
 
-ls -lthr                    #按写入内容的时间从前往后排列文件
+ls -lthr                    #按写入内容的时间从前往后排列文件，-l表示显示详细信息，-t表示按时间排序，-h表示文件大小以人类可读的方式显示（G M K），-r表示倒序
 ls -al                      #显示所有文件，包括隐藏文件
 ll -a                       #同上
 
