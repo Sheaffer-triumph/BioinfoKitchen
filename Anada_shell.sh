@@ -160,7 +160,7 @@ tar zxvf A.tgz                      #在当前目录解压后缀为tgz的文件�
 tar cvf A.tar A                     #将A文件夹打包成A.tar文件
 tar cvzf A.tar.gz A                 #将A文件夹打包成A.tar.gz文件
                                     #c表示打包；v显示正在处理的文件名称；z表示使用gzip作为压缩方式；f指定打包的文件
-pigz -p 4 -k -6 A                   #使用pigz进行压缩，pigz是gzip的并联版本，速度更快。pigz只能对文件进行压缩，若是文件夹需要先使用tar进行打包。
+pigz -p 4 -k -6 A                   #使用pigz进行压缩，pigz是gzip的并联版本，速度更快。pigz只能对文件进行压缩，若是文件夹需要先使用tar进行打包；会默认生成A.gz文件
                                     #-p为线程数；-k表示保留原文件，不删除。-6为压缩等级，可选1-9，数字越大压缩效果越好，耗时越长。
 \\
 
