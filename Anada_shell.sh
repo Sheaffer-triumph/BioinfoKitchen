@@ -63,6 +63,7 @@ qstat                       #显示所有已投递的任务
 qstat -j jobID              #显示详细状态
 qdel id                     #终止对应ID的任务
 qdel -u lizhuoran1          #删除lizhuoran1投递的所有任务
+qhold jobID                 #暂停对应ID的任务
 qstat | grep "Eqw" | awk '{print $3}' | while read i; do qsub -cwd -q st.q -P P17Z10200N0246 -l vf=10g,num_proc=4 -binding linear:4 ${i}*sh; done
                             #在批量投递任务时，此行命令可以查找处于Eqw的任务，并重新投递任务
 qstat | grep "Eqw" | awk '{print $1}' | while read i; do qdel $i; done
