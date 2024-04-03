@@ -46,10 +46,14 @@ ps aux                      #显示所有进程，a表示显示所有进程，u�
 ps jobID                    #显示对应ID的进程信息，包括运行时间，cmd命令等
 pwdx jobID                  #显示对应ID的进程所在路径，只能显示当前用户的进程
 
-#命令嵌套
+#命令嵌套和参数传递
 ll `cat list`               #将list文件中的每一行内容作为参数传递给ll命令
 ll $(cat list)              #同上，二者等价
 ll $(cat $(which bowtie2))  #将which bowtie2命令的输出作为参数传递给cat命令，再将cat命令的输出作为参数传递给ll命令,多重嵌套只能使用$()，不能使用``
+echo file1.txt file2.txt file3.txt | xargs rm -rf               #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令
+echo file1.txt file2.txt file3.txt | xargs -I {} mv {} {}.bak   #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令，-I {}表示将参数传递给{}，{}可以换成其他字符
+
+
 
 #任务投递
 qsub -cwd -q st.q -P P17Z10200N0246 -l vf=50g,num_proc=8 -binding linear:8          #普通节点，任务运行无时间限制，等待时间长
