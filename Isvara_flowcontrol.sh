@@ -29,6 +29,8 @@ if [ $a -gt $b ]; then echo "1"; else echo "0"; fi                              
 if [ $a -lt $b ]; then echo "1"; else echo "0"; fi                                              #如果$a小于$b，则输出1，否则输出0
 if [ $a -ge $b ]; then echo "1"; else echo "0"; fi                                              #如果$a大于等于$b，则输出1，否则输出0
 if [ $a -le $b ]; then echo "1"; else echo "0"; fi                                              #如果$a小于等于$b，则输出1，否则输出0
+if [ $a -ne 1 && $b -ne 1 ]; then echo "1"; else echo "0"; fi                                   #如果$a不等于1并且$b不等于1，则输出1，否则输出0；&&表示与
+if [ $a -ne 1 || $b -ne 1 ]; then echo "1"; else echo "0"; fi                                   #如果$a不等于1或者$b不等于1，则输出1，否则输出0；||表示或
 if [ -f $a -a -r $a ]; then echo "1"; else echo "0"; fi                                         #如果$a是文件并且可读，则输出1，否则输出0，-a表示与
 if [ -f $a -o -r $a ]; then echo "1"; else echo "0"; fi                                         #如果$a是文件或者可读，则输出1，否则输出0，-o表示或
 if [ ! -f $a ]; then echo "1"; else echo "0"; fi                                                #如果$a不是文件，则输出1，否则输出0，!表示非
