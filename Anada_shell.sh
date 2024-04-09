@@ -300,3 +300,9 @@ source A.sh
 . A.sh
 #这两种方式都会在当前shell中执行脚本，而不是在子shell中执行。.是source的简写，两者是等价的。
 #或者在脚本最后加上bash，这样也可以在当前shell中执行脚本
+#获取脚本所在的绝对路径
+dir=$(dirname $0)
+dir=$(dirname $BASH_SOURCE)
+#如果是以绝对路径运行脚本，则上面两行命令都可以达到目的；但如果使用sh ../test.sh这种方式，则无法获取到绝对路径，这种变量都无法处理..这种相对路径
+dir=$(cd $dirname $0; pwd)
+dir=$(dirname $(readlink -f $0))    #readlink -f解析相对路径，获取绝对路径
