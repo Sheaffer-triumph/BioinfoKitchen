@@ -66,8 +66,6 @@ ll $(cat $(which bowtie2))  #将which bowtie2命令的输出作为参数传递�
 echo file1.txt file2.txt file3.txt | xargs rm -rf               #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令
 echo file1.txt file2.txt file3.txt | xargs -I {} mv {} {}.bak   #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令，-I {}表示将参数传递给{}，{}可以换成其他字符，但在使用时需要保持一致，注意不要与别的命令冲突
 
-
-
 #任务投递
 qsub -cwd -q st.q -P P17Z10200N0246 -l vf=50g,num_proc=8 -binding linear:8          #普通节点，任务运行无时间限制，等待时间长
 qsub -cwd -l vf=50g,num_proc=8 -P P17Z10200N0246 -binding linear:8 -q st_short.q    #short节点，有时间限制，等待时间短
