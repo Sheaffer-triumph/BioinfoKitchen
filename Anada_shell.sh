@@ -304,5 +304,5 @@ source A.sh
 dir=$(dirname $0)
 dir=$(dirname $BASH_SOURCE)
 #如果是以绝对路径运行脚本，则上面两行命令都可以达到目的；但如果使用sh ../test.sh这种方式，则无法获取到绝对路径，这种变量都无法处理..这种相对路径
-dir=$(cd $dirname $0; pwd)
+dir=$(cd $(dirname $0); pwd)
 dir=$(dirname $(readlink -f $0))    #readlink -f解析相对路径，获取绝对路径；以此处为例，readlink -f会解析$0代表的../sh，并返回绝对路径
