@@ -64,10 +64,10 @@ ll `cat list`               #将list文件中的每一行内容作为参数传�
 ll $(cat list)              #同上，二者等价
 ll $(cat $(which bowtie2))  #将which bowtie2命令的输出作为参数传递给cat命令，再将cat命令的输出作为参数传递给ll命令,多重嵌套只能使用$()，不能使用``
 echo file1.txt file2.txt file3.txt | xargs rm -rf               #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令
-echo file1.txt file2.txt file3.txt | xargs -I {} mv {} {}.bak   #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令，-I {}表示将参数传递给{}，{}可以换成其他字符，但在使用时需要保持一致，注意不要与别的命令冲突
+echo file1.txt file2.txt file3.txt | xargs -I {} mv {} {}.bak   #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令，-I {}表示将参数传递给{}，{}可以换成其他字符，但在使用时需要保持一致，注意不要与别的命令冲突；此处使用命令不会使用bashrc内的别名
 
 #任务投递
-qsub -cwd -q st.q -P P17Z10200N0246 -l vf=50g,num_proc=8 -binding linear:8          #普通节点，任务运行无时间限制，等待时间长
+qsub -cwd -q st.q -P P17Z10200N0246 -l vf=50g,num_proc=8 -binding linear:8          #普通节点，任务运行无时间限制，资源申请最大为100g内存，8个线程
 qsub -cwd -l vf=50g,num_proc=8 -P P17Z10200N0246 -binding linear:8 -q st_short.q    #short节点，有时间限制，等待时间短
                             #cwd:在投递任务时所在的目录执行任务，无cwd默认执行输出在home 
                             #设置的进程数与binding数须一致
