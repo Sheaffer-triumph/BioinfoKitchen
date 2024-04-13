@@ -1,3 +1,5 @@
+#Thus I have heard
+
 #连接登录集群
 ssh lizhuoran1@192.168.61.7 -p 22
 ssh cngb-software-0-1   #切换节点，登陆后为login节点，不能在此节点运行；操作运行需在xcompute节点；下载需在下载节点。
