@@ -1,7 +1,8 @@
 # Phagexlab
 The experience I accumulated in bioinformatics at Phagexlab.
 
-Here, I've provided some effective Linux commands that I've personally used, along with scripts I've either collaborated on or developed independently. I hope these tools will support your studies in bioinformatics.
+Here, I provide some effective Linux commands that I have personally used, along with scripts that I have either collaborated on or developed myself.
+I hope these can support your studies in bioinformatics.
 
 Short description of each document         
 shell.sh : A collection of Linux commands that I've gathered that I find valuable      
