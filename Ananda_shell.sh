@@ -1,4 +1,4 @@
-#Thus I have heard
+#Thus have I heard
 
 #连接登录集群
 ssh lizhuoran1@192.168.61.7 -p 22
