@@ -10,7 +10,6 @@ export TERMINFO=/usr/share/terminfo
 export PATH="/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/meme/bin:$PATH"
 export PATH="/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/:$PATH"
 export PATH="/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/amita/bin/:$PATH"
-#export THEANO_FLAGS='base_compiledir=/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/'
 
 #Predefined shortcut commands
 alias ll='ls -lthr'
@@ -20,11 +19,10 @@ alias lzr1='cd /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1'
 alias lzr2='cd /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/lizhuoran1'
 alias bashinit='source ~/.bashrc'
 alias where='realpath'
+alias pwd='pwd -P'
 alias jobs='jobs -l'
 alias htop-u='/usr/bin/htop -u lizhuoran1'
 alias htop='/usr/bin/htop'
-#alias qsub-h='cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/qsub.txt'
-alias quota='lfs quota -gh st_p17z10200n0246 /ldfssz1/'
 alias mambainit='source ~/.mamba_init.sh'
 alias activate='mamba activate'
 alias deactivate='mamba deactivate'
@@ -32,9 +30,16 @@ alias rm=trash
 alias rm!='/usr/bin/rm -rf'
 alias clt=cleantrash
 alias rc=trashrecycle
-alias rl='ll -a /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.Trash'
+alias rl=removelist
+alias rdu='ncdu /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.Trash'
 
 #Predefined Functions
+#Simulate the Recycle Bin in Linux
+function disk()
+{
+	lfs quota -gh st_p17z10200n0246 /ldfssz1/ | sed '1d' | head -n 2 | sed 's/^ *//'
+	df -h  /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/lizhuoran1
+}
 function trash()
 {
 	for file in "$@"; do
@@ -57,25 +62,41 @@ function trashrecycle()
 	mv $file $i
 	done
 }
+function removelist()
+{
+	ll /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.Trash
+}
+#Retrieve historical commands
 function his()
 {
-	history > /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/.history
-	cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/.history | grep "$@"
-	/usr/bin/rm /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/.history
+	history | grep $1
 }
+#easier qstat
 function qg()
 {
 	qstat | grep $1
 }
 function qcd()
 {
-	a=`qstat -j $1 | grep cwd | awk '{print $2}'`
-	cd $a
+	cd $(qstat -j $1 | grep cwd | awk '{print $2}')
 }
+function qcd-n()
+{
+	cd $(qstat -j $(qstat | sed '1,2d' | awk '{print $1}' | sed -n "${1}p") | grep cwd | awk '{print $2}')
+}
+#easier qsub
 function qs()
 {
 	qsub -cwd -q st.q -P P17Z10200N0246 -l vf=${1}g,num_proc=$2 -binding linear:$3 $4
 }
+function qs_super()
+{
+	qsub -cwd -l vf=${1}g,num_proc=$2 -P P17Z10200N0246_super -binding linear:$3 -q st_supermem.q $4
+}
+#function pymod()
+#{
+#	cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/amitapymod | grep -i $1
+#}
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 #__conda_setup="$('/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
