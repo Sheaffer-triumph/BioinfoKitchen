@@ -13,6 +13,6 @@ conda.sh : Some conda-related commands, and conda configuration
 bowtie2.sh : Prevalence and abundance analysis of viruses using bowtie2                
 autoqsub.sh : A script to automate the delivery of sh               
 auto-qsub.py : A python script for generating autoqsub.sh              
-phagex : A script for generating an annotated pipeline of phage assembly, written in python                 
-bacx and back : Script for generating an annotation pipeline for bacterial assembly, written in python             
-Vmware.sh : A tutorial on creating your own virtual machine using vmware software                
+phagex : A Python script designed to generate the assembly and annotation pipeline of phage genomes.                 
+bacx and back : Script for generating a assembly and annotation pipeline for bacterial genomes, written in python             
+Vmware.sh : A tutorial on creating your own virtual machine by using vmware software                
