@@ -311,3 +311,9 @@ dir=$(dirname $BASH_SOURCE)
 #如果是以绝对路径运行脚本，则上面两行命令都可以达到目的；但如果使用sh ../test.sh这种方式，则无法获取到绝对路径，原因在于dirname无法解析变量里的相对路径
 dir=$(cd $(dirname $0); pwd)
 dir=$(dirname $(readlink -f $0))    #readlink -f解析相对路径，获取绝对路径；以此处为例，readlink -f会解析$0代表的../sh，并返回绝对路径
+#cat输入多行内容
+cat << EOF > A.sh
+    #!/bin/bash
+    echo "Hello World"
+EOF
+#将多行内容写入A.sh文件中，EOF为结束符，可以换成其他字符，但要前后一致
