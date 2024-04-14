@@ -1,4 +1,4 @@
-#!/home/zoran/Software/miniconda3/envs/taco/bin/python3.12
+#!/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/amita/bin/python
 import os
 import sys
 import argparse
