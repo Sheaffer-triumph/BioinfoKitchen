@@ -254,9 +254,9 @@ meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -ma
 #meme_xml_to_html meme.xml meme.html #将xml文件转换成html文件，仅用于meme。meme程序运行的最后一步为此步，但在多线程运行时，总是会报错且不运行此步，因此可以在运行完后单独运行此命令。
 
 #fastp过滤
-fastp -i A_1.fastq.gz -o A_1.fq -I A_2.fastq.gz -O A_2.fq -5 -3 -q 20 -c -j fastp.json -h fastp.html -R out.prefix -l 30
-fastp -i A_1.fastq.gz -o A_1.fq.gz -I A_2.fastq.gz -O A_2.fq.gz -5 -3 -q 20 -z 9 -c -j fastp.json -h fastp.html -R out.prefix -l 30
-#-i 输入文件 -o 输出文件 -I 输入文件 -O 输出文件 -5 3端剪切 -q 质量阈值 -c 修剪 -j 输出json文件报告 -h 输出html文件报告 -R json和html文件的标题 -l 输出文件长度阈值
+fastp -i A_1.fastq.gz -o A_1.fq -I A_2.fastq.gz -O A_2.fq -5 -3 -q 20 -w 8 -c -j fastp.json -h fastp.html -R out.prefix -l 30
+fastp -i A_1.fastq.gz -o A_1.fq.gz -I A_2.fastq.gz -O A_2.fq.gz -5 -3 -q 20 -w 8 -z 9 -c -j fastp.json -h fastp.html -R out.prefix -l 30
+#-i 输入文件 -o 输出文件 -I 输入文件 -O 输出文件 -5 -3 5'3'端质控剪切 -q 质量阈值 -w 线程数 -c 修剪 -j 输出json文件报告 -h 输出html文件报告 -R json和html文件的标题 -l 输出文件长度阈值
 #-z 9表示压缩等级，数字越大压缩效果越好，耗时越长，可选1-9，如果添加-z，输出文件要改为对应的fq.gz后缀
 
 #宏基因组组装流程
@@ -313,7 +313,7 @@ dir=$(cd $(dirname $0); pwd)
 dir=$(dirname $(readlink -f $0))    #readlink -f解析相对路径，获取绝对路径；以此处为例，readlink -f会解析$0代表的../sh，并返回绝对路径
 #cat输入多行内容
 cat << EOF > A.sh
-    #!/bin/bash
-    echo "Hello World"
+#!/bin/bash
+echo "Hello World"
 EOF
 #将多行内容写入A.sh文件中，EOF为结束符，可以换成其他字符，但要前后一致
