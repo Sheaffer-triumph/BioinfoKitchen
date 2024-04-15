@@ -302,7 +302,7 @@ git config --global user.email zoranlee0118@gmail.com
 
 #shell脚本相关
 #!/usr/bin/bash                 #指定改脚本的解释器
-#!/usr/bin/bash -e              #等同于set -e，表示一旦脚本中有命令返回非0值，就立即退出脚本
+#!/usr/bin/bash -e              #等同于set -e，一旦脚本中有命令返回非0值，就立即退出脚本
 #当运行一个shell脚本时，它会在一个新的子shell中执行。这个子shell会继承父shell的环境变量，但是它们之间的环境变量是隔离的，所以子shell中的变量改变或者目录改变不会影响到父shell。
 #如果想在运行脚本后保持改变的工作目录，需要在当前shell中执行脚本，而不是在子shell中，可以使用如下方式执行脚本：
 source A.sh
