@@ -74,10 +74,10 @@ qsub -cwd -l vf=50g,num_proc=8 -P P17Z10200N0246 -binding linear:8 -q st_short.q
 #-cwd:在投递任务时所在的目录执行任务，无cwd默认执行输出在home 
 #-q:指定队列，st.q为普通队列，st_short.q为短队列
 #-P:指定项目，P17Z10200N0246为项目名
-#-l:资源申请，一般申请内存和线程数；vf=10g请求内存，内存过小与core文件的生成有关；num_proc=8请求线程数；
+#-l:资源申请，一般申请内存和线程数；vf=10g申请内存，内存过小与core文件的生成有关；num_proc=8申请线程；
 #-binding linear:8 将任务与指定线程数进行绑定，请求的线程数与绑定线程数需相等
 qsub -cwd -l vf=500g,num_proc=30 -P P17Z10200N0246_super -binding linear:30 -q st_supermem.q A.sh #大内存节点，使用前需要申请权限http://stblc.genomics.cn/ODMS/resourceManager/resourceRequest
-while read i; do qsub -cwd -q st.q -P P17Z10200N0246 -l vf=80g,num_proc=8 -binding linear:8 megahit.sh $i ; done < list.txt  #批量投递任务，list.txt中每一行为一个参数传递给megahit.sh
+while read i; do qsub -cwd -q st.q -P P17Z10200N0246 -l vf=80g,num_proc=8 -binding linear:8 A.sh $i ; done < list.txt  #批量投递任务，list.txt中每一行为一个参数传递给A.sh
 qstat                       #显示所有已投递的任务
 qstat -j jobID              #显示详细状态
 qdel id                     #终止对应ID的任务
