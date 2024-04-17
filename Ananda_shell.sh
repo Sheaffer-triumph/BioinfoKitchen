@@ -309,7 +309,7 @@ source A.sh
 . A.sh
 #这两种方式都会在当前shell中执行脚本，而不是在子shell中执行。.是source的简写，两者是等价的。
 #或者在脚本最后加上bash，这样也可以在当前shell中执行脚本
-#子shell不会影响父shell，同样，父shell也不会完全影响子shell，例如父shell里定义的变量在子shell里无法直接使用。父shell里的alias别名在子shell里也无法直接使用，但是可以通过source命令加载父shell的配置文件，从而在子shell里使用父shell的alias别名。
+#子shell不会影响父shell，同样，父shell也不会完全影响子shell，父shell里定义的变量在子shell里无法直接使用。父shell里的alias别名在子shell里也无法直接使用，但是可以通过source命令加载父shell的配置文件，从而在子shell里使用父shell的alias别名。
 #获取脚本所在的绝对路径
 dir=$(dirname $0)
 dir=$(dirname $BASH_SOURCE)
