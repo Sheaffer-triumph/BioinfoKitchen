@@ -78,11 +78,18 @@ function qg()
 }
 function qcd()
 {
-	cd $(qstat -j $1 | grep cwd | awk '{print $2}')
-}
-function qcd-n()
-{
-	cd $(qstat -j $(qstat | sed '1,2d' | awk '{print $1}' | sed -n "${1}p") | grep cwd | awk '{print $2}')
+	OPTIND=1
+	while getopts :n:i: opt
+	do
+        case "$opt" in
+            n)
+                cd $(qstat -j $(qstat | sed '1,2d' | awk '{print $1}' | sed -n "${OPTARG}p") | grep cwd | awk '{print $2}')
+				;;
+            i)
+                cd $(qstat -j ${OPTARG} | grep cwd | awk '{print $2}')
+				;;
+        esac
+    done
 }
 #easier qsub
 function qs()
