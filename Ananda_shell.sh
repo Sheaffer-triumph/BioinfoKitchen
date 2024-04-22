@@ -323,4 +323,4 @@ cat << EOF > A.sh
 #!/bin/bash
 echo "Hello World"
 EOF
-#将多行内容写入A.sh文件中，EOF为结束符，可以换成其他字符，但要前后一致
+#将多行内容写入A.sh文件中，EOF为结束符，可以换成其他字符，前后一致即可
