@@ -11,7 +11,7 @@ Vimhelp.txt : Some tips for using vim
 bashrc.sh : My bashrc configuration file in the group, which has predefined functions that I wrote myself             
 conda.sh : Some conda-related commands, and conda configuration             
 bowtie2.sh : Prevalence and abundance analysis of viruses using bowtie2                
-autoqsub.sh : A script to automate the delivery of sh               
+autoqsub.sh : A script to automate the qsub of sh               
 auto-qsub.py : A python script for generating autoqsub.sh              
 phagex : A Python script designed to generate the assembly and annotation pipeline of phage genomes.                 
 bacx and back : Script for generating a assembly and annotation pipeline for bacterial genomes, written in python             
