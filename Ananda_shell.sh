@@ -333,7 +333,11 @@ EOF
 #将多行内容写入A.sh文件中，EOF为结束符，可以换成其他字符，前后一致即可
 
 #参数解析
-#循环使用getopts解析命令行参数。在getopts后面设置选项，getopts只能解析单个字符选项。在需要参数的选项后面加: 例如a:b:c(a和b需要参数，c不需要参数)，在选项最前面的:表示
+#shell脚本可以使用getopts进行参数解析，语法为:
+getopts optstring name
+#optstring是一个字符串，定义了脚本支持的选项，每个字符代表一个选项，如果选项后面需要参数，需要在字符后面加一个冒号。name是一个变量，用来存储解析到的选项。同时，getopts自带两个内置变量，$OPTIND和$OPTARG，分别表示当前解析到的选项的位置和选项对应的参数。getopts只能解析单个字符选项。
+#循环使用getopts解析命令行参数。若输入的选项不在选项列表中，将其视为无效选项，执行case里的\?分支；每个选项后面的冒号表示该选项需要一个参数，若没有提供参数，将执行case里的:分支。
+#optstring最前面的:表示忽略运行错误，如错误的选项或者缺少参数导致的错误。但如果同时在case里设置了:分支和\?分支，那么错误的选项和缺少参数会分别进入到\?分支和:分支。
 while getopts :a:b: opt; do
     case $opt in
         a)
@@ -341,6 +345,9 @@ while getopts :a:b: opt; do
         ;;
         b)
             echo "-b was triggered with $OPTARG" >&2
+        ;;
+        c)
+            echo "-c was triggered" >&2
         ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
