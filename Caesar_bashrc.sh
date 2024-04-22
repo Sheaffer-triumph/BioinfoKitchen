@@ -100,10 +100,6 @@ function qs_super()
 {
 	qsub -cwd -l vf=${1}g,num_proc=$2 -P P17Z10200N0246_super -binding linear:$3 -q st_supermem.q $4
 }
-#function pymod()
-#{
-#	cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/amitapymod | grep -i $1
-#}
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 #__conda_setup="$('/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
