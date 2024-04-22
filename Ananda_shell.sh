@@ -260,7 +260,7 @@ meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -ma
 #fastp过滤
 fastp -i A_1.fastq.gz -o A_1.fq -I A_2.fastq.gz -O A_2.fq -5 -3 -q 20 -w 8 -c -j fastp.json -h fastp.html -R out.prefix -l 30
 fastp -i A_1.fastq.gz -o A_1.fq.gz -I A_2.fastq.gz -O A_2.fq.gz -5 -3 -q 20 -w 8 -z 9 -c -j fastp.json -h fastp.html -R out.prefix -l 30
-#-i 输入文件 -o 输出文件 -I 输入文件 -O 输出文件 -5 -3 5'3'端质控剪切 -q 质量阈值 -w 线程数 -c 修剪 -j 输出json文件报告 -h 输出html文件报告 -R json和html文件的标题 -l 输出文件长度阈值
+#-i 输入文件 -o 输出文件 -I 输入文件 -O 输出文件 -5 -3 5'3'端质控剪切 -q 质量阈值 -w 线程数，fastp最多只能使用16个线程 -c 修剪 -j 输出json文件报告 -h 输出html文件报告 -R json和html文件的标题 -l 输出文件长度阈值
 #-z 9表示压缩等级，数字越大压缩效果越好，耗时越长，可选1-9，如果添加-z，输出文件要改为对应的fq.gz后缀
 
 #宏基因组组装流程
