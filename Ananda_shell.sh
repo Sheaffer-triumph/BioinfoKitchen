@@ -302,25 +302,51 @@ python
 git config --global user.name "Sheaffer-triumph"
 git config --global user.email zoranlee0118@gmail.com
 
+
 #shell脚本相关
-#!/usr/bin/bash                 #指定改脚本的解释器
+
+#shebang行  定义脚本的默认解释器
+#!/usr/bin/bash                 #指定脚本的解释器
 #!/usr/bin/bash -e              #等同于set -e，一旦脚本中有命令返回非0值，就立即退出脚本
+
 #当运行一个shell脚本时，它会在一个新的子shell中执行。这个子shell会继承父shell的环境变量，但是它们之间的环境变量是隔离的，所以子shell中的变量改变或者目录改变不会影响到父shell。
 #如果想在运行脚本后保持改变的工作目录，需要在当前shell中执行脚本，而不是在子shell中，可以使用如下方式执行脚本：
 source A.sh
 . A.sh
 #这两种方式都会在当前shell中执行脚本，而不是在子shell中执行。.是source的简写，两者是等价的。
 #或者在脚本最后加上bash，这样也可以在当前shell中执行脚本
+
 #子shell不会影响父shell，同样，父shell也不会完全影响子shell，父shell里定义的变量在子shell里无法直接使用。父shell里的alias别名在子shell里也无法直接使用，但是可以通过source命令加载父shell的配置文件，从而在子shell里使用父shell的alias别名。
+
 #获取脚本所在的绝对路径
 dir=$(dirname $0)
 dir=$(dirname $BASH_SOURCE)
 #如果是以绝对路径运行脚本，则上面两行命令都可以达到目的；但如果使用sh ../test.sh这种方式，则无法获取到绝对路径，原因在于dirname无法解析变量里的相对路径
 dir=$(cd $(dirname $0); pwd)
 dir=$(dirname $(readlink -f $0))    #readlink -f解析相对路径，获取绝对路径；以此处为例，readlink -f会解析$0代表的../sh，并返回绝对路径
+
 #cat输入多行内容
 cat << EOF > A.sh
 #!/bin/bash
 echo "Hello World"
 EOF
 #将多行内容写入A.sh文件中，EOF为结束符，可以换成其他字符，前后一致即可
+
+#参数解析
+#循环使用getopts解析命令行参数。在getopts后面设置选项，getopts只能解析单个字符选项。在需要参数的选项后面加: 例如a:b:c(a和b需要参数，c不需要参数)，在选项最前面的:表示
+while getopts :a:b: opt; do
+    case $opt in
+        a)
+            echo "-a was triggered with $OPTARG" >&2
+        ;;
+        b)
+            echo "-b was triggered with $OPTARG" >&2
+        ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+        ;;
+        :)
+        echo "Option -$OPTARG requires an argument." >&2
+        ;;
+    esac
+done
