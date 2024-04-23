@@ -341,19 +341,19 @@ getopts optstring name
 while getopts :a:b: opt; do
     case $opt in
         a)
-            echo "-a was triggered with $OPTARG" >&2
+            echo "-a was triggered with $OPTARG"
         ;;
         b)
-            echo "-b was triggered with $OPTARG" >&2
+            echo "-b was triggered with $OPTARG"
         ;;
         c)
-            echo "-c was triggered" >&2
+            echo "-c was triggered"
         ;;
         \?)
-            echo "Invalid option: -$OPTARG" >&2
+            echo "Invalid option: -$OPTARG"
         ;;
         :)
-        echo "Option -$OPTARG requires an argument." >&2
+        echo "Option -$OPTARG requires an argument."
         ;;
     esac
 done
