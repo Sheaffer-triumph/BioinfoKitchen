@@ -266,7 +266,7 @@ fastp -i A_1.fastq.gz -o A_1.fq.gz -I A_2.fastq.gz -O A_2.fq.gz -5 -3 -q 20 -w 8
 #宏基因组组装流程
 fastp -i A_1.fastq.gz -o A_qc_1.fq.gz -I A_2.fastq.gz -O A_qc_2.fq.gz -5 -3 -z 9 -q 20 -c -j fastp.json -h fastp.html -R out.prefix -l 30 #先使用fastp进行质控，过滤低质量序列
 megahit --presets meta-large -t 25 -1 A_qc_1.fq.gz -2 A_qc_2.fq.gz -o megahit_result #使用megahit进行组装，-t 25表示使用25个线程，--presets meta-large表示使用预设的meta-large参数进行组装
-#megahit进行组装时，需要很长时间，同时也会产生很大的中间文件，因此在投递任务时需要注意内存、时间的设置以及磁盘空间。如发现磁盘空间不足，可结束任务，但不要删除-o里的中间文件。在磁盘空间充足时，可运行以下命令继续组装
+#megahit进行组装时，需要很长时间，同时也会产生很大的中间文件，因此在投递任务时需要注意内存、时间的设置以及磁盘空间。如发现磁盘空间不足，可结束任务，但不要删除-o里的中间文件。在磁盘空间充足时，可运行以下命令继续组装。此外，megahit在组装时如果因内存不足而报错停止，也可以继续运行
 megahit --presets meta-large -t 25 -1 A_qc_1.fq.gz -2 A_qc_2.fq.gz -o megahit_result --continue #继续组装，使用--continue参数时，会忽略除了-o之外的所有参数，直接读取-o指定的文件夹中的中间文件进行组装
 #如宏基因组序列实在太大，花费时间太长，可考虑质控后使用seqkit进行随机序列抽取，以加快组装速度
 
