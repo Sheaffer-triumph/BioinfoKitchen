@@ -1,4 +1,4 @@
-#!/usr/bin/bash -e
+#!/us/bin/bash -e
 
 while getopts :l:n:p:m:s:h opt
 do
@@ -20,12 +20,7 @@ do
             ;;
         h)
             cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
-            exit 1
-            ;;
-        :)
-            echo "Option -$OPTARG requires an argument."
-            cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
-            exit 1
+            exit
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
@@ -37,10 +32,10 @@ done
 
 if [ -z $LIST ] || [ -z $JOBNUM ] || [ -z $PROCESS ] || [ -z $MEM ] || [ -z $TIME ]
     then
-    echo "Usage: autoqsub.sh -l <list> -n <jobnum> -p <process> -m <mem> -s <sleeptime> -h"
+    echo "There are options with missing parameters, check the command"
     cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
     exit 1
-fi
+fi    
 
 WDIR=$(pwd -e)
 cp $LIST .tobeqsub.list
