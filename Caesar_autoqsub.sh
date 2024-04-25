@@ -16,7 +16,7 @@ do
         m)
             MEM=$OPTARG
             ;;
-        t)
+        s)
             TIME=$OPTARG
             ;;
         h)
