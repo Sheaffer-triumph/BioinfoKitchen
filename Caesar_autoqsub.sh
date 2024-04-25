@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/bash -e
 
 while getopts :l:n:p:m:s:h opt
 do
