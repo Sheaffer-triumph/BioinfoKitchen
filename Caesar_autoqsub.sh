@@ -2,7 +2,7 @@
 
 while getopts :l:n:p:m:s:h opt
 do
-    case "$opt" in
+    case $opt in
         l)
             LIST=$OPTARG
             ;;
