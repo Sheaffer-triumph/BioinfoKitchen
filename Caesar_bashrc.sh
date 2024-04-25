@@ -43,9 +43,9 @@ function disk()
 function trash()
 {
 	for file in "$@"; do
-	path=`realpath $file`
-	i=`echo $path | sed 's/\//~/g' | sed 's/~ldfssz1~ST_HEALTH~P17Z10200N0246~lizhuoran1//g'`
-	date=`echo $(date +%F-%R)`
+	path=$(realpath $file)
+	i=$(echo $path | sed 's/\//~/g' | sed 's/~ldfssz1~ST_HEALTH~P17Z10200N0246~lizhuoran1//g')
+	date=$(echo $(date +%F-%R))
 	mv -f $file /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.Trash/${date}$i
 	done
 }
@@ -58,7 +58,7 @@ function trashrecycle()
 {
 	for file in "$@"; do
 	mv -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.Trash/$@ ./
-	i=`echo $file | awk -F '~' '{print $NF}'`
+	i=$(echo $file | awk -F '~' '{print $NF}')
 	mv $file $i
 	done
 }
@@ -84,10 +84,10 @@ function qcd()
         case "$opt" in
             n)
                 cd $(qstat -j $(qstat | sed '1,2d' | awk '{print $1}' | sed -n "${OPTARG}p") | grep cwd | awk '{print $2}')
-				;;
+			;;
             i)
                 cd $(qstat -j ${OPTARG} | grep cwd | awk '{print $2}')
-				;;
+			;;
         esac
     done
 }
