@@ -17,7 +17,7 @@ do
             MEM=$OPTARG
             ;;
         s)
-            TIME=$OPTARG
+            SLEEPTIME=$OPTARG
             ;;
         h)
             cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
@@ -36,7 +36,7 @@ done
 
 if [ -z $LIST ] || [ -z $JOBNUM ] || [ -z $PROCESS ] || [ -z $MEM ] || [ -z $TIME ]
     then
-    echo "Usage: autoqsub.sh -l <list> -n <jobnum> -p <process> -m <mem> -t <time> -h"
+    echo "Usage: autoqsub.sh -l <list> -n <jobnum> -p <process> -m <mem> -s <sleeptime> -h"
     cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
     exit 1
 fi
@@ -67,7 +67,7 @@ until [ $a == 0 ]                                   #until表示直到a等于0�
         echo $f >> autoqsub.log
         echo "There are $JOBNUM jobs running, please wait" >> autoqsub.log
     fi
-    sleep ${TIME}m                                        #sleep 2m表示休眠2分钟
+    sleep ${SLEEPTIME}m                                        #sleep 2m表示休眠2分钟
 	#grep "has been qsub" qsub.log | awk '{print $1}' | sort | uniq > run.list       #在qsub.log中查找含有has been qsub的每一行，并输出第一列，即run.list中的内容为已经提交的任务
     #m=`date`
     #echo $m >> check.log
