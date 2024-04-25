@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-while getopts :l:n:p:m:t:h opt
+while getopts :l:n:p:m:s:h opt
 do
     case "$opt" in
         l)
