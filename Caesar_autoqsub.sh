@@ -24,10 +24,12 @@ do
             ;;
         :)
             echo "Option -$OPTARG requires an argument."
+            cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
             exit 1
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
+            cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
             exit 1
             ;;
     esac
