@@ -1,6 +1,11 @@
-#!/us/bin/bash -e
+#!/usr/bin/bash -e
 
-while getopts :l:n:p:m:s:h opt
+JOBNUM=20
+PROCESS=8
+MEM=50
+SLEEPTIME=5
+
+while getopts :l:n:p:m:s:hv opt
 do
     case $opt in
         l)
@@ -22,6 +27,10 @@ do
             cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
             exit
             ;;
+        v)
+            echo "Autoqsub v1.0.0"
+            exit
+            ;;
         \?)
             echo "Invalid option: -$OPTARG"
             cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
@@ -32,10 +41,10 @@ done
 
 if [ -z $LIST ] || [ -z $JOBNUM ] || [ -z $PROCESS ] || [ -z $MEM ] || [ -z $TIME ]
     then
-    echo "There are options with missing parameters, check the command"
+    echo "ERROR! There are options with missing parameters, check the command"
     cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
     exit 1
-fi    
+fi
 
 WDIR=$(pwd -e)
 cp $LIST .tobeqsub.list
@@ -43,15 +52,15 @@ a=$(cat .tobeqsub.list | wc -l)                         #a表示还需要提交�
 until [ $a == 0 ]                                       #until表示直到a等于0才停止
     do
     b=$(qstat | grep "lizhuoran1" | wc -l)                                   
-    if [ $b -lt $JOBNUM ]                                #如果当前正在运行的任务数小于20，则继续提交任务
+    if [ $b -lt $JOBNUM ]                               #如果当前正在运行的任务数小于设定值，则继续提交任务
         then    
         d=$(expr $JOBNUM - $b)
         head -n $d .tobeqsub.list > .qsub.list
-        grep -wvf .qsub.list .tobeqsub > .tmp.list    #在tobeqsub.list中去除qsub.list中的内容，-w表示精确匹配，-v表示取反，-f表示从文件中读取内容
+        grep -wvf .qsub.list .tobeqsub > .tmp.list      #在tobeqsub.list中去除qsub.list中的内容，-w表示精确匹配，-v表示取反，-f表示从文件中读取内容
         cat .tmp.list > .tobeqsub.list
         f=`date`
         echo $f >> autoqsub.log
-        for e in `cat .qsub.list`
+        for e in $(cat .qsub.list)
             do
             cd $(dirname $e)
             qsub -cwd -q st.q -P P17Z10200N0246 -l vf=${MEM}g,num_proc=$PROCESS -binding linear:$PROCESS $e
