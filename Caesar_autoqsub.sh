@@ -50,7 +50,7 @@ WDIR=$(pwd -e)
 cp $LIST .tobeqsub.list
 a=$(cat .tobeqsub.list | wc -l)                         #a表示还需要提交的任务数
 until [ $a == 0 ]                                       #until表示直到a等于0才停止
-    do
+do
     b=$(qstat | grep "lizhuoran1" | wc -l)                                   
     if [ $b -lt $JOBNUM ]                               #如果当前正在运行的任务数小于设定值，则继续提交任务
         then    
@@ -61,7 +61,7 @@ until [ $a == 0 ]                                       #until表示直到a等�
         f=`date`
         echo $f >> autoqsub.log
         for e in $(cat .qsub.list)
-            do
+        do
             cd $(dirname $e)
             qsub -cwd -q st.q -P P17Z10200N0246 -l vf=${MEM}g,num_proc=$PROCESS -binding linear:$PROCESS $e
             cd $WDIR
