@@ -86,9 +86,9 @@ for i in "$@"; do echo $i; done                             #i从命令行参数
 for i in "$*"; do echo $i; done                             #i从命令行参数中取值
 for i in {a..z}; do echo $i; done                           #i从a到z
 for i in {a..z..2}; do echo $i; done                        #i从a到z，步长为2，即a c e g i k m o q s u w y
-while [ condition ]; do command; done                       #当condition为真时，执行command，condition内容可以是变量、命令、数学表达式等，参考条件判断
+while [ condition ]; do command; done                       #当condition为真时，执行command，condition内容可以是变量、命令、数学表达式等，参考条件判断中的[]
 until [ condition ]; do command; done                       #当condition为假时，执行command
-while (( condition )); do command; done                     #当condition为真时，执行command
+while (( condition )); do command; done                     #当condition为真时，执行command，参考条件判断中的(())
 until (( condition )); do command; done                     #当condition为假时，执行command
 while read line; do echo $line; done < file                 #从file中读取每一行，赋值给line，然后输出line
 cat file | while read line; do echo $line; done             #从file中读取每一行，赋值给line，然后输出line
