@@ -172,7 +172,7 @@ chmod -R 754 A                      #将A及A下面所有的文件权限都改�
 sftp lizhuoran1@192.168.61.7
 put -R A—dir B-dir                #将电脑的A文件夹上传到集群的B文件夹
 get -R A-dir B-dir                #将集群的A文件夹下载到电脑的B文件夹
-#使用不同的软件连接集群，所能用的command也不一样，iterm2明显比Xshell方便，前者可以识别command中的*，能够批量下载；后者无法识别，只能传递单个文件。若确需要传递大量文件，可将其打包后再下载；也可使用Xftp传文件，其优点是交互式操作
+#使用不同的软件连接集群，所能用的command也不一样，iterm2比Xshell方便，前者可以识别command中的*，能够批量下载；后者无法识别，只能传递单个文件。若确需要传递大量文件，可将其打包后再下载；也可使用Xftp传文件，其优点是交互式操作
 
 #压缩与解压
 zip -r A.zip A                      #将A文件夹压缩成A.zip格式
@@ -180,7 +180,7 @@ unzip A.zip                         #解压A文件，会直接生成原来的文
 gzip A                              #压缩文件A，后缀为gz，会覆盖原来的文件
 gzip -d A.gz                        #适用于后缀为gz的解压缩
 gunzip A.gz                         #解压后缀为gz的文件，覆盖原先的gz文件
-tar zxvf A.tgz                      #在当前目录解压后缀为tgz的文件，也适用于tar.gz文件
+tar xvzf A.tgz                      #在当前目录解压后缀为tgz的文件，也适用于tar.gz文件
                                     #z表示使用gzip作为解压方式；x表示解压；v显示正在处理的文件名称；f指定解压的文件
 tar cvf A.tar A                     #将A文件夹打包成A.tar文件
 tar xvf A.tar                       #解压A.tar文件
