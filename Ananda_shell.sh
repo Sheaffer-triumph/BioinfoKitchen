@@ -149,7 +149,7 @@ find A -maxdepth 1 -size0 -delete   #仅在A路径下查找大小为0的文件�
 find -name "*a*" A                  #递归查找A路径下名字中含有a的文件
 find ! -name "*a*" A                #递归查找A路径下名字中不带有a的文件
 find -not -name "*a*" A             #同上 
-find -name "*a*" A -exec ll {} \;   #查找每一个名字含有a的文件，并显示。ll也可换成其他command; \;为终止
+find -name "*a*" A -exec ll {} \;   #查找每一个名字含有a的文件，并显示。ll也可换成其他command， \;为终止
 find A -name "*a*" -exec du -sh {} \;
 find A -type d                      #递归查找A路径下类型为d的文件，即查找所有文件夹，配合循环命令可以实现遍历每一个文件夹
 find A -type f                      #递归查找A路径下类型为f的文件，即查找所有文件
