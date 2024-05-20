@@ -247,6 +247,8 @@ meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -ma
     #-nmotifs 找到的motif数
     #-minw 6 -maxw 50 表示motif的最小长度为6，最大长度为50
     #-p 8表示使用8个线程
+    #-revcomp 表示同时搜索正向和反向序列，仅用于DNA序列
+    #-dna 表示输入序列为DNA序列，可替换为-protein表示输入序列为蛋白质序列，-rna表示输入序列为RNA序列
 #mpirun -np 4 --mca btl vader,self meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -maxw 50 -objfun classic -revcomp -markov_order 0
 #mpirun -np 4 --use-hwthread-cpus --mca btl vader,self meme A.fasta -dna -oc A -nostatus -time 14400 -mod zoops -nmotifs 10 -minw 6 -maxw 50 -objfun classic -revcomp -markov_order 0
     #-np设置运行的线程数
