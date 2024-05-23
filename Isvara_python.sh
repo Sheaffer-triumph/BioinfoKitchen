@@ -1,6 +1,6 @@
 #python help
 pydoc modules    #列出所有模块
-pip list         #列出所有安装的模块
+pip list         #列出所有安装的模块，无论是从PyPI安装的还是从其他地方安装的
 pip show numpy    #显示模块的详细信息
 pip install numpy #安装模块
 pip uninstall numpy #卸载模块
@@ -16,7 +16,7 @@ import numpy as np    #导入numpy模块，重命名为np，后续使用时可�
 from numpy import *   #导入numpy模块中的所有函数，后续使用时可以直接使用函数名
 from Bio import SeqIO #只导入Bio模块中的SeqIO函数，后续使用时可以直接使用SeqIO，不需要加Bio前缀。但Bio中的其他函数不能直接使用
 
-#Python自带常用模块
+#Python自带常用模块，可参考Python标准库https://docs.python.org/zh-cn/3/library/index.html
 import os                                       #os模块，提供了许多与操作系统交互的函数
     os.getcwd()                                 #获取当前工作目录
     os.chdir('/path/to/path')                   #改变当前的目录至指定目录
@@ -61,3 +61,4 @@ import re                                       #re模块，提供了正则表�
     re.sub('pattern', 'replace', 'string')      #替换字符串中的模式
 exit()
 
+import
