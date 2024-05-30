@@ -223,6 +223,9 @@ seqkit rmdup -s A.fa > B.fa
     #去冗余，-s表示按照序列的相似度进行去冗余，只有完全相同的序列才会被去冗余
 \\
 
+#fastANI计算序列相似度
+fastANI --ql que.list --rl ref.list -o fastANI_result.txt -t 8    #--ql 指定查询序列列表，每一行为一个序列的路径; --rl 指定参考序列列表，每一行为一个序列的路径; -o 输出文件; -t 线程数
+
 #系统进化树的构建
 mafft --auto input.fasta > algined_tree.fasta 2>err             #将输入的蛋白质序列对齐
 iqtree -s algined_tree.fasta -bb 1000 --runs 8 -T 8 --mem 50G   #runs进行独立运行的次数，每次运行都会生成一个进化树，最后选择最优的树作为结果；mem内存分配；bb迭代数，1000次耗时很长，可以先不设置迭代；T线程数
