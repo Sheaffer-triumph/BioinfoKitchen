@@ -184,10 +184,10 @@ gzip -d A.gz                        #适用于后缀为gz的解压缩
 gunzip A.gz                         #解压后缀为gz的文件，覆盖原先的gz文件
 tar xvzf A.tgz                      #在当前目录解压后缀为tgz的文件，也适用于tar.gz文件
                                     #z表示使用gzip作为解压方式；x表示解压；v显示正在处理的文件名称；f指定解压的文件
-tar cvf A.tar A                     #将A文件夹打包成A.tar文件
-tar xvf A.tar                       #解压A.tar文件
 tar cvzf A.tar.gz A                 #将A文件夹打包成A.tar.gz文件
                                     #c表示打包；v显示正在处理的文件名称；z表示使用gzip作为压缩方式；f指定打包的文件
+tar -cI 'gzip -9' -f A.tar.gz A     #将A文件夹打包成A.tar.gz文件，使用gzip进行压缩，压缩等级为9
+                                    #-c表示打包；-I表示使用gzip进行压缩；-9表示压缩等级，数字越大压缩效果越好，耗时越长；-f指定打包的文件；-I指定gzip压缩并指定压缩等级
 #tar命令各种字母的含义：x 解开打包；c 打包；v 显示详细信息；f 指定文件；z 使用gzip压缩；j 使用bzip2压缩；t 显示文件列表；r 向压缩文件中追加文件；A 解开打包时，自动识别压缩格式
 pigz -p 4 -k -6 A                   #使用pigz进行压缩，pigz是gzip的并联版本，速度更快。pigz只能对文件进行压缩，若是文件夹需要先使用tar进行打包；会默认生成A.gz文件
                                     #-p为线程数；-k表示保留原文件，不删除。-6为压缩等级，可选1-9，数字越大压缩效果越好，耗时越长。
