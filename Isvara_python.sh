@@ -50,7 +50,7 @@ import sys                                      #sys模块，提供了对Python�
     sys.stdin.read()                            #读取标准输入
     sys.stdout.write('string')                  #输出到标准输出
     sys.stderr.write('string')                  #输出到标准错误
-    sys.argv                                    #获取命令行参数
+    sys.argv[1]                                 #获取第1个命令行参数
     sys.exit()                                  #退出程序
 exit()
 
@@ -61,4 +61,5 @@ import re                                       #re模块，提供了正则表�
     re.sub('pattern', 'replace', 'string')      #替换字符串中的模式
 exit()
 
-import
+import subprocess
+    subprocess.run("command", shell=True)          #运行系统命令，返回一个CompletedProcess对象
