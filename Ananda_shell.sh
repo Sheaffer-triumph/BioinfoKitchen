@@ -25,7 +25,7 @@ ll -a                       #同上
 
 git clone https://github.com/XiaofangJ/PhaseFinder #从github上下载PhaseFinder软件
 
-watch -n 1 -d 'A command'    #每隔1秒执行一次A command，-d表示高亮输出发生变化的地方
+watch -n 1 -d 'A command'   #每隔1秒执行一次A command，-d表示高亮输出发生变化的地方
 
 realpath A                  #显示文件A的绝对路径
 
@@ -98,11 +98,8 @@ qdel id                     #终止对应ID的任务
 qdel -u lizhuoran1          #删除lizhuoran1投递的所有任务
 qhold jobID                 #暂停对应ID的任务
 qrls jobID                  #恢复对应ID的任务
-qstat | grep "Eqw" | awk '{print $3}' | while read i; do qsub -cwd -q st.q -P P17Z10200N0246 -l vf=10g,num_proc=4 -binding linear:4 ${i}*sh; done
-                            #在批量投递任务时，此行命令可以查找处于Eqw的任务，并重新投递任务
-qstat | grep "Eqw" | awk '{print $1}' | while read i; do qdel $i; done
-                            #查找处于Eqw的任务，并删除
-\\
+qstat | grep "Eqw" | awk '{print $3}' | while read i; do qsub -cwd -q st.q -P P17Z10200N0246 -l vf=10g,num_proc=4 -binding linear:4 ${i}*sh; done       #在批量投递任务时，此行命令可以查找处于Eqw的任务，并重新投递任务
+qstat | grep "Eqw" | awk '{print $1}' | while read i; do qdel $i; done      #查找处于Eqw的任务，并删除
 
 ln -s A_absolute_path B     #创建A文件的软链接，名为B，软链接相当于快捷方式。修改软链接也会同步修改其对应的源文件，反之也是
 
@@ -167,7 +164,6 @@ find -name "*a*" A -exec ll {} \;   #查找每一个名字含有a的文件，并
 find A -name "*a*" -exec du -sh {} \;
 find A -type d                      #递归查找A路径下类型为d的文件，即查找所有文件夹，配合循环命令可以实现遍历每一个文件夹
 find A -type f                      #递归查找A路径下类型为f的文件，即查找所有文件
-\\
 
 xxd A                               #以16进制查看二进制文件A，可用于查看命令的源码
 
