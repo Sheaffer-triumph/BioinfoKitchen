@@ -9,7 +9,7 @@ ssh cngb-xcompute-0-10
 sftp lizhuoran0@192.168.61.7
 put -R Adir Bdir                #将电脑的A文件夹上传到集群的B文件夹
 get -R Adir Bdir                #将集群的A文件夹下载到电脑的B文件夹
-#使用不同的软件连接集群，所能用的command也不一样，iterm1比Xshell方便，前者可以识别command中的*，能够批量下载；后者无法识别，只能传递单个文件。若确需要传递大量文件，可将其打包后再下载；也可使用Xftp传文件，其优点是交互式操作
+#使用不同的软件连接集群，所能用的command也不一样，iterm2比Xshell方便，前者可以识别command中的*，能够批量下载；后者无法识别，只能传递单个文件。若确需要传递大量文件，可将其打包后再下载；也可使用Xftp传文件，其优点是交互式操作
 
 #vim基本用法
 vim A               #使用vim语言查看文件A，若无该文件，则生成
