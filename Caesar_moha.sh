@@ -43,4 +43,4 @@ sh cluster.sh
 
 #iphop预测宿主
 mamba activate iphop
-iphop predict --fa_file all_sample_checkv_rmdup95.part_098.fa --db_dir /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/iphop/database/Sept_2021_pub --out_dir part_098 -t 8            #iphop预测宿主，如果输入文件过大，运行时间会很长，可以分片处理，然后合并结果
+iphop predict --fa_file all_sample_checkv_rmdup95.part_098.fa --db_dir /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/iphop/database/Sept_2021_pub --out_dir part_098 -t 8   #iphop预测宿主，如果输入文件过大，运行时间会很长，可以分片处理，然后合并结果
