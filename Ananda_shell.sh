@@ -79,7 +79,7 @@ pwdx jobID                  #显示对应ID的进程所在路径，只能显示�
 ll `cat list`               #将list文件中的每一行内容作为参数传递给ll命令
 ll $(cat list)              #同上，二者等价
 ll $(cat $(which bowtie2))  #将which bowtie2命令的输出作为参数传递给cat命令，再将cat命令的输出作为参数传递给ll命令,多重嵌套只能使用$()，不能使用``
-echo file1.txt file2.txt file3.txt | xargs rm -rf               #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令
+echo file1.txt file2.txt file3.txt | xargs rm -rf               #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令，xargs后面似乎只能使用命令，不能使用别名
 echo file1.txt file2.txt file3.txt | xargs -I {} mv {} {}.bak   #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令，-I {}表示将参数传递给{}，{}可以换成其他字符，但在使用时需要保持一致，注意不要与别的命令冲突；此处使用命令不会使用bashrc内的别名
 
 #任务投递
