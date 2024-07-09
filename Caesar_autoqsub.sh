@@ -54,7 +54,7 @@ if [ -z $LIST ] || [ -z $JOBNUM ] || [ -z $PROCESS ] || [ -z $MEM ] || [ -z $TIM
     exit 1
 fi
 
-WDIR=$(pwd -e)
+WDIR=$(pwd -P)
 cp $LIST .tobeqsub.list
 a=$(cat .tobeqsub.list | wc -l)                         #a表示还需要提交的任务数
 until [ $a == 0 ]                                       #until表示直到a等于0才停止
@@ -65,7 +65,7 @@ do
     then    
         d=$(expr $JOBNUM - $b)
         head -n $d .tobeqsub.list > .qsub.list
-        grep -wvf .qsub.list .tobeqsub > .tmp.list      #在tobeqsub.list中去除qsub.list中的内容，-w表示精确匹配，-v表示取反，-f表示从文件中读取内容
+        grep -wvf .qsub.list .tobeqsub.list > .tmp.list      #在tobeqsub.list中去除qsub.list中的内容，-w表示精确匹配，-v表示取反，-f表示从文件中读取内容
         cat .tmp.list > .tobeqsub.list
         f=`date`
         echo $f >> autoqsub.log
