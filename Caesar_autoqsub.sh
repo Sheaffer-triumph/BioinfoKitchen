@@ -59,7 +59,6 @@ cp $LIST .tobeqsub.list
 a=$(cat .tobeqsub.list | wc -l)                         #a表示还需要提交的任务数
 until [ $a == 0 ]                                       #until表示直到a等于0才停止
 do
-
     b=$(qstat | grep "lizhuoran1" | wc -l)                                   
     if [ $b -lt $JOBNUM ]                               #如果当前正在运行的任务数小于设定值，则继续提交任务
     then    
@@ -81,7 +80,6 @@ do
         echo $f >> autoqsub.log
         echo "There are $JOBNUM jobs running, please wait" >> autoqsub.log
     fi
-
     if [ -n $DISKLIMIT]
     then
         DiskQuota=$(lfs quota -gh st_p17z10200n0246 /ldfssz1/ | sed '1,2d' | head -n 1 | awk '{print $2}' | sed 's/T//g')
