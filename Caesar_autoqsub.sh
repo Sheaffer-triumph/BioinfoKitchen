@@ -1,7 +1,14 @@
+#实现任务自动化投递的脚本，可以根据设定的参数，自动投递任务，无需手动操作
+#使用路径：/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/amita/bin/autoqsub
+
+#更新时间：2024年7月11日
+#更新内容：增加了一个模块，用于在autoqsub运行时的即时修改参数，原理是使用kill向autoqsub所在的进程发送信号，autoqsub接收到信号后会重新读取参数文件，从而实现参数的修改
+
 #更新时间：2024年7月5日
 #更新内容：增加了一个选项-d，用于在每次循环中监测磁盘占用空间，当磁盘占用空间大于设定值时，会暂停正在运行的任务；设定值支持浮点数
 #备注：由于增加的模块只有暂停提交任务的功能，没有清理磁盘的功能，因此所提交的任务最好含有一些用于清理中间文件的命令，以免一直暂停
 #备注：监测当前磁盘空间的命令会根据不同的服务器而有所不同，需要根据实际情况进行修改
+#备注：这个功能并没有实装在集群中，因为在实际使用中，qhold并不能立即暂停任务，需要等待当前任务的正在执行的命令运行完后才会暂停
 
 #!/usr/bin/bash -e
 
@@ -53,6 +60,23 @@ if [ -z $LIST ] || [ -z $JOBNUM ] || [ -z $PROCESS ] || [ -z $MEM ] || [ -z $TIM
     cat /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/.store/autoqsub_help.txt
     exit 1
 fi
+
+cat << EOF > .parameter2autoqsub
+Jobnum ${JOBNUM}
+Memory ${MEM}
+Process ${PROCESS}
+EOF
+
+handle_usr1() 
+{
+    JOBNUM=$(grep "Jobnum" | awk '{print $2}')
+    MEM=$(grep "Memory" | awk '{print $2}')
+    PROCESS=$(grep "Process" | awk '{print $2}')
+    echo $(date) >> autoqsub.log
+    echo "Autoqsub trap the signal. Jobnum, Memory and Process have been changed" >> autoqsub.log
+}
+
+trap 'handle_usr1' USR1
 
 WDIR=$(pwd -P)
 cp $LIST .tobeqsub.list
