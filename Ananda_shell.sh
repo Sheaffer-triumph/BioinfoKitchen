@@ -19,9 +19,10 @@ source ~/.bashrc    #修改.bashrc文件后，需要使用source命令重新加�
 alias lzr1='cd /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1'    #使用lzr1代替cd /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1命令；其中lzr1不能出现空格
 export TERMINFO=/usr/share/terminfo                             #在使用clear清屏时报错：terminals database is inaccessible，可使用该命令解决，原因未知
 
-ls -lthr                    #按写入内容的时间从前往后排列文件，-l表示显示详细信息，-t表示按时间排序，-h表示文件大小以人类可读的方式显示（G M K），-r表示倒序
-ls -al                      #显示所有文件，包括隐藏文件
-ll -a                       #同上
+ls -lthr                                #按写入内容的时间从前往后排列文件，-l表示显示详细信息，-t表示按时间排序，-h表示文件大小以人类可读的方式显示（G M K），-r表示倒序
+ls -al                                  #显示所有文件，包括隐藏文件
+ll -a                                   #同上
+ls -lthr --group-directories-first      #按写入内容的时间从前往后排列文件，文件夹排在前面
 
 mkdir A                      #创建A文件夹
 mkdir -p A/B/C               #递归创建A/B/C,即创建A文件夹，再在A文件夹中创建B文件夹，再在B文件夹中创建C文件夹; -p表示递归创建;如果目录存在，也不会报错
@@ -40,9 +41,7 @@ history                     #显示历史命令
 head -n 20 A                #显示A文件前20行，如不加数字，默认10行
 tail -n 20 A                #显示A文件最后20行，如不加数字，默认10行
 
-nl -n ln A > B              #给A文件的每一行加上行号，输出到B文件中
-                            #nl命令的-n选项表示行号的格式，ln表示行号左对齐，可以换成rn表示行号右对齐，rz表示行号右对齐且前面补0
-\\
+nl -n ln A > B              #给A文件的每一行加上行号，输出到B文件中；nl命令的-n选项表示行号的格式，ln表示行号左对齐，可以换成rn表示行号右对齐，rz表示行号右对齐且前面补0
 
 lfs quota -gh st_p17z10200n0246 /ldfssz1/ #查看st_p17z10200n0246在ld1盘中所占用的磁盘空间 
 du -sh A                                  #查看A所占用的磁盘空间
