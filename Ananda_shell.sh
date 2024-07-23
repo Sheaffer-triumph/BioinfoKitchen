@@ -34,6 +34,13 @@ watch -n 1 -d 'A command'   #每隔1秒执行一次A command，-d表示高亮输
 
 realpath A                  #显示文件A的绝对路径
 
+dirname a/b/c.txt           #显示c.txt所在路径，即a/b；不等同于绝对路径
+readlink -f a/b/c.txt       #显示c.txt的绝对路径，即/a/b/c.txt
+
+basename A/B/C.txt          #显示C.txt
+ID=${INPUT%.*}              #删除INPUT变量中最后一个.及其右边的内容，即将INPUT的后缀去掉，赋值给ID变量；%表示从右边开始删除，#表示从左边开始删除；linux里
+
+
 md5sum A                    #显示A文件的md5值，用于校验文件是否被修改
 
 history                     #显示历史命令
