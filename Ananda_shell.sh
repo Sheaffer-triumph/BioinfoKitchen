@@ -38,8 +38,8 @@ dirname a/b/c.txt           #显示c.txt所在路径，即a/b；不等同于绝�
 readlink -f a/b/c.txt       #显示c.txt的绝对路径，即/a/b/c.txt
 
 basename A/B/C.txt          #显示C.txt
-ID=${INPUT%.*}              #删除INPUT变量中最后一个.及其右边的内容，即将INPUT的后缀去掉，赋值给ID变量；%表示从右边开始删除，#表示从左边开始删除；linux里
 
+ID=${INPUT%.*}              #删除INPUT变量中最后一个.及其右边的内容，即将INPUT的后缀去掉，赋值给ID变量；%表示从右边开始删除，#表示从左边开始删除；只针对变量，不针对文件
 
 md5sum A                    #显示A文件的md5值，用于校验文件是否被修改
 
