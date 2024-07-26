@@ -129,6 +129,7 @@ for((i=1;i<=100;i++)); do awk -v a=$i 'print $a' A; done #提取A文件的第1-1
 sed 's/aaa/bbb/' A                  #以行为单位在A文件中匹配aaa，并将每一行的第一个aaa改为bbb，并输出
 sed 's/aaa/bbb/g' A                 #将A文件中的aaa全部改为bbb并输出，可以使用正则表达式
 sed 's/^ *//' A                     #将A文件中每一行的开头的任意多个空格删除
+sed '/^$/d' A                       #删除A文件中的空行
 sed "s/${old}/${new}/g" A           #在使用变量时，需要使用双引号，否则变量无法被识别
 sed -e 's/aaa/bbb/; s/ccc/ddd/' A   #在A文件中匹配aaa并将其改为bbb，再匹配ccc并将其改为ddd
 sed -i 's/aaa/bbb/g' A              #不输出，直接修改A文件
