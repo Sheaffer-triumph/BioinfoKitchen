@@ -1,17 +1,35 @@
 #MOHA宏基因组分析流程
 set -e
-export THEANO_FLAGS='base_compiledir=/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1'
+
+#处理sra文件，fastp组装
+/usr/bin/rm -rf 01_fastp
+mkdir -p 01_fastp
+/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/parallel-fastq-dump --sra-id ERR1620272.sra --threads 8 -T 01_fastp --split-3 --gzip -O 01_fastp
+/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/amita/bin/fastp -i 01_fastp/ERR1620272_1.fastq.gz -o 01_fastp/ERR1620272_qc_1.fq.gz -I 01_fastp/ERR1620272_2.fastq.gz -O 01_fastp/ERR1620272_qc_2.fq.gz -5 -3 -z 9 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R out.prefix -l 30
+/usr/bin/rm -rf ERR1620272_1.fastq.gz ERR1620272_2.fastq.gz
+
+#组装
+/usr/bin/rm -rf 02_megahit
+/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/amita/bin/megahit --presets meta-large -t 8 -1 01_fastp/ERR1620272_qc_1.fq.gz -2 01_fastp/ERR1620272_qc_2.fq.gz -o 02_megahit
+/usr/bin/rm -rf 02_megahit/tmp 02_megahit/intermediate_contigs
+
+
+export THEANO_FLAGS='base_compiledir=/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/gutvirome/ERP017091/ERR1620272,cxx=/usr/bin/g++'   #针对dvf所使用的theano环境变量
 source ~/.mamba_init.sh
 
-#DeepVirFinder
+#DeepVirFinder病毒序列鉴定
 mamba activate dvf
 /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/dvf/bin/dvf -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa -o /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result -m /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/DeepVirFinder/models -l 1500 1>dvf.std 2>dvf.err
 /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/dvf/bin/dvf.extract /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/*gt1500bp_dvfpred.txt /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/dvfpred.id
 /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqkit grep -n -f /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/dvfpred.id /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa > /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/dvf_result/...dvfpred.fa
 
-#VirSorter2
+#VirSorter2病毒序列鉴定
 mamba activate virsorter2
 /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/virsorter2/bin/virsorter run -w /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/vs2 -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa --min-length 1500 -j 4 all 1>vs2.std 2>vs2.err
+
+#GenoMAD病毒序列鉴定
+mamba activate Genomad
+genomad end-to-end --cleanup --splits 8 ERR1620272_filter10k.fa /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/gutvirome/ERP017091/ERR1620272/03_viralIdentify/genomad /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/Genomad/database/genomad_db
 
 #vibrant
 mamba activate vibrant
