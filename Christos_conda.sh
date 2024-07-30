@@ -3,26 +3,25 @@ wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge
 #下载好后，执行安装
 sh Miniforge3-Linux-x86_64.sh
 #安装过程中会提示输入安装路径，写入工作路径，不要写入~目录
-condainit #初始化conda
+#安装好后，运行运行下面命令初始化conda
+condainit
 
-conda install -c conda-forge -c bioconda parallel-fastq-dump
-conda uninstall ***
-#conda安装prokka
-conda create -n prokka                          #创建名为prokka的环境
-conda activate prokka                           #激活prokka环境
-conda install -c bioconda prokka                #安装prokka
-conda deactivate                                #退出环境
-#经历上述步骤理论上可以安装好prokka，并使用。但在实际使用时发现prokka内置的blastp版本不兼容，此时可按下述步骤解决。
-conda activate prokka
-conda update -c conda-forge -c bioconda blast prokka
+
+#conda常用命令
+conda install -c conda-forge -c bioconda parallel-fastq-dump  #在当前环境下，从指定channel安装软件
+conda uninstall A                                             #在当前环境下，卸载软件A
+conda create -n amita                                         #创建名为amita的环境
+conda activate amita                                          #激活amita环境
+conda deactivate                                              #退出当前环境；如果.bashrc里没有conda相关的内容，可以直接使用source ~/.bashrc，退出所有环境
+conda update -c conda-forge -c bioconda blast prokka          #更新指定环境下的软件
 
 #conda不能直接修改环境名，可以通过如下命令来实现
-conda create --name hamburger --clone prokka    #克隆prokka环境并将其命名为hamburger
-conda remove --name prokka --all                #移除prokka环境下的所有内容
+conda create --name hamburger --clone prokka                  #克隆prokka环境并将其命名为hamburger
+conda remove --name prokka --all                              #移除prokka环境下的所有内容
 
-pydoc modules                                   #显示当前环境下的python模块
+pydoc modules                                                 #显示当前环境下的python模块
 
-#.condarc配置
+#.condarc配置，可以在~/.condarc文件中配置conda的默认channel，加速下载
 channels:
   - conda-forge
   - bioconda
