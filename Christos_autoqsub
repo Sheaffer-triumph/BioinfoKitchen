@@ -1,3 +1,4 @@
+#!/usr/bin/bash -e
 #实现任务自动化投递的脚本，可以根据设定的参数，自动投递任务，无需手动操作
 #使用路径：/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/amita/bin/autoqsub
 
