@@ -6,7 +6,7 @@ sh Miniforge3-Linux-x86_64.sh
 #安装好后，运行运行下面命令初始化conda
 conda init
 
-#conda常用命令
+#conda常用命令，以下命令中的conda可以替换为mamba
 conda install -c conda-forge -c bioconda parallel-fastq-dump  #在当前环境下，从指定channel安装软件
 conda uninstall A                                             #在当前环境下，卸载软件A
 conda create -n amita                                         #创建名为amita的环境
