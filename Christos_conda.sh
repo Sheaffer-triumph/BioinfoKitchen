@@ -4,8 +4,7 @@ wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge
 sh Miniforge3-Linux-x86_64.sh
 #安装过程中会提示输入安装路径，写入工作路径，不要写入~目录
 #安装好后，运行运行下面命令初始化conda
-condainit
-
+conda init
 
 #conda常用命令
 conda install -c conda-forge -c bioconda parallel-fastq-dump  #在当前环境下，从指定channel安装软件
