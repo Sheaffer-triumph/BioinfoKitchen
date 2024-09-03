@@ -28,7 +28,7 @@ mkdir A                      #创建A文件夹
 mkdir -p A/B/C               #递归创建A/B/C,即创建A文件夹，再在A文件夹中创建B文件夹，再在B文件夹中创建C文件夹; -p表示递归创建;如果目录存在，也不会报错
 mkdir -p A/{B,C,D}           #创建A文件夹，再在A文件夹中创建B、C、D文件夹
 
-git clone https://github.com/XiaofangJ/PhaseFinder #从github上下载PhaseFinder软件
+git clone https://github.com/XiaofangJ/PhaseFinder /path/to/A #从github上下载PhaseFinder软件到A文件夹中
 
 watch -n 1 -d 'A command'   #每隔1秒执行一次A command，-d表示高亮输出发生变化的地方
 
