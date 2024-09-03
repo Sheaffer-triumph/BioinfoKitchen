@@ -5,7 +5,7 @@ if [ -f /etc/bashrc ]; then
 fi
 
 #Predefined environment
-export PS1="\[\e[33;1m\]\u@\h \[\e[35;1m\]\d \t \`if [ \$? = 0 ]; then echo \[\e[32m\]^_^ ; else echo \[\e[31m\]O_O ; fi\` \[\e[36;1m\]\w\[\e[0m\]\n\[\e[32;1m\]$ \[\e[0m\]"
+export PS1="\[\e[33;1m\]\u@\h \[\e[35;1m\]\d \t \`if [ \$? = 0 ]; then echo \[\e[32m\]^_^ ; else echo \[\e[31m\]O_O ; fi\` \[\e[36;1m\]\w\[\e[0m\]\n\[\e[32;1m\]$ \[\e[0m\]"  #加入了一个表情，用于显示上一条命令是否执行成功，表情颜文字可以自己修改
 export TERMINFO=/usr/share/terminfo
 export PATH="/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/meme/bin:$PATH"
 export PATH="/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/:$PATH"
