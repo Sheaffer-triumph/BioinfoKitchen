@@ -32,13 +32,13 @@ mamba activate Genomad
 genomad end-to-end --cleanup --splits 8 ERR1620272_filter10k.fa /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/gutvirome/ERP017091/ERR1620272/03_viralIdentify/genomad /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/Genomad/database/genomad_db
 
 #vibrant
-mamba activate vibrant
-VIBRANT_run.py -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa -t 8 -d /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/envs/vibrant/db -m /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/envs/vibrant/model
+#mamba activate vibrant
+#VIBRANT_run.py -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/...fa -t 8 -d /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/envs/vibrant/db -m /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/envs/vibrant/model
 
 #dvf+vs2+vibrant去冗余
-cat vs2/final-viral-combined.fa dvf_result/dvfpred.fa VIBRANT/VIBRANT_phages/...phages_combined.fna >> /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/cat_dvf_vs2_vib.fa
-sed 's/||/ /g' /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/cat_dvf_vs2_vib.fa | awk '{print $1}' > comb_dvf_vs2_vib.awk.fa
-/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqkit rmdup -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/comb_dvf_vs2.fa > /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/comb_dvf_vs2_vib.awk.rmdup.fa
+#cat vs2/final-viral-combined.fa dvf_result/dvfpred.fa VIBRANT/VIBRANT_phages/...phages_combined.fna >> /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/cat_dvf_vs2_vib.fa
+#sed 's/||/ /g' /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/cat_dvf_vs2_vib.fa | awk '{print $1}' > comb_dvf_vs2_vib.awk.fa
+#/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/hamburger/bin/seqkit rmdup -i /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/comb_dvf_vs2.fa > /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/MOHA/comb_dvf_vs2_vib.awk.rmdup.fa
 
 #CheckV
 mamba activate checkv
@@ -53,11 +53,11 @@ cd-hit-est -i A.fa -o B.fa -c 0.95 -aL 0.9 -M 16000 -T 8
 
 
 #vcontact2
-mamba activate vContact2
-prodigal -i A.fa -a A.faa
-vcontact2_gene2genome -s Prodigal-FAA -p A.faa -o A.csv
-vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 4 --raw-proteins A.faa --proteins-fp A.csv --output-dir result
-sh cluster.sh
+#mamba activate vContact2
+#prodigal -i A.fa -a A.faa
+#vcontact2_gene2genome -s Prodigal-FAA -p A.faa -o A.csv
+#vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 4 --raw-proteins A.faa --proteins-fp A.csv --output-dir result
+#sh cluster.sh
 
 #iphop预测宿主
 mamba activate iphop
