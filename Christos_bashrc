@@ -12,7 +12,7 @@ export PATH="/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/env
 export PATH="/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/amita/bin/:$PATH"
 
 #Predefined shortcut commands
-alias ll='ls -lthr'
+alias ll='ls -lthr --group-directories-first'
 alias compute='ssh cngb-xcompute-0-10'
 alias software='ssh cngb-software-0-1'
 alias lzr1='cd /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1'
