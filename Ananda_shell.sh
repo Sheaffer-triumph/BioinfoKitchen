@@ -19,6 +19,10 @@ source ~/.bashrc    #修改.bashrc文件后，需要使用source命令重新加�
 alias lzr1='cd /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1'    #使用lzr1代替cd /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1命令；其中lzr1不能出现空格
 export TERMINFO=/usr/share/terminfo                             #在使用clear清屏时报错：terminals database is inaccessible，可使用该命令解决，原因未知
 
+gpg --batch --yes --passphrase 'xxxxxxxx' -c A                  #对A文件进行加密，密码为xxxxxxxx，加密后的文件为A.gpg
+gpg --batch --yes --passphrase 'xxxxxxxx' -d A.gpg > A          #对A.gpg文件进行解密，密码为xxxxxxxx，解密后的文件为输出为A
+#加密解密时，可以不加--batch --yes --passphrase 'xxxxxxxx'，但会弹出密码输入框，需要手动输入密码，这样会更安全，但不适用于批量处理
+
 ls -lthr                                #按写入内容的时间从前往后排列文件，-l表示显示详细信息，-t表示按时间排序，-h表示文件大小以人类可读的方式显示（G M K），-r表示倒序
 ls -al                                  #显示所有文件，包括隐藏文件
 ll -a                                   #同上
@@ -91,6 +95,7 @@ ll $(cat list)              #同上，二者等价
 ll $(cat $(which bowtie2))  #将which bowtie2命令的输出作为参数传递给cat命令，再将cat命令的输出作为参数传递给ll命令,多重嵌套只能使用$()，不能使用``
 echo file1.txt file2.txt file3.txt | xargs rm -rf               #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令，xargs后面的内容似乎只能使用命令，不能使用别名
 echo file1.txt file2.txt file3.txt | xargs -I {} mv {} {}.bak   #将echo的输出作为参数传递给xargs命令，xargs默认将参数传递给后面的命令，-I {}表示将参数传递给{}，{}可以换成其他字符，但在使用时需要保持一致，注意不要与别的命令冲突；此处使用命令不会使用bashrc内的别名
+
 
 #任务投递
 qsub -cwd -q st.q -P P17Z10200N0246 -l vf=50g,num_proc=8 -binding linear:8 A.sh          #普通节点，任务运行无时间限制，资源申请最大为100g内存，8个线程
