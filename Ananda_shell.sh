@@ -323,7 +323,7 @@ git config --global user.name "Sheaffer-triumph"
 git config --global user.email zoranlee0118@gmail.com
 
 #NCBI工具entrez使用
-efetch -db Nucleotide -id NC_010355 -format gb
+efetch -db Nucleotide -id NC_010355 -format gb  #在Nucleotide数据库中下载ID为NC_010355的gbk文件；-format指定文件格式，gb为gbk文件，fasta为fa文件
 
 
 
