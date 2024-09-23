@@ -322,6 +322,10 @@ python
 git config --global user.name "Sheaffer-triumph"
 git config --global user.email zoranlee0118@gmail.com
 
+#NCBI工具entrez使用
+efetch -db Nucleotide -id NC_010355 -format gb
+
+
 
 #shell脚本相关
 
