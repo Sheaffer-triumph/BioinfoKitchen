@@ -326,7 +326,6 @@ git config --global user.email zoranlee0118@gmail.com
 efetch -db Nucleotide -id NC_010355 -format gb  #在Nucleotide数据库中下载ID为NC_010355的gbk文件；-format指定文件格式，gb为gbk文件，fasta为fa文件
 
 
-
 #shell脚本相关
 
 #shebang行  定义脚本的默认解释器
