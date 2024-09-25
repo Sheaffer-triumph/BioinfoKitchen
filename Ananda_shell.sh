@@ -204,6 +204,7 @@ tar -cI 'gzip -9' -f A.tar.gz A     #将A文件夹打包成A.tar.gz文件，使�
 pigz -p 4 -k -6 A                   #使用pigz进行压缩，pigz是gzip的并联版本，速度更快。pigz只能对文件进行压缩，若是文件夹需要先使用tar进行打包；会默认生成A.gz文件
                                     #-p为线程数；-k表示保留原文件，不删除。-6为压缩等级，可选1-9，数字越大压缩效果越好，耗时越长。
 tar cf - A | pigz -p 4 -k -6 > A.tar.gz #将A文件夹打包成A.tar.gz文件，使用pigz进行压缩，速度更快
+tar --no-same-owner -xvf archive.tar #解压时不保留文件的所有者和组，即解压后文件的所有者和组会变成当前用户和组
 
 #拆分文件:
 #用于将多条fa文件拆分成单个，以下内容无需参考，请往下看split和seqkit使用
