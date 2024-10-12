@@ -1,25 +1,25 @@
 version 1.0
 
-workflow phagex_assemble_annotation_workflow
+workflow phagex_assemble_annotation_workflow  #定义工作流
 {
-  input
+  input                                       #定义工作流的输入
   {
-    File fastq1
+    File fastq1                               #定义输入的文件类型和名称
     File fastq2
     String phageID
     Array[File] Anno_db
   }
-  call phage_assemble_annotation
+  call phage_assemble_annotation              #在工作流中调用一个任务
   {
-    input:
-      fastq1 = fastq1,
-      fastq2 = fastq2,
-      phageID = phageID,
-      Anno_db = Anno_db
+    input:                                    #定义所任务的输入
+      Input_fq1 = fastq1,                     #将工作流的输入fastq1映射到任务的输入Input_fq1
+      Input_fq2 = fastq2,
+      Input_ID = phageID,
+      Input_db = Anno_db
   }
-  output
+  output                                                #定义工作流的输出        
   {
-    File Assemble = phage_assemble_annotation.Assemble
+    File Assemble = phage_assemble_annotation.Assemble  #定义输出的文件类型和名称，phage_assemble_annotation.Assemble是上面定义的任务的输出，Assemble是该任务的输出
     File FAA = phage_assemble_annotation.FAA
     File FNA = phage_assemble_annotation.FNA
     File Annotation = phage_assemble_annotation.Annotation
@@ -28,15 +28,15 @@ workflow phagex_assemble_annotation_workflow
   }
 }
 
-task phage_assemble_annotation
+task phage_assemble_annotation                #定义一个任务
 {
-  input 
+  input                                       #定义任务的输入
   {
-    File fastq1
-    File fastq2
-    Array[File] Anno_db
-    String phageID
-    String result_dir = phageID
+    File Input_fq1                             #定义输入的文件类型和名称，Input_fq1是任务的输入
+    File Input_fq2
+    Array[File] Input_db
+    String Input_ID
+    String result_dir = Input_ID
     String FASTP = "/home/stereonote/software/miniforge3/envs/amita/bin/fastp"
     String SEQTK = "/home/stereonote/software/seqtk/bin/seqtk"
     String SEQKIT = "/home/stereonote/software/miniforge3/envs/amita/bin/seqkit"
@@ -58,10 +58,10 @@ task phage_assemble_annotation
     String NR_PHAGE_DB = "/jdfssz2/ST_BIGDATA/Stomics/warehouse/prd/ods/STOmics/ShenZhen_projectData/UserUpload/P17Z10200N0246/VIRP17Z10200N0246/1834243318442299394/lizhuoran1/1726153204014/nr_phage.fasta"
     String TOOK_LONGEST = "/home/stereonote/script/took_longest.pl"
   }
-  command 
+  command                                     #定义任务的命令
   {
-    mkdir -p ${result_dir}/01_fastp
-    ${FASTP} -i ${fastq1} -o ${result_dir}/01_fastp/${phageID}_1.fq -I ${fastq2} -O ${result_dir}/01_fastp/${phageID}_2.fq -5 -3 -w 8 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
+    mkdir -p ${result_dir}/01_fastp           #所有在任务的输入中定义的变量都需要用${}引用
+    ${FASTP} -i ${Input_fq1} -o ${result_dir}/01_fastp/${Input_ID}_1.fq -I ${Input_fq2} -O ${result_dir}/01_fastp/${Input_ID}_2.fq -5 -3 -w 8 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
 
     mkdir -p ${result_dir}/02_sampling50x
     ${SEQTK}  sample -s 25   ${result_dir}/01_fastp/${phageID}_1.fq    25000 > ${result_dir}/02_sampling50x/seqtk_50xdata_v1_1.fq
@@ -149,30 +149,26 @@ task phage_assemble_annotation
     ${RESULT2GFF} ${result_dir}/10_annotation_result/${phageID}_annotation.txt ${result_dir}/06_prodigal/${phageID}.gff ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff
     ${SEQRET} -sequence ${result_dir}/04_select_6k/final.fa -feature -fformat gff -fopenfile ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff -osformat genbank -outseq ${result_dir}/11_gff2gbk/${phageID}.gbk
 
-    mkdir -p ${result_dir}/final
-    cp ${result_dir}/04_select_6k/final.fa ${result_dir}/final/${phageID}.fa
-    cp ${result_dir}/11_gff2gbk/${phageID}.gbk ${result_dir}/final/${phageID}.gbk
-    cp ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff ${result_dir}/final/${phageID}.gff
-    cp ${result_dir}/10_annotation_result/${phageID}_annotation.txt ${result_dir}/final/${phageID}_annotation.txt
-    cp ${result_dir}/06_prodigal/${phageID}.faa ${result_dir}/final/${phageID}.faa
-    cp ${result_dir}/06_prodigal/${phageID}.fna ${result_dir}/final/${phageID}.fna
-
+    cp ${result_dir}/04_select_6k/final.fa ${result_dir}/${phageID}.fa
+    cp ${result_dir}/11_gff2gbk/${phageID}.gbk ${result_dir}/${phageID}.gbk
+    cp ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff ${result_dir}/${phageID}.gff
+    cp ${result_dir}/10_annotation_result/${phageID}_annotation.txt ${result_dir}/${phageID}_annotation.txt
+    cp ${result_dir}/06_prodigal/${phageID}.faa ${result_dir}/${phageID}.faa
+    cp ${result_dir}/06_prodigal/${phageID}.fna ${result_dir}/${phageID}.fna
   }
-
-  output 
+  output    #定义任务的输出
   {
-    File Assemble = "${result_dir}/final/${phageID}.fa"
-    File FAA = "${result_dir}/final/${phageID}.faa"
-    File FNA = "${result_dir}/final/${phageID}.fna"
-    File Annotation = "${result_dir}/final/${phageID}_annotation.txt"
-    File GBK = "${result_dir}/final/${phageID}.gbk"
-    File GFF = "${result_dir}/final/${phageID}.gff"
+    File Assemble = "${result_dir}/${phageID}.fa" 
+    File FAA = "${result_dir}/${phageID}.faa"
+    File FNA = "${result_dir}/${phageID}.fna"
+    File Annotation = "${result_dir}/${phageID}_annotation.txt"
+    File GBK = "${result_dir}/${phageID}.gbk"
+    File GFF = "${result_dir}/${phageID}.gff"
   }
-
-  runtime 
+  runtime #定义任务的运行环境与参数
   {
     docker_url: "stereonote_hpc/lizhuoran1_048da0b2cf824d69843702386fa780d1_private:latest"
     req_cpu: 8
-    req_memory: "20Gi"
+    req_memory: "20Gi"  #任务所需的内存，单位为Gi，书写时要注意
   }
 }
