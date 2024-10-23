@@ -251,6 +251,7 @@ task CheckComplete
         File Genomad4CheckComplete
         File Virbrant4CheckComplete
         String SampleID
+        String CheckvDB
     }
     command
     {
@@ -258,8 +259,10 @@ task CheckComplete
         mamba activate amita
         mkdir -p ${SampleID}/04_checkComplete
         cat ${Dvf4CheckComplete} ${Vs24CheckComplete} ${Genomad4CheckComplete} ${Virbrant4CheckComplete} > ${SampleID}/04_checkComplete/${SampleID}_all.fa
-        cd-hit-est -i ${SampleID}/04_checkComplete/${SampleID}_all.fa -o ${SampleID}/04_checkComplete/${SampleID}_cdhit95.fa -c 0.95 -T 16
-        checkv end-to-end --threads 16 --keep-intermediate --proteins --fasta ${SampleID}/04_checkComplete/${SampleID}_cdhit95.fa ${SampleID}/04_checkComplete
+        seqkit rmdup -i ${SampleID}/04_checkComplete/${SampleID}_all.fa > ${SampleID}/04_checkComplete/${SampleID}_completeVirus.fa
+        checkv end_to_end ${SampleID}/04_checkvComplete/${SampleID}_completeVirus.fa ${SampleID}/04_checkvComplete -d ${CheckvDB} -t 16 1>checkv.std 2>checkv.err
+        cat checkv/quality* | grep '' | cut -f1 | sed '1d' > 
+        cd-hit-est -i A.fa -o B.fa -c 0.95 -aL 0.9 -M 16000 -T 8
     }
     output
     {
