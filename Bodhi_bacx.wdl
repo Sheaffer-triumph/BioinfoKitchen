@@ -45,30 +45,30 @@ task bacx
         mkdir -p ${result_dir}
 
         mkdir -p ${result_dir}/01_fastp
-        ${FASTP} -i ${Fastq1} -o ${result_dir}/01_fastp/${ID}_1.fq -I ${Fastq2} -O ${result_dir}/01_fastp/${ID}_2.fq -5 -3 -w 8 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
+        ${FASTP} -i ${Fastq1} -o ${result_dir}/01_fastp/${ID}_1.fq -I ${Fastq2} -O ${result_dir}/01_fastp/${ID}_2.fq -5 -3 -w 16 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
         
         mkdir -p ${result_dir}/02_spades
-        ${SPADES} --careful -1 ${result_dir}/01_fastp/${ID}_1.fq -2 01_fastp/${ID}_2.fq -o ${result_dir}/02_spades 2>${result_dir}/02_spades/r2.spades.sh.err
+        ${SPADES} --careful -1 ${result_dir}/01_fastp/${ID}_1.fq -2 ${result_dir}/01_fastp/${ID}_2.fq -o ${result_dir}/02_spades -t 16 2>${result_dir}/02_spades/r2.spades.sh.err
 
-        mkdir -p ${result_dir}/03_annotation
-        ${PERL} ${PROKKA} --prefix ${ID} --locustag ${ID} --addgenes --addmrna --plasmid Plasmid --gcode 11 --outdir ${result_dir}/03_annotation --mincontiglen 100 ${result_dir}/02_spades/scaffolds.fasta  2>${result_dir}/03_annotation/r3.prokka.sh.err
+        ${PROKKA} --prefix ${ID} --locustag ${ID} --addgenes --addmrna --plasmid Plasmid --gcode 11 --outdir ${result_dir}/03_annotation --mincontiglen 100 ${result_dir}/02_spades/scaffolds.fasta  2>${result_dir}/r3.prokka.sh.err
     
         mkdir -p ${result_dir}/04_quast
         ${QUAST_PYTHON} ${QUAST} -o ${result_dir}/04_quast ${result_dir}/02_spades/scaffolds.fasta 2>${result_dir}/04_quast/r4.quast.sh.err
 
-        cp ${result_dir}/02_spades/scaffolds.fasta ${result_dir}/${ID}.fasta
-        cp ${result_dir}/04_quast/report.tsv ${result_dir}/${ID}_quast_report.tsv
+        cp ${result_dir}/02_spades/scaffolds.fasta ./${ID}.fasta
+        cp ${result_dir}/04_quast/report.tsv ./${ID}_quast_report.tsv
+        cp ${result_dir}/03_annotation/* ./
     }
     output
     {
-        File FA = "${result_dir}/${ID}.fasta"
-        File REPORT = "${result_dir}/${ID}_quast_report.tsv"
-        Array[File] ANNO = glob("${result_dir}/03_annotation/*")
+        File FA = "./${ID}.fasta"
+        File REPORT = "./${ID}_quast_report.tsv"
+        Array[File] ANNO = glob("./${ID}.*")
     }
     runtime
     {
         docker_url: "stereonote_hpc/lizhuoran1_048da0b2cf824d69843702386fa780d1_private:latest"
         req_cpu: 16
-        req_memory: "64Gi"
+        req_memory: "32Gi"
     }
 }
