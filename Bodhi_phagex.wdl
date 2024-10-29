@@ -17,6 +17,11 @@ workflow phagex_assemble_annotation_workflow  #定义工作流
       Input_ID = phageID,
       Input_db = Anno_db
   }
+  call quality
+  {
+    input:
+      PhageFA = phage_assemble_annotation.Assemble
+  }
   output                                                #定义工作流的输出        
   {
     File Assemble = phage_assemble_annotation.Assemble  #定义输出的文件类型和名称，phage_assemble_annotation.Assemble是上面定义的任务的输出，Assemble是该任务的输出
@@ -25,6 +30,8 @@ workflow phagex_assemble_annotation_workflow  #定义工作流
     File Annotation = phage_assemble_annotation.Annotation
     File GBK = phage_assemble_annotation.GBK
     File GFF = phage_assemble_annotation.GFF
+    File QUAST = phage_assemble_annotation.REPORT
+    File CHECKV = quality.REPORT
   }
 }
 
@@ -149,26 +156,54 @@ task phage_assemble_annotation                #定义一个任务
     ${RESULT2GFF} ${result_dir}/10_annotation_result/${phageID}_annotation.txt ${result_dir}/06_prodigal/${phageID}.gff ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff
     ${SEQRET} -sequence ${result_dir}/04_select_6k/final.fa -feature -fformat gff -fopenfile ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff -osformat genbank -outseq ${result_dir}/11_gff2gbk/${phageID}.gbk
 
-    cp ${result_dir}/04_select_6k/final.fa ${result_dir}/${phageID}.fa
-    cp ${result_dir}/11_gff2gbk/${phageID}.gbk ${result_dir}/${phageID}.gbk
-    cp ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff ${result_dir}/${phageID}.gff
-    cp ${result_dir}/10_annotation_result/${phageID}_annotation.txt ${result_dir}/${phageID}_annotation.txt
-    cp ${result_dir}/06_prodigal/${phageID}.faa ${result_dir}/${phageID}.faa
-    cp ${result_dir}/06_prodigal/${phageID}.fna ${result_dir}/${phageID}.fna
+    cp ${result_dir}/04_select_6k/final.fa ${phageID}.fa
+    cp ${result_dir}/11_gff2gbk/${phageID}.gbk ${phageID}.gbk
+    cp ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff ${phageID}.gff
+    cp ${result_dir}/10_annotation_result/${phageID}_annotation.txt ${phageID}_annotation.txt
+    cp ${result_dir}/06_prodigal/${phageID}.faa ${phageID}.faa
+    cp ${result_dir}/06_prodigal/${phageID}.fna ${phageID}.fna
+    cp ${result_dir}/05_quast/report.tsv ${phageID}_assemble_report.tsv
   }
   output    #定义任务的输出
   {
-    File Assemble = "${result_dir}/${phageID}.fa" 
-    File FAA = "${result_dir}/${phageID}.faa"
-    File FNA = "${result_dir}/${phageID}.fna"
-    File Annotation = "${result_dir}/${phageID}_annotation.txt"
-    File GBK = "${result_dir}/${phageID}.gbk"
-    File GFF = "${result_dir}/${phageID}.gff"
+    File Assemble = "${phageID}.fa" 
+    File FAA = "${phageID}.faa"
+    File FNA = "${phageID}.fna"
+    File Annotation = "${phageID}_annotation.txt"
+    File GBK = "${phageID}.gbk"
+    File GFF = "${phageID}.gff"
+    File REPORT = "${phageID}_assemble_report.txt"
   }
   runtime #定义任务的运行环境与参数
   {
     docker_url: "stereonote_hpc/lizhuoran1_048da0b2cf824d69843702386fa780d1_private:latest"
     req_cpu: 8
     req_memory: "20Gi"  #任务所需的内存，单位为Gi，书写时要注意
+  }
+}
+
+task quality
+{
+  input
+  {
+    File PhageFA
+  }
+  command
+  {
+    source ~/.bashrc
+    mamba activate checkv
+    mkdir -p checkv
+    checkv end_to_end ${PhageFA} checkv -d /data/input/Files/ReferenceData/checkv-db-v1.5 -t 8 
+    mv checkv/quality_summary.tsv ${PhageFA}_checkv.tsv
+  }
+  output
+  {
+    File REPORT = "${PhageFA}_checkv.tsv"
+  }
+  runtime
+  {
+    docker_url: "stereonote_hpc/lizhuoran1_933c889e616c4655a0b79a764caba4db_private:latest"
+    req_cpu: 8
+    req_memory: "20Gi"
   }
 }
