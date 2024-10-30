@@ -309,6 +309,9 @@ seqkit split -p 100 A.fa                    #将A文件中的序列拆分成100�
 seqkit sample -s 100 -n 1000 A.fa > B.fa    #从A文件中随机抽取1000个序列输出至B文件，-s 100表示随机种子，-n 1000表示抽取的序列数；在处理大文件时，不建议使用-n参数，因为会将所有序列读入内存，占用大量内存
 seqkit sample -s 100 -p 0.5 A.fa > B.fa     #从A文件中随机抽取50%的序列输出至B文件，-s 100表示随机种子，-p 0.5表示抽取的比例
 seqkit sample -s 100 -p 0.5 A.fa.gz | pigz -p 4 -9 > B.fa.gz #从A文件中随机抽取50%的序列输出至B文件，并压缩；seqkit支持处理压缩文件，但不支持输出压缩文件
+seqkit sort -l A.fa > B.fa                  #按照序列的长度，将A文件中的序列按照长度排序由短到长输出至B文件
+seqkit sort -lr A.fa > B.fa                 #按照序列的长度，将A文件中的序列按照长度排序由长到短输出至B文件
+
 
 #python相关
 sed -i 's/\r//' A.py      #将A.py文件中的\r替换为空，解决win下编写的python文件在linux下运行报错的问题

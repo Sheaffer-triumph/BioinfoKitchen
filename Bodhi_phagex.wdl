@@ -1,49 +1,41 @@
 version 1.0
 
-workflow phagex_assemble_annotation_workflow  #定义工作流
+workflow phagex_assemble_annotation_workflow  
 {
-  input                                       #定义工作流的输入
+  input                                       
   {
-    File fastq1                               #定义输入的文件类型和名称
+    File fastq1                               
     File fastq2
     String phageID
-    Array[File] Anno_db
   }
-  call phage_assemble_annotation              #在工作流中调用一个任务
+  call phage_assemble_annotation              
   {
-    input:                                    #定义所任务的输入
-      Input_fq1 = fastq1,                     #将工作流的输入fastq1映射到任务的输入Input_fq1
+    input:                                    
+      Input_fq1 = fastq1,                     
       Input_fq2 = fastq2,
-      Input_ID = phageID,
-      Input_db = Anno_db
+      phageID = phageID
   }
-  call quality
+  output                                                 
   {
-    input:
-      PhageFA = phage_assemble_annotation.Assemble
-  }
-  output                                                #定义工作流的输出        
-  {
-    File Assemble = phage_assemble_annotation.Assemble  #定义输出的文件类型和名称，phage_assemble_annotation.Assemble是上面定义的任务的输出，Assemble是该任务的输出
+    File Assemble = phage_assemble_annotation.Assemble  
     File FAA = phage_assemble_annotation.FAA
     File FNA = phage_assemble_annotation.FNA
     File Annotation = phage_assemble_annotation.Annotation
     File GBK = phage_assemble_annotation.GBK
     File GFF = phage_assemble_annotation.GFF
-    File QUAST = phage_assemble_annotation.REPORT
-    File CHECKV = quality.REPORT
+    File QUAST = phage_assemble_annotation.QUAST_REPORT
+    File CHECKV = phage_assemble_annotation.CHECKV_REPORT
   }
 }
 
-task phage_assemble_annotation                #定义一个任务
+task phage_assemble_annotation                
 {
-  input                                       #定义任务的输入
+  input                                       
   {
-    File Input_fq1                             #定义输入的文件类型和名称，Input_fq1是任务的输入
+    File Input_fq1                             
     File Input_fq2
-    Array[File] Input_db
-    String Input_ID
-    String result_dir = Input_ID
+    String phageID
+    String result_dir = phageID
     String FASTP = "/home/stereonote/software/miniforge3/envs/amita/bin/fastp"
     String SEQTK = "/home/stereonote/software/seqtk/bin/seqtk"
     String SEQKIT = "/home/stereonote/software/miniforge3/envs/amita/bin/seqkit"
@@ -64,11 +56,13 @@ task phage_assemble_annotation                #定义一个任务
     String SEQRET = "/home/stereonote/software/miniforge3/envs/amita/bin/seqret"
     String NR_PHAGE_DB = "/jdfssz2/ST_BIGDATA/Stomics/warehouse/prd/ods/STOmics/ShenZhen_projectData/UserUpload/P17Z10200N0246/VIRP17Z10200N0246/1834243318442299394/lizhuoran1/1726153204014/nr_phage.fasta"
     String TOOK_LONGEST = "/home/stereonote/script/took_longest.pl"
+    String CHECKV = "/home/stereonote/software/miniforge3/envs/checkv/bin/checkv"
+    String CHECKV_DB = "/data/input/Files/ReferenceData/checkv-db-v1.5"
   }
-  command                                     #定义任务的命令
-  {
-    mkdir -p ${result_dir}/01_fastp           #所有在任务的输入中定义的变量都需要用${}引用
-    ${FASTP} -i ${Input_fq1} -o ${result_dir}/01_fastp/${Input_ID}_1.fq -I ${Input_fq2} -O ${result_dir}/01_fastp/${Input_ID}_2.fq -5 -3 -w 8 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
+  command                                     
+  <<<
+    mkdir -p ${result_dir}/01_fastp           
+    ${FASTP} -i ${Input_fq1} -o ${result_dir}/01_fastp/${Input_ID}_1.fq -I ${Input_fq2} -O ${result_dir}/01_fastp/${Input_ID}_2.fq -5 -3 -w 16 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
 
     mkdir -p ${result_dir}/02_sampling50x
     ${SEQTK}  sample -s 25   ${result_dir}/01_fastp/${phageID}_1.fq    25000 > ${result_dir}/02_sampling50x/seqtk_50xdata_v1_1.fq
@@ -124,47 +118,58 @@ task phage_assemble_annotation                #定义一个任务
     python ${SELECT_6K} -c 6000 -f ${result_dir}/03_spades/auto/seqkit_v2/scaffolds.fasta > ${result_dir}/04_select_6k/spades_auto_seqkit_v2.fasta
     python ${SELECT_6K} -c 6000 -f ${result_dir}/03_spades/auto/seqkit_v3/scaffolds.fasta > ${result_dir}/04_select_6k/spades_auto_seqkit_v3.fasta
     cat ${result_dir}/04_select_6k/*fasta > ${result_dir}/04_select_6k/all_6k.fa
-    perl ${TOOK_LONGEST} ${result_dir}/04_select_6k/all_6k.fa ${result_dir}/04_select_6k/final.fa 2>${result_dir}/04_select_6k/took_longest.err
 
-    mkdir -p ${result_dir}/05_quast
-    ${QUAST_PYTHON} ${QUAST} -o ${result_dir}/05_quast ${result_dir}/04_select_6k/final.fa 2>${result_dir}/05_quast/r5.quast.err
+    ${SEQKIT} sort -lr ${result_dir}/04_select_6k/all_6k.fa > ${result_dir}/04_select_6k/all_6k_sort.fa
 
-    mkdir -p ${result_dir}/06_prodigal
-    ${PRODIGAL} -i ${result_dir}/04_select_6k/final.fa -o ${result_dir}/06_prodigal/${phageID}.gff -a ${result_dir}/06_prodigal/${phageID}.faa -d ${result_dir}/06_prodigal/${phageID}.fna -p meta -f gff -c 2>${result_dir}/06_prodigal/r6.prodigal.err
+    source ~/.bashrc
+    mamba activate checkv
+    mkdir -p ${result_dir}/05_checkv
+    ${CHECKV} ${result_dir}/04_select_6k/all_6k_sort.fa -t 16 -d ${CHECKV_DB} -o ${result_dir}/05_checkv 2>${result_dir}/05_checkv/r5.checkv.err
+    cat ${result_dir}/05_checkv/quality_summary.tsv | grep -v "high kmer_freq may indicate large duplication" | head -n 2 > ${result_dir}/05_checkv/checkv.tsv
+    cat ${result_dir}/05_checkv/quality_summary.tsv | sed '1d' | grep -v "high kmer_freq may indicate large duplication" | awk '{print $1}' > ${result_dir}/05_checkv/checkvid.txt
+    ${SEQKIT} grep -n -f ${result_dir}/05_checkv/checkvid.txt ${result_dir}/04_select_6k/all_6k_sort.fa > ${result_dir}/04_select_6k/final.fa
 
-    mkdir -p ${result_dir}/07_blastp
-    ${BLASTP} -query ${result_dir}/06_prodigal/${phageID}.faa -db ${NR_PHAGE_DB} -evalue 1e-5 -max_target_seqs 1 -num_threads 8 -out ${result_dir}/07_blastp/${phageID}.blastp.txt -outfmt "6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore" 2>${result_dir}/07_blastp/r7.blastp.err
+    source ~/.bashrc
+    mkdir -p ${result_dir}/06_quast
+    ${QUAST_PYTHON} ${QUAST} -o ${result_dir}/06_quast ${result_dir}/04_select_6k/final.fa 2>${result_dir}/06_quast/r5.quast.err
+
+    mkdir -p ${result_dir}/07_prodigal
+    ${PRODIGAL} -i ${result_dir}/04_select_6k/final.fa -o ${result_dir}/07_prodigal/${phageID}.gff -a ${result_dir}/07_prodigal/${phageID}.faa -d ${result_dir}/07_prodigal/${phageID}.fna -p meta -f gff -c 2>${result_dir}/07_prodigal/r6.prodigal.err
+
+    mkdir -p ${result_dir}/08_blastp
+    ${BLASTP} -query ${result_dir}/07_prodigal/${phageID}.faa -db ${NR_PHAGE_DB} -evalue 1e-5 -max_target_seqs 1 -num_threads 16 -out ${result_dir}/08_blastp/${phageID}.blastp.txt -outfmt "6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore" 2>${result_dir}/08_blastp/r7.blastp.err
     
-    mkdir -p ${result_dir}/08_phmmer
-    ${PHMMER} -E 1e-5 -o ${result_dir}/08_phmmer/uniref.output.txt --cpu 8 --tblout ${result_dir}/08_phmmer/uniref.tblout.txt ${result_dir}/06_prodigal/${phageID}.faa ${UNIREF_DB}
-    ${PHMMER} -E 1e-5 -o ${result_dir}/08_phmmer/uniprotkb.output.txt --cpu 8 --tblout ${result_dir}/08_phmmer/uniprotkb.tblout.txt ${result_dir}/06_prodigal/${phageID}.faa ${UNIPROTKB_DB}
-    grep '#' -v ${result_dir}/08_phmmer/uniref.tblout.txt > ${result_dir}/08_phmmer/uniref.tblout.txt.hit
-    grep '#' -v ${result_dir}/08_phmmer/uniprotkb.tblout.txt > ${result_dir}/08_phmmer/uniprotkb.tblout.txt.hit
+    mkdir -p ${result_dir}/09_phmmer
+    ${PHMMER} -E 1e-5 -o ${result_dir}/09_phmmer/uniref.output.txt --cpu 16 --tblout ${result_dir}/09_phmmer/uniref.tblout.txt ${result_dir}/07_prodigal/${phageID}.faa ${UNIREF_DB}
+    ${PHMMER} -E 1e-5 -o ${result_dir}/09_phmmer/uniprotkb.output.txt --cpu 16 --tblout ${result_dir}/09_phmmer/uniprotkb.tblout.txt ${result_dir}/07_prodigal/${phageID}.faa ${UNIPROTKB_DB}
+    grep '#' -v ${result_dir}/09_phmmer/uniref.tblout.txt > ${result_dir}/09_phmmer/uniref.tblout.txt.hit
+    grep '#' -v ${result_dir}/09_phmmer/uniprotkb.tblout.txt > ${result_dir}/09_phmmer/uniprotkb.tblout.txt.hit
 
-    mkdir -p ${result_dir}/09_hmmscan
-    ${HMMSCAN} -E 1e-5 -o ${result_dir}/09_hmmscan/pfam.output.txt --cpu 8 --tblout ${result_dir}/09_hmmscan/pfam.tblout.txt ${PFAM_PATH} ${result_dir}/06_prodigal/${phageID}.faa
-    grep '#' -v ${result_dir}/09_hmmscan/pfam.tblout.txt > ${result_dir}/09_hmmscan/pfam.tblout.txt.hit
+    mkdir -p ${result_dir}/10_hmmscan
+    ${HMMSCAN} -E 1e-5 -o ${result_dir}/10_hmmscan/pfam.output.txt --cpu 16 --tblout ${result_dir}/10_hmmscan/pfam.tblout.txt ${PFAM_PATH} ${result_dir}/07_prodigal/${phageID}.faa
+    grep '#' -v ${result_dir}/10_hmmscan/pfam.tblout.txt > ${result_dir}/10_hmmscan/pfam.tblout.txt.hit
 
-    mkdir -p ${result_dir}/10_annotation_result
-    cat ${result_dir}/09_hmmscan/pfam.tblout.txt.hit ${result_dir}/08_phmmer/uniref.tblout.txt.hit ${result_dir}/08_phmmer/uniprotkb.tblout.txt.hit > ${result_dir}/10_annotation_result/hmm.hit
-    ${HMMER_UNIQ} ${result_dir}/10_annotation_result/hmm.hit ${result_dir}/10_annotation_result/hmm.hit.uniq
-    ${GET_RESULT_PY} ${result_dir}/07_blastp/${phageID}.blastp.txt ${result_dir}/10_annotation_result/hmm.hit.uniq ${result_dir}/10_annotation_result/${phageID}_annotation.txt
+    mkdir -p ${result_dir}/11_annotation_result
+    cat ${result_dir}/10_hmmscan/pfam.tblout.txt.hit ${result_dir}/09_phmmer/uniref.tblout.txt.hit ${result_dir}/09_phmmer/uniprotkb.tblout.txt.hit > ${result_dir}/11_annotation_result/hmm.hit
+    ${HMMER_UNIQ} ${result_dir}/11_annotation_result/hmm.hit ${result_dir}/11_annotation_result/hmm.hit.uniq
+    ${GET_RESULT_PY} ${result_dir}/08_blastp/${phageID}.blastp.txt ${result_dir}/11_annotation_result/hmm.hit.uniq ${result_dir}/11_annotation_result/${phageID}_annotation.txt
 
     source ~/.bashrc
     mamba activate amita
-    mkdir -p ${result_dir}/11_gff2gbk
-    ${RESULT2GFF} ${result_dir}/10_annotation_result/${phageID}_annotation.txt ${result_dir}/06_prodigal/${phageID}.gff ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff
-    ${SEQRET} -sequence ${result_dir}/04_select_6k/final.fa -feature -fformat gff -fopenfile ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff -osformat genbank -outseq ${result_dir}/11_gff2gbk/${phageID}.gbk
+    mkdir -p ${result_dir}/12_gff2gbk
+    ${RESULT2GFF} ${result_dir}/11_annotation_result/${phageID}_annotation.txt ${result_dir}/07_prodigal/${phageID}.gff ${result_dir}/12_gff2gbk/${phageID}_genome.annotation.gff
+    ${SEQRET} -sequence ${result_dir}/04_select_6k/final.fa -feature -fformat gff -fopenfile ${result_dir}/12_gff2gbk/${phageID}_genome.annotation.gff -osformat genbank -outseq ${result_dir}/12_gff2gbk/${phageID}.gbk
 
     cp ${result_dir}/04_select_6k/final.fa ${phageID}.fa
-    cp ${result_dir}/11_gff2gbk/${phageID}.gbk ${phageID}.gbk
-    cp ${result_dir}/11_gff2gbk/${phageID}_genome.annotation.gff ${phageID}.gff
-    cp ${result_dir}/10_annotation_result/${phageID}_annotation.txt ${phageID}_annotation.txt
-    cp ${result_dir}/06_prodigal/${phageID}.faa ${phageID}.faa
-    cp ${result_dir}/06_prodigal/${phageID}.fna ${phageID}.fna
-    cp ${result_dir}/05_quast/report.tsv ${phageID}_assemble_report.tsv
-  }
-  output    #定义任务的输出
+    cp ${result_dir}/12_gff2gbk/${phageID}.gbk ${phageID}.gbk
+    cp ${result_dir}/12_gff2gbk/${phageID}_genome.annotation.gff ${phageID}.gff
+    cp ${result_dir}/11_annotation_result/${phageID}_annotation.txt ${phageID}_annotation.txt
+    cp ${result_dir}/07_prodigal/${phageID}.faa ${phageID}.faa
+    cp ${result_dir}/07_prodigal/${phageID}.fna ${phageID}.fna
+    cp ${result_dir}/06_quast/report.tsv ${phageID}_quast.tsv
+    cp ${result_dir}/05_checkv/checkv.tsv ${phageID}_checkv.tsv
+  >>>
+  output    
   {
     File Assemble = "${phageID}.fa" 
     File FAA = "${phageID}.faa"
@@ -172,38 +177,13 @@ task phage_assemble_annotation                #定义一个任务
     File Annotation = "${phageID}_annotation.txt"
     File GBK = "${phageID}.gbk"
     File GFF = "${phageID}.gff"
-    File REPORT = "${phageID}_assemble_report.txt"
+    File QUAST_REPORT = "${phageID}_quast.tsv"
+    File CHECKV_REPORT = "${phageID}_checkv.tsv"
   }
-  runtime #定义任务的运行环境与参数
+  runtime 
   {
-    docker_url: "stereonote_hpc/lizhuoran1_048da0b2cf824d69843702386fa780d1_private:latest"
-    req_cpu: 8
-    req_memory: "20Gi"  #任务所需的内存，单位为Gi，书写时要注意
-  }
-}
-
-task quality
-{
-  input
-  {
-    File PhageFA
-  }
-  command
-  {
-    source ~/.bashrc
-    mamba activate checkv
-    mkdir -p checkv
-    checkv end_to_end ${PhageFA} checkv -d /data/input/Files/ReferenceData/checkv-db-v1.5 -t 8 
-    mv checkv/quality_summary.tsv ${PhageFA}_checkv.tsv
-  }
-  output
-  {
-    File REPORT = "${PhageFA}_checkv.tsv"
-  }
-  runtime
-  {
-    docker_url: "stereonote_hpc/lizhuoran1_933c889e616c4655a0b79a764caba4db_private:latest"
-    req_cpu: 8
-    req_memory: "20Gi"
+    docker_url: "stereonote_hpc/lizhuoran1_e8ac494ae0bd47a4b7b618bc24d7a70c_private:latest"
+    req_cpu: 16
+    req_memory: "20Gi"  
   }
 }
