@@ -61,6 +61,7 @@ ncdu A                                    #查看A所占用的磁盘空间，ncd
 chgrp -R st_p17z10200n0246 A        #将A路径及子路径中所有文件的属组都改为st_p17z10200n0246，比较费时，建议挂后台
 chmod +s ./A                        #给A文件夹赋予s权限，即使A文件夹下的文件都具有和A文件夹相同的属组
 chmod -R 753 A                      #将A及A下面所有的文件权限都改为754。7读写执、5读执、4只读；第一个数字是自己；第二数字是同属组其他人；第三个数字是所有人；同一类型文件，若权限不同，则颜色也会有差异，如需要更改颜色也可使用此命令
+setfacl -R -m u:st_stereonote:rx,u:st_notebook:rx,u:bigdata_autoanalysis:rx,u:bigdata_warehouse:rx,u:st_dcscloud_odms:rwx A  #给A文件夹下的所有文件赋予st_stereonote、st_notebook、bigdata_autoanalysis、bigdata_warehouse、st_dcscloud_odms的读权限，st_dcscloud_odms的读写权限
 
 #运算，在Linux里，不能直接在命令行中进行运算，需要使用一些命令进行运算
 expr 1 + 1                 #加法运算，运算结果为2

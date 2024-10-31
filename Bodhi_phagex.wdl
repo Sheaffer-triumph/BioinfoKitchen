@@ -60,7 +60,7 @@ task phage_assemble_annotation
     String CHECKV_DB = "/data/input/Files/ReferenceData/checkv-db-v1.5"
   }
   command                                     
-  <<<
+  {
     mkdir -p ${result_dir}/01_fastp           
     ${FASTP} -i ${Input_fq1} -o ${result_dir}/01_fastp/${Input_ID}_1.fq -I ${Input_fq2} -O ${result_dir}/01_fastp/${Input_ID}_2.fq -5 -3 -w 16 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
 
@@ -124,7 +124,7 @@ task phage_assemble_annotation
     source ~/.bashrc
     mamba activate checkv
     mkdir -p ${result_dir}/05_checkv
-    ${CHECKV} ${result_dir}/04_select_6k/all_6k_sort.fa -t 16 -d ${CHECKV_DB} -o ${result_dir}/05_checkv 2>${result_dir}/05_checkv/r5.checkv.err
+    ${CHECKV} end_to_end ${result_dir}/04_select_6k/all_6k_sort.fa -t 16 -d ${CHECKV_DB} -o ${result_dir}/05_checkv 2>${result_dir}/05_checkv/r5.checkv.err
     cat ${result_dir}/05_checkv/quality_summary.tsv | grep -v "high kmer_freq may indicate large duplication" | head -n 2 > ${result_dir}/05_checkv/checkv.tsv
     cat ${result_dir}/05_checkv/quality_summary.tsv | sed '1d' | grep -v "high kmer_freq may indicate large duplication" | awk '{print $1}' > ${result_dir}/05_checkv/checkvid.txt
     ${SEQKIT} grep -n -f ${result_dir}/05_checkv/checkvid.txt ${result_dir}/04_select_6k/all_6k_sort.fa > ${result_dir}/04_select_6k/final.fa
@@ -168,7 +168,7 @@ task phage_assemble_annotation
     cp ${result_dir}/07_prodigal/${phageID}.fna ${phageID}.fna
     cp ${result_dir}/06_quast/report.tsv ${phageID}_quast.tsv
     cp ${result_dir}/05_checkv/checkv.tsv ${phageID}_checkv.tsv
-  >>>
+  }
   output    
   {
     File Assemble = "${phageID}.fa" 
