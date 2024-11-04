@@ -11,6 +11,8 @@ put -R Adir Bdir                #将电脑的A文件夹上传到集群的B文件
 get -R Adir Bdir                #将集群的A文件夹下载到电脑的B文件夹
 #使用不同的软件连接集群，所能用的command也不一样，iterm2比Xshell方便，前者可以识别command中的*，能够批量下载；后者无法识别，只能传递单个文件。若确需要传递大量文件，可将其打包后再下载；也可使用Xftp传文件，其优点是交互式操作
 
+whoami                          #显示当前用户
+
 #vim基本用法
 vim A               #使用vim语言查看文件A，若无该文件，则生成
                     #v切换成visual模式，此时可以移动光标选中文本，对选中的文本按y键复制，之后会自动转成normal模式，此时可移动光标，在光标处按p键粘贴
@@ -42,6 +44,7 @@ dirname a/b/c.txt           #显示c.txt所在路径，即a/b；不等同于绝�
 readlink -f a/b/c.txt       #显示c.txt的绝对路径，即/a/b/c.txt
 
 basename A/B/C.txt          #显示C.txt
+basename A.fa .fa           #去掉A.fa的后缀，显示A
 
 ID=${INPUT%.*}              #删除INPUT变量中最后一个.及其右边的内容，即将INPUT的后缀去掉，赋值给ID变量；%表示从右边开始删除，#表示从左边开始删除；只针对变量，不针对文件
 
