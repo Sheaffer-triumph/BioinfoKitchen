@@ -301,22 +301,23 @@ vcontact2_gene2genome -s Prodigal-FAA -p A.faa -o A.csv
 vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 8 --raw-proteins A.faa --proteins-fp A.csv --output-dir result
 
 #seqkit
-seqkit fx2tab --gc A.fa                     #计算A序列的GC含量
-seqkit stat A.fa                            #统计A序列长度
-seqkit stat -a A.fa                         #统计A序列的信息，包括序列长度、GC含量、N50等
-seqkit rmdup -i A.fa > B.fa                 #按照序列的ID，将A文件中的序列去重并输出至B文件
-seqkit rmdup -s A.fa > B.fa                 #按照序列的序列的相似度，将A文件中的序列去重并输出至B文件，只有完全相同的序列才会被去重
-seqkit grep -n -f A.id B.fa > C.fa          #按照A文件中的ID，将B文件中对应ID的序列提取出来输出至C文件，-n按名字提取，两个文件的ID要完全一样才可以提取输出。如不加-n，则按照ID默认提取
-seqkit grep -p "gene_675" B.fa > C.fa       #按照B文件中的序列名，将含有gene_675的序列提取出来输出至C文件，是完全匹配，不必担心匹配到其他序列
-seqkit split -i A.fa                        #按照序列的ID，将A文件中的序列拆分成单个序列
-seqkit split -p 100 A.fa                    #将A文件中的序列拆分成100个序列为一组的文件
-seqkit sample -s 100 -n 1000 A.fa > B.fa    #从A文件中随机抽取1000个序列输出至B文件，-s 100表示随机种子，-n 1000表示抽取的序列数；在处理大文件时，不建议使用-n参数，因为会将所有序列读入内存，占用大量内存
-seqkit sample -s 100 -p 0.5 A.fa > B.fa     #从A文件中随机抽取50%的序列输出至B文件，-s 100表示随机种子，-p 0.5表示抽取的比例
-seqkit sample -s 100 -p 0.5 A.fa.gz | pigz -p 4 -9 > B.fa.gz #从A文件中随机抽取50%的序列输出至B文件，并压缩；seqkit支持处理压缩文件，但不支持输出压缩文件
-seqkit sort -l A.fa > B.fa                  #按照序列的长度，将A文件中的序列按照长度排序由短到长输出至B文件
-seqkit sort -lr A.fa > B.fa                 #按照序列的长度，将A文件中的序列按照长度排序由长到短输出至B文件
-seqkit seq -m 6000 A.fa > B.fa              #将A文件中的序列长度大于6000的序列输出至B文件
-seqkit seq -m 6000 -M 10000 A.fa > B.fa     #将A文件中的序列长度在6000-10000之间的序列输出至B文件
+seqkit fx2tab --gc A.fa                                         #计算A序列的GC含量
+seqkit stat A.fa                                                #统计A序列长度
+seqkit stat -a A.fa                                             #统计A序列的信息，包括序列长度、GC含量、N50等
+seqkit rmdup -i A.fa > B.fa                                     #按照序列的ID，将A文件中的序列去重并输出至B文件
+seqkit rmdup -s A.fa > B.fa                                     #按照序列的序列的相似度，将A文件中的序列去重并输出至B文件，只有完全相同的序列才会被去重
+seqkit grep -n -f A.id B.fa > C.fa                              #按照A文件中的ID，将B文件中对应ID的序列提取出来输出至C文件，-n按名字提取，两个文件的ID要完全一样才可以提取输出。如不加-n，则按照ID默认提取
+seqkit grep -p "gene_675" B.fa > C.fa                           #按照B文件中的序列名，将含有gene_675的序列提取出来输出至C文件，是完全匹配，不必担心匹配到其他序列
+seqkit split -i A.fa                                            #按照序列的ID，将A文件中的序列拆分成单个序列
+seqkit split -p 100 A.fa                                        #将A文件中的序列拆分成100个序列为一组的文件
+seqkit sample -s 100 -n 1000 A.fa > B.fa                        #从A文件中随机抽取1000个序列输出至B文件，-s 100表示随机种子，-n 1000表示抽取的序列数；在处理大文件时，不建议使用-n参数，因为会将所有序列读入内存，占用大量内存
+seqkit sample -s 100 -p 0.5 A.fa > B.fa                         #从A文件中随机抽取50%的序列输出至B文件，-s 100表示随机种子，-p 0.5表示抽取的比例
+seqkit sample -s 100 -p 0.5 A.fa.gz | pigz -p 4 -9 > B.fa.gz    #从A文件中随机抽取50%的序列输出至B文件，并压缩；seqkit支持处理压缩文件，但不支持输出压缩文件
+seqkit sort -l A.fa > B.fa                                      #按照序列的长度，将A文件中的序列按照长度排序由短到长输出至B文件
+seqkit sort -lr A.fa > B.fa                                     #按照序列的长度，将A文件中的序列按照长度排序由长到短输出至B文件
+seqkit seq -m 6000 A.fa > B.fa                                  #将A文件中的序列长度大于6000的序列输出至B文件
+seqkit seq -m 6000 -M 10000 A.fa > B.fa                         #将A文件中的序列长度在6000-10000之间的序列输出至B文件
+cat CPB0314_test8.fa | head -n 1 | sed 's/>//g' | xargs -I @ seqkit replace -p "@" -r CPB0314 CPB0314_test8.fa > CPB0314.fa #将CPB0314_test8.fa文件中的第一行的ID替换为CPB0314，输出至CPB0314.fa文件
 
 #python相关
 sed -i 's/\r//' A.py      #将A.py文件中的\r替换为空，解决win下编写的python文件在linux下运行报错的问题
@@ -333,7 +334,7 @@ git config --global user.name "Sheaffer-triumph"
 git config --global user.email zoranlee0118@gmail.com
 
 #NCBI工具entrez使用
-efetch -db Nucleotide -id NC_010355 -format gb  #在Nucleotide数据库中下载ID为NC_010355的gbk文件；-format指定文件格式，gb为gbk文件，fasta为fa文件
+efetch -db Nucleotide -id NC_010355 -format gb  #在Nucleotide数据库中下载ID为NC_010355的gbk文件；-format指定文件格式，gb为gbk文件，fasta为fa文件；显然，此命令需要联网
 
 
 #shell脚本相关
