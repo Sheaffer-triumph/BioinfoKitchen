@@ -276,34 +276,34 @@ task CheckComplete
     }
 }
 
-task VirusAbundance
-{
-    input
-    {
-        File CompleteVirus4Abundance
-        File FQ14Abundance
-        File FQ24Abundance
-        String SampleID
-    }
-    command
-    {
-        source ~/.bashrc
-        mamba activate amita
-        mkdir -p ${SampleID}/05_virusAbundance
-        bwa index ${CompleteVirus4Abundance}
-        bwa mem -t 16 ${CompleteVirus4Abundance} ${FQ14Abundance} ${FQ24Abundance} | samtools view -bS - | samtools sort -@ 16 -o ${SampleID}/05_virusAbundance/${SampleID}_virus.bam
-        samtools index ${SampleID}/05_virusAbundance/${SampleID}_virus.bam
-        samtools idxstats ${SampleID}/05_virusAbundance/${SampleID}_virus.bam > ${SampleID}/05_virusAbundance/${SampleID}_virus.idxstats
-    }
-    output
-    {
-        File VirusBAM = "${SampleID}/05_virusAbundance/${SampleID}_virus.bam"
-        File VirusIDXSTATS = "${SampleID}/05_virusAbundance/${SampleID}_virus.idxstats"
-    }
-    runtime
-    {
-        docker_url: ""
-        req_cpu: 16
-        req_memory: "64Gi"
-    }
-}
+#task VirusAbundance
+#{
+#    input
+#    {
+#        File CompleteVirus4Abundance
+#        File FQ14Abundance
+#        File FQ24Abundance
+#        String SampleID
+#    }
+#    command
+#    {
+#        source ~/.bashrc
+#        mamba activate amita
+#        mkdir -p ${SampleID}/05_virusAbundance
+#       bwa index ${CompleteVirus4Abundance}
+#        bwa mem -t 16 ${CompleteVirus4Abundance} ${FQ14Abundance} ${FQ24Abundance} | samtools view -bS - | samtools sort -@ 16 -o ${SampleID}/05_virusAbundance/${SampleID}_virus.bam
+#        samtools index ${SampleID}/05_virusAbundance/${SampleID}_virus.bam
+#        samtools idxstats ${SampleID}/05_virusAbundance/${SampleID}_virus.bam > ${SampleID}/05_virusAbundance/${SampleID}_virus.idxstats
+#    }
+#    output
+#    {
+#        File VirusBAM = "${SampleID}/05_virusAbundance/${SampleID}_virus.bam"
+#        File VirusIDXSTATS = "${SampleID}/05_virusAbundance/${SampleID}_virus.idxstats"
+#    }
+#    runtime
+#    {
+#        docker_url: ""
+#        req_cpu: 16
+#        req_memory: "64Gi"
+#    }
+#}
