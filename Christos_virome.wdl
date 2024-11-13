@@ -10,38 +10,38 @@ workflow meta_virome_analysis
     call Sra2Fastq
     {
         input:
-            SampleID = SampleID
+            SampleID = SampleID,
             Sra4Fq = srafile
     }
     call Qc_Assemble
     {
         input:
-            SampleID = SampleID
-            Fq1 = Sra2Fastq.Fastq1
+            SampleID = SampleID,
+            Fq1 = Sra2Fastq.Fastq1,
             Fq2 = Sra2Fastq.Fastq2
     }
     call VirIdentify_Dvf
     {
         input:
-            Fa4VirIdentify = Qc_Assemble.AssembleFasta
+            Fa4VirIdentify = Qc_Assemble.AssembleFasta,
             SampleID = SampleID
     }
     call VirIdentify_Vs2
     {
         input:
-            Fa4VirIdentify = Qc_Assemble.AssembleFasta
+            Fa4VirIdentify = Qc_Assemble.AssembleFasta,
             SampleID = SampleID
     }
     call VirIdentify_Genomad
     {
         input:
-            Fa4VirIdentify = Qc_Assemble.AssembleFasta
+            Fa4VirIdentify = Qc_Assemble.AssembleFasta,
             SampleID = SampleID
     }
     call VirIdentify_Virbrant
     {
         input:
-            Fa4VirIdentify = Qc_Assemble.AssembleFasta
+            Fa4VirIdentify = Qc_Assemble.AssembleFasta,
             SampleID = SampleID
     }
     call CheckComplete
@@ -50,26 +50,13 @@ workflow meta_virome_analysis
             Dvf4CheckComplete = VirIdentify_Dvf.IdentifyVirus,
             Vs24CheckComplete = VirIdentify_Vs2.IdentifyVirus,
             Genomad4CheckComplete = VirIdentify_Genomad.IdentifyVirus,
-            Virbrant4CheckComplete = VirIdentify_Virbrant.IdentifyVirus
-            SampleID = SampleID
-    }
-    call VirusAbundance
-    {
-        input:
-            CompleteVirus4Abundance = CheckComplete.CompleteVirus
-            FQ14Abundance = QC_Assemble.QC_FQ1
-            FQ24Abundance = QC_Assemble.QC_FQ2
-            SampleID = SampleID
-    }
-    call VirusTaxonomy
-    {
-        input:
-            Virus4Tax = CheckComplete.CompleteVirus
+            Virbrant4CheckComplete = VirIdentify_Virbrant.IdentifyVirus,
             SampleID = SampleID
     }
     output
     {
-        Meta_assemble
+        File IdentifyVirus = CheckComplete.IdentifyVirus
+        File Checkv50Virus = CheckComplete.Checkv50Virus
     }
 }
 
@@ -77,7 +64,7 @@ task Sra2Fastq
 {
     input
     {
-        String SRA4FQ
+        String Sra4Fq
         String SampleID
     }
     command
@@ -85,7 +72,7 @@ task Sra2Fastq
         source ~/.bashrc
         mamba activate amita
         mkdir -p ${SampleID}/01_fastp
-        parallel-fastq-dump --sra-id ${sra4fq} --threads 16 -T ${SampleID}/01_fastp --split-3 --gzip -O ${SampleID}/01_fastp
+        parallel-fastq-dump --sra-id ${Sra4Fq} --threads 16 -T ${SampleID}/01_fastp --split-3 --gzip -O ${SampleID}/01_fastp
     }
     output
     {
@@ -94,13 +81,13 @@ task Sra2Fastq
     }
     runtime
     {
-        docker_url: ""
+        docker_url: "stereonote_hpc/lizhuoran1_939ad19c58c4427f9b64d04d7d547c62_private:latest"
         req_cpu: 16
         req_memory: "32Gi"
     }
 }
 
-task QC_Assemble_filter10k
+task Qc_Assemble
 {
     input
     {
@@ -113,18 +100,18 @@ task QC_Assemble_filter10k
         source ~/.bashrc
         mamba activate amita
         fastp -i ${Fq1} -o ${SampleID}/01_fastp/${SampleID}_qc_1.fq -I ${Fq2} -O 01_fastp/${SampleID}_qc_2.fq -5 -3 -w 8 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R out.prefix -l 30
-        megahit --presets meta-large -t 32 -1 ${SampleID}/01_fastp/ERR1620272_qc_1.fq -2 ${SampleID}/01_fastp/ERR1620272_qc_2.fq -o ${SampleID}/02_megahit
-        seqkit -m 10000 ${SampleID}/02_megahit/*fa > ${SampleID}/${SampleID}_megahit.fa
+        megahit --presets meta-large -t 32 -1 ${SampleID}/01_fastp/${SampleID}_qc_1.fq -2 ${SampleID}/01_fastp/${SampleID}_qc_2.fq -o ${SampleID}/02_megahit
+        seqkit -m 10000 ${SampleID}/02_megahit/*fa > ${SampleID}/${SampleID}_megahit_filter10k.fa
     }
     output
     {
-        File AssembleFasta = "${SampleID}/${SampleID}_megahit.fa"
+        File AssembleFasta = "${SampleID}/${SampleID}_megahit_filter10k.fa"
         File Qc_Fq1 = "${SampleID}/01_fastp/${SampleID}_qc_1.fq"
         File Qc_Fq2 = "${SampleID}/01_fastp/${SampleID}_qc_2.fq"
     }
     runtime
     {
-        docker_url: ""
+        docker_url: "stereonote_hpc/lizhuoran1_939ad19c58c4427f9b64d04d7d547c62_private:latest"
         req_cpu: 32
         req_memory: "64Gi"
     }
@@ -134,18 +121,19 @@ task VirIdentify_Dvf
 {
     input
     {
-        File FA4VirIdentify
+        File Fa4VirIdentify
         String SampleID
         String DvfModel = "/home/stereonote/DeepVirFinder/models"
+        String DVF = "/home/stereonote/DeepVirFinder/dvf.py"
     }
     command
     {
         source ~/.bashrc
         mamba activate dvf
         mkdir -p ${SampleID}/03_viralIdentify/dvf
-        dvf -i ${Fa4VirIdentify} -o ${SampleID}/03_viralIdentify/dvf -m ${DvfModel} -l 1500 1>dvf.std 2>dvf.err
+        python ${DVF} -i ${Fa4VirIdentify} -o ${SampleID}/03_viralIdentify/dvf -m ${DvfModel} -l 1500
         dvf.extract ${SampleID}/03_viralIdentify/dvf/*gt1500bp_dvfpred.txt ${SampleID}/03_viralIdentify/dvf/dvfpred.id
-        seqkit grep -n -f ${SampleID}/03_viralIdentify/dvf/dvfpred.id ${FA4VirIdentify} > ${SampleID}/03_viralIdentify/dvf/${SampleID}_dvf.fa
+        seqkit grep -n -f ${SampleID}/03_viralIdentify/dvf/dvfpred.id ${Fa4VirIdentify} > ${SampleID}/03_viralIdentify/dvf/${SampleID}_dvf.fa
     }
     output
     {
@@ -153,7 +141,7 @@ task VirIdentify_Dvf
     }
     runtime
     {
-        docker_url: ""
+        docker_url: "stereonote_hpc/lizhuoran1_a2cda8d7ccf04e069b1a23eeb2e1dbc1_private:latest"
         req_cpu: 16
         req_memory: "64Gi"
     }
@@ -165,13 +153,14 @@ task VirIdentify_Vs2
     {
         File Fa4VirIdentify
         String SampleID
-        String Vs2DB
+        String Vs2DB = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/virsorter2/db"
     }
     command
     {
         source ~/.bashrc
+        mamba activate vs2
         mkdir -p ${SampleID}/03_viralIdentify/vs2
-        virsorter run -w ${SampleID}/03_viralIdentify/vs2 -i ${FA4VirIdentify} --min-length 1500 -j 24 all --db-dir ${Vs2DB} 1>vs2.std 2>vs2.err
+        virsorter run -w ${SampleID}/03_viralIdentify/vs2 -i ${Fa4VirIdentify} --min-length 1500 -j 24 all --db-dir ${Vs2DB}
         mv ${SampleID}/03_viralIdentify/vs2/final-viral-combined.fa ${SampleID}/03_viralIdentify/vs2/${SampleID}_vs2.fa
     }
     output
@@ -180,7 +169,7 @@ task VirIdentify_Vs2
     }
     runtime
     {
-        docker_url: ""
+        docker_url: "stereonote_hpc/lizhuoran1_5767ecc0ef97499890cccfcc35048b83_private:latest"
         req_cpu: 24
         req_memory: "64Gi"
     }
@@ -192,11 +181,11 @@ task VirIdentify_Genomad
     {
         File Fa4VirIdentify
         String SampleID
-        String GenomadDB
     }
     command
     {
         source ~/.bashrc
+        mamba activate genomad
         mkdir -p ${SampleID}/03_viralIdentify/genomad
         genomad end-to-end --cleanup --splits 8 ${Fa4VirIdentify} ${SampleID}/03_viralIdentify/genomad /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/Genomad/database/genomad_db
         mv ${SampleID}/03_viralIdentify/genomad/*summary/*virus.fna ${SampleID}/03_viralIdentify/genomad/${SampleID}_genomad.fa
@@ -207,7 +196,7 @@ task VirIdentify_Genomad
     }
     runtime
     {
-        docker_url: ""
+        docker_url: "stereonote_hpc/lizhuoran1_1dcbbb41f98e4affbcdaaf1bb959199d_private:latest"
         req_cpu: 24
         req_memory: "64Gi"
     }
@@ -217,7 +206,7 @@ task VirIdentify_Virbrant
 {
     input
     {
-        File FA4VirIdentify
+        File Fa4VirIdentify
         String SampleID
         String VirbrantDB
         String VirbrantModel
@@ -225,9 +214,10 @@ task VirIdentify_Virbrant
     command
     {
         source ~/.bashrc
+        mamba activate virbrant
         mkdir -p ${SampleID}/03_viralIdentify/virbrant
         cd ${SampleID}/03_viralIdentify/virbrant
-        python VIBRANT_run.py -i ${FA4VirIdentify} -t 16 -d ${VirbrantDB} -m ${VirbrantModel} 
+        python VIBRANT_run.py -i ${Fa4VirIdentify} -t 16 -d ${VirbrantDB} -m ${VirbrantModel} 
         mv ${SampleID}/03_viralIdentify/virbrant/*phages*/*_combined.fna ${SampleID}/03_viralIdentify/virbrant/${SampleID}_virbrant.fa
     }
     output
@@ -236,7 +226,7 @@ task VirIdentify_Virbrant
     }
     runtime
     {
-        docker_url: ""
+        docker_url: "stereonote_hpc/lizhuoran1_588ba0ee6fb2405c81ffd960c8503da3_private:latest"
         req_cpu: 16
         req_memory: "64Gi"
     }
@@ -251,59 +241,26 @@ task CheckComplete
         File Genomad4CheckComplete
         File Virbrant4CheckComplete
         String SampleID
-        String CheckvDB
     }
     command
     {
         source ~/.bashrc
-        mamba activate amita
+        mamba activate checkv
         mkdir -p ${SampleID}/04_checkComplete
         cat ${Dvf4CheckComplete} ${Vs24CheckComplete} ${Genomad4CheckComplete} ${Virbrant4CheckComplete} > ${SampleID}/04_checkComplete/${SampleID}_all.fa
-        seqkit rmdup -i ${SampleID}/04_checkComplete/${SampleID}_all.fa > ${SampleID}/04_checkComplete/${SampleID}_completeVirus.fa
-        checkv end_to_end ${SampleID}/04_checkvComplete/${SampleID}_completeVirus.fa ${SampleID}/04_checkvComplete -d ${CheckvDB} -t 16 1>checkv.std 2>checkv.err
-        cat checkv/quality* | grep '' | cut -f1 | sed '1d' > 
-        cd-hit-est -i A.fa -o B.fa -c 0.95 -aL 0.9 -M 16000 -T 8
+        seqkit rmdup -i ${SampleID}/04_checkComplete/${SampleID}_all.fa > ${SampleID}/04_checkComplete/${SampleID}_checkv.fa
+        checkv end_to_end ${SampleID}/04_checkvComplete/${SampleID}_checkv.fa ${SampleID}/04_checkvComplete -d /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/checkv/checkv-db-v1.5 -t 16 1>checkv.std 2>checkv.err
+        checkv_filter 50 ${SampleID}/04_checkvComplete/quality_summary ${SampleID}/04_checkComplete/${SampleID}_checkv.fa ${SampleID}/04_checkComplete/${SampleID}_virus_checkv50.fa
     }
     output
     {
-        File CompleteVirus = "${SampleID}/04_checkComplete/${SampleID}_completeVirus.fa"
+        File IdentifyVirus = "${SampleID}/04_checkComplete/${SampleID}_all.fa"
+        File Checkv50Virus = "${SampleID}/04_checkComplete/${SampleID}_virus_checkv50.fa"
     }
     runtime
     {
-        docker_url: ""
+        docker_url: "stereonote_hpc/lizhuoran1_1cdca4ba205f45dca41d8d22b3c0f8d8_private:latest"
         req_cpu: 16
         req_memory: "64Gi"
     }
 }
-
-#task VirusAbundance
-#{
-#    input
-#    {
-#        File CompleteVirus4Abundance
-#        File FQ14Abundance
-#        File FQ24Abundance
-#        String SampleID
-#    }
-#    command
-#    {
-#        source ~/.bashrc
-#        mamba activate amita
-#        mkdir -p ${SampleID}/05_virusAbundance
-#       bwa index ${CompleteVirus4Abundance}
-#        bwa mem -t 16 ${CompleteVirus4Abundance} ${FQ14Abundance} ${FQ24Abundance} | samtools view -bS - | samtools sort -@ 16 -o ${SampleID}/05_virusAbundance/${SampleID}_virus.bam
-#        samtools index ${SampleID}/05_virusAbundance/${SampleID}_virus.bam
-#        samtools idxstats ${SampleID}/05_virusAbundance/${SampleID}_virus.bam > ${SampleID}/05_virusAbundance/${SampleID}_virus.idxstats
-#    }
-#    output
-#    {
-#        File VirusBAM = "${SampleID}/05_virusAbundance/${SampleID}_virus.bam"
-#        File VirusIDXSTATS = "${SampleID}/05_virusAbundance/${SampleID}_virus.idxstats"
-#    }
-#    runtime
-#    {
-#        docker_url: ""
-#        req_cpu: 16
-#        req_memory: "64Gi"
-#    }
-#}

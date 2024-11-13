@@ -2,20 +2,20 @@ version 1.0
 
 workflow phagex_assemble_annotation_workflow  
 {
-  input                                       
+  input
   {
-    File fastq1                               
+    File fastq1
     File fastq2
     String phageID
   }
-  call phage_assemble_annotation              
+  call phage_assemble_annotation
   {
-    input:                                    
-      Input_fq1 = fastq1,                     
+    input:
+      Input_fq1 = fastq1,
       Input_fq2 = fastq2,
       phageID = phageID
   }
-  output                                                 
+  output
   {
     File Assemble = phage_assemble_annotation.Assemble  
     File FAA = phage_assemble_annotation.FAA
@@ -28,11 +28,11 @@ workflow phagex_assemble_annotation_workflow
   }
 }
 
-task phage_assemble_annotation                
+task phage_assemble_annotation
 {
-  input                                       
+  input
   {
-    File Input_fq1                             
+    File Input_fq1
     File Input_fq2
     String phageID
     String result_dir = phageID
@@ -57,12 +57,12 @@ task phage_assemble_annotation
     String NR_PHAGE_DB = "/jdfssz2/ST_BIGDATA/Stomics/warehouse/prd/ods/STOmics/ShenZhen_projectData/UserUpload/P17Z10200N0246/VIRP17Z10200N0246/1834243318442299394/lizhuoran1/1726153204014/nr_phage.fasta"
     String TOOK_LONGEST = "/home/stereonote/script/took_longest.pl"
     String CHECKV = "/home/stereonote/software/miniforge3/envs/checkv/bin/checkv"
-    String CHECKV_DB = "/data/input/Files/ReferenceData/checkv-db-v1.5"
+    String CHECKV_DB = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/checkv/checkv-db-v1.5"
   }
-  command                                     
+  command
   {
-    mkdir -p ${result_dir}/01_fastp           
-    ${FASTP} -i ${Input_fq1} -o ${result_dir}/01_fastp/${Input_ID}_1.fq -I ${Input_fq2} -O ${result_dir}/01_fastp/${Input_ID}_2.fq -5 -3 -w 16 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
+    mkdir -p ${result_dir}/01_fastp
+    ${FASTP} -i ${Input_fq1} -o ${result_dir}/01_fastp/${phageID}_1.fq -I ${Input_fq2} -O ${result_dir}/01_fastp/${phageID}_2.fq -5 -3 -w 16 -q 20 -c -j ${result_dir}/01_fastp/fastp.json -h ${result_dir}/01_fastp/fastp.html -R ${result_dir}01_fastp/out.prefix -l 30
 
     mkdir -p ${result_dir}/02_sampling50x
     ${SEQTK}  sample -s 25   ${result_dir}/01_fastp/${phageID}_1.fq    25000 > ${result_dir}/02_sampling50x/seqtk_50xdata_v1_1.fq
@@ -124,17 +124,19 @@ task phage_assemble_annotation
     source ~/.bashrc
     mamba activate checkv
     mkdir -p ${result_dir}/05_checkv
-    ${CHECKV} end_to_end ${result_dir}/04_select_6k/all_6k_sort.fa -t 16 -d ${CHECKV_DB} -o ${result_dir}/05_checkv 2>${result_dir}/05_checkv/r5.checkv.err
+    ${CHECKV} end_to_end ${result_dir}/04_select_6k/all_6k_sort.fa ${result_dir}/05_checkv -t 16 -d ${CHECKV_DB}
     cat ${result_dir}/05_checkv/quality_summary.tsv | grep -v "high kmer_freq may indicate large duplication" | head -n 2 > ${result_dir}/05_checkv/checkv.tsv
-    cat ${result_dir}/05_checkv/quality_summary.tsv | sed '1d' | grep -v "high kmer_freq may indicate large duplication" | awk '{print $1}' > ${result_dir}/05_checkv/checkvid.txt
+    cat ${result_dir}/05_checkv/quality_summary.tsv | sed '1d' | grep -v "high kmer_freq may indicate large duplication" | head -n 1 | cut -f1  > ${result_dir}/05_checkv/checkvid.txt
     ${SEQKIT} grep -n -f ${result_dir}/05_checkv/checkvid.txt ${result_dir}/04_select_6k/all_6k_sort.fa > ${result_dir}/04_select_6k/final.fa
+    
+    cat ${result_dir}/04_select_6k/final.fa | head -n 1 | sed 's/>//g' | xargs -I @ ${SEQKIT} replace -p "@" -r ${phageID} ${result_dir}/04_select_6k/final.fa > ${result_dir}/04_select_6k/${phageID}.fa
 
     source ~/.bashrc
     mkdir -p ${result_dir}/06_quast
-    ${QUAST_PYTHON} ${QUAST} -o ${result_dir}/06_quast ${result_dir}/04_select_6k/final.fa 2>${result_dir}/06_quast/r5.quast.err
+    ${QUAST_PYTHON} ${QUAST} -o ${result_dir}/06_quast ${result_dir}/04_select_6k/${phageID}.fa 2>${result_dir}/06_quast/r5.quast.err
 
     mkdir -p ${result_dir}/07_prodigal
-    ${PRODIGAL} -i ${result_dir}/04_select_6k/final.fa -o ${result_dir}/07_prodigal/${phageID}.gff -a ${result_dir}/07_prodigal/${phageID}.faa -d ${result_dir}/07_prodigal/${phageID}.fna -p meta -f gff -c 2>${result_dir}/07_prodigal/r6.prodigal.err
+    ${PRODIGAL} -i ${result_dir}/04_select_6k/${phageID}.fa -o ${result_dir}/07_prodigal/${phageID}.gff -a ${result_dir}/07_prodigal/${phageID}.faa -d ${result_dir}/07_prodigal/${phageID}.fna -p meta -f gff -c 2>${result_dir}/07_prodigal/r6.prodigal.err
 
     mkdir -p ${result_dir}/08_blastp
     ${BLASTP} -query ${result_dir}/07_prodigal/${phageID}.faa -db ${NR_PHAGE_DB} -evalue 1e-5 -max_target_seqs 1 -num_threads 16 -out ${result_dir}/08_blastp/${phageID}.blastp.txt -outfmt "6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore" 2>${result_dir}/08_blastp/r7.blastp.err
@@ -158,9 +160,10 @@ task phage_assemble_annotation
     mamba activate amita
     mkdir -p ${result_dir}/12_gff2gbk
     ${RESULT2GFF} ${result_dir}/11_annotation_result/${phageID}_annotation.txt ${result_dir}/07_prodigal/${phageID}.gff ${result_dir}/12_gff2gbk/${phageID}_genome.annotation.gff
-    ${SEQRET} -sequence ${result_dir}/04_select_6k/final.fa -feature -fformat gff -fopenfile ${result_dir}/12_gff2gbk/${phageID}_genome.annotation.gff -osformat genbank -outseq ${result_dir}/12_gff2gbk/${phageID}.gbk
+    ${SEQRET} -sequence ${result_dir}/04_select_6k/${phageID}.fa -feature -fformat gff -fopenfile ${result_dir}/12_gff2gbk/${phageID}_genome.annotation.gff -osformat genbank -outseq ${result_dir}/12_gff2gbk/${phageID}.gbk
 
-    cp ${result_dir}/04_select_6k/final.fa ${phageID}.fa
+    
+    cp ${result_dir}/04_select_6k/${phageID}.fa ${phageID}.fa
     cp ${result_dir}/12_gff2gbk/${phageID}.gbk ${phageID}.gbk
     cp ${result_dir}/12_gff2gbk/${phageID}_genome.annotation.gff ${phageID}.gff
     cp ${result_dir}/11_annotation_result/${phageID}_annotation.txt ${phageID}_annotation.txt
