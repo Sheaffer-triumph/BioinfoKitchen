@@ -102,10 +102,11 @@ task Qc_Assemble
         fastp -i ${Fq1} -o ${SampleID}/01_fastp/${SampleID}_qc_1.fq -I ${Fq2} -O 01_fastp/${SampleID}_qc_2.fq -5 -3 -w 8 -q 20 -c -j 01_fastp/fastp.json -h 01_fastp/fastp.html -R out.prefix -l 30
         megahit --presets meta-large -t 32 -1 ${SampleID}/01_fastp/${SampleID}_qc_1.fq -2 ${SampleID}/01_fastp/${SampleID}_qc_2.fq -o ${SampleID}/02_megahit
         seqkit -m 10000 ${SampleID}/02_megahit/*fa > ${SampleID}/${SampleID}_megahit_filter10k.fa
+        awkRename.sh ${SampleID}/${SampleID}_megahit_filter10k.fa ${SampleID}/${SampleID}_megahit_filter10k_rename.fa
     }
     output
     {
-        File AssembleFasta = "${SampleID}/${SampleID}_megahit_filter10k.fa"
+        File MegahitFasta = "${SampleID}/${SampleID}_megahit_filter10k_rename.fa"
         File Qc_Fq1 = "${SampleID}/01_fastp/${SampleID}_qc_1.fq"
         File Qc_Fq2 = "${SampleID}/01_fastp/${SampleID}_qc_2.fq"
     }
@@ -124,14 +125,14 @@ task VirIdentify_Dvf
         File Fa4VirIdentify
         String SampleID
         String DvfModel = "/home/stereonote/DeepVirFinder/models"
-        String DVF = "/home/stereonote/DeepVirFinder/dvf.py"
     }
     command
     {
         source ~/.bashrc
         mamba activate dvf
         mkdir -p ${SampleID}/03_viralIdentify/dvf
-        python ${DVF} -i ${Fa4VirIdentify} -o ${SampleID}/03_viralIdentify/dvf -m ${DvfModel} -l 1500
+        cd ${SampleID}/03_viralIdentify/dvf
+        dvf ${Fa4VirIdentify} ${SampleID}/03_viralIdentify/dvf ${DvfModel}
         dvf.extract ${SampleID}/03_viralIdentify/dvf/*gt1500bp_dvfpred.txt ${SampleID}/03_viralIdentify/dvf/dvfpred.id
         seqkit grep -n -f ${SampleID}/03_viralIdentify/dvf/dvfpred.id ${Fa4VirIdentify} > ${SampleID}/03_viralIdentify/dvf/${SampleID}_dvf.fa
     }
@@ -141,7 +142,7 @@ task VirIdentify_Dvf
     }
     runtime
     {
-        docker_url: "stereonote_hpc/lizhuoran1_a2cda8d7ccf04e069b1a23eeb2e1dbc1_private:latest"
+        docker_url: "stereonote_hpc/lizhuoran1_139df5ce450a4e18926c2f1c4dcbf0f2_private:latest"
         req_cpu: 16
         req_memory: "64Gi"
     }
@@ -208,21 +209,21 @@ task VirIdentify_Virbrant
     {
         File Fa4VirIdentify
         String SampleID
-        String VirbrantDB
-        String VirbrantModel
+        String VibrantDB = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/vibrant/database"
+        String VibrantModel = "/ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/vibrant/modelfile"
     }
     command
     {
         source ~/.bashrc
-        mamba activate virbrant
-        mkdir -p ${SampleID}/03_viralIdentify/virbrant
-        cd ${SampleID}/03_viralIdentify/virbrant
-        python VIBRANT_run.py -i ${Fa4VirIdentify} -t 16 -d ${VirbrantDB} -m ${VirbrantModel} 
-        mv ${SampleID}/03_viralIdentify/virbrant/*phages*/*_combined.fna ${SampleID}/03_viralIdentify/virbrant/${SampleID}_virbrant.fa
+        mamba activate vibrant
+        mkdir -p ${SampleID}/03_viralIdentify/vibrant
+        cd ${SampleID}/03_viralIdentify/vibrant
+        VIBRANT_run.py -i ${Fa4VirIdentify} -t 16 -d ${VibrantDB} -m ${VibrantModel} 
+        mv ${SampleID}/03_viralIdentify/vibrant/*phages*/*_combined.fna ${SampleID}/03_viralIdentify/vibrant/${SampleID}_vibrant.fa
     }
     output
     {
-        File IdentifyVirus = "${SampleID}/03_viralIdentify/virbrant/${SampleID}_virbrant.fa"
+        File IdentifyVirus = "${SampleID}/03_viralIdentify/vibrant/${SampleID}_vibrant.fa"
     }
     runtime
     {
