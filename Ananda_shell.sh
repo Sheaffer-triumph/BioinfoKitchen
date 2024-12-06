@@ -194,22 +194,22 @@ shuf A -o B                         #将A文件的内容随机打乱，并输出
 cat A | shuf                        #查看A文件的内容，并将内容随机打乱
 
 #压缩与解压
-zip -r A.zip A                      #将A文件夹压缩成A.zip格式
-unzip A.zip                         #解压A文件，会直接生成原来的文件夹
-gzip A                              #压缩文件A，后缀为gz，会覆盖原来的文件
-gzip -d A.gz                        #适用于后缀为gz的解压缩
-gunzip A.gz                         #解压后缀为gz的文件，覆盖原先的gz文件
-tar xvzf A.tgz                      #在当前目录解压后缀为tgz的文件，也适用于tar.gz文件
-                                    #z表示使用gzip作为解压方式；x表示解压；v显示正在处理的文件名称；f指定解压的文件
-tar cvzf A.tar.gz A                 #将A文件夹打包成A.tar.gz文件
-                                    #c表示打包；v显示正在处理的文件名称；z表示使用gzip作为压缩方式；f指定打包的文件
-tar -cI 'gzip -9' -f A.tar.gz A     #将A文件夹打包成A.tar.gz文件，使用gzip进行压缩，压缩等级为9
-                                    #-c表示打包；-I表示使用gzip进行压缩；-9表示压缩等级，数字越大压缩效果越好，耗时越长；-f指定打包的文件；-I指定gzip压缩并指定压缩等级
+zip -r A.zip A                          #将A文件夹压缩成A.zip格式
+unzip A.zip                             #解压A文件，会直接生成原来的文件夹
+gzip A                                  #压缩文件A，后缀为gz，会覆盖原来的文件
+gzip -d A.gz                            #适用于后缀为gz的解压缩
+gunzip A.gz                             #解压后缀为gz的文件，覆盖原先的gz文件
+tar xvzf A.tgz                          #在当前目录解压后缀为tgz的文件，也适用于tar.gz文件
+                                        #z表示使用gzip作为解压方式；x表示解压；v显示正在处理的文件名称；f指定解压的文件
+tar cvzf A.tar.gz A                     #将A文件夹打包成A.tar.gz文件
+                                        #c表示打包；v显示正在处理的文件名称；z表示使用gzip作为压缩方式；f指定打包的文件
+tar -cI 'gzip -9' -f A.tar.gz A         #将A文件夹打包成A.tar.gz文件，使用gzip进行压缩，压缩等级为9
+                                        #-c表示打包；-I表示使用gzip进行压缩；-9表示压缩等级，数字越大压缩效果越好，耗时越长；-f指定打包的文件；-I指定gzip压缩并指定压缩等级
 #tar命令各种字母的含义：x 解开打包；c 打包；v 显示详细信息；f 指定文件；z 使用gzip压缩；j 使用bzip2压缩；t 显示文件列表；r 向压缩文件中追加文件；A 解开打包时，自动识别压缩格式
-pigz -p 4 -k -6 A                   #使用pigz进行压缩，pigz是gzip的并联版本，速度更快。pigz只能对文件进行压缩，若是文件夹需要先使用tar进行打包；会默认生成A.gz文件
-                                    #-p为线程数；-k表示保留原文件，不删除。-6为压缩等级，可选1-9，数字越大压缩效果越好，耗时越长。
+pigz -p 4 -k -6 A                       #使用pigz进行压缩，pigz是gzip的并联版本，速度更快。pigz只能对文件进行压缩，若是文件夹需要先使用tar进行打包；会默认生成A.gz文件
+                                        #-p为线程数；-k表示保留原文件，不删除。-6为压缩等级，可选1-9，数字越大压缩效果越好，耗时越长。
 tar cf - A | pigz -p 4 -k -6 > A.tar.gz #将A文件夹打包成A.tar.gz文件，使用pigz进行压缩，速度更快
-tar --no-same-owner -xvf archive.tar #解压时不保留文件的所有者和组，即解压后文件的所有者和组会变成当前用户和组
+tar --no-same-owner -xvf archive.tar    #解压时不保留文件的所有者和组，即解压后文件的所有者和组会变成当前用户和组
 
 #拆分文件:
 #用于将多条fa文件拆分成单个，以下内容无需参考，请往下看split和seqkit使用
@@ -255,7 +255,7 @@ blastn -query CPB1015.fa -db ./index -outfmt "6 qseqid sseqid qcovs qcovhsp pide
 #qseqid:查询序列的ID sseqid:匹配的数据库序列的ID qcovs:查询序列与匹配序列的匹配长度占查询序列的百分比 qcovhsp:查询序列与匹配序列的匹配长度占匹配序列的百分比 pident:匹配的百分比 length:匹配的长度 mismatch:不匹配的长度 gapopen:间隙的长度 qstart:查询序列的起始位置 qend:查询序列的终止位置 sstart:数据库序列的起始位置 send:数据库序列的终止位置 evalue:随机期望值，可近似理解为错误率 bitscore:打分
 
 #checkv流程
-checkv end_to_end input.fa ./checkv -d /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/miniconda_20211218/miniconda/envs/checkv/checkv-db-v1.4 -t 8
+checkv end_to_end input.fa ./checkv -d /ldfssz1/ST_HEALTH/P17Z10200N0246/lizhuoran1/software/miniconda/envs/checkv/checkv-db-v1.5 -t 8
 
 #prokka注释流程
 prokka --prefix ID --locustag ID --addgenes --addmrna --plasmid Plasmid --gcode 11 --outdir A --mincontiglen 100 A.fasta 
