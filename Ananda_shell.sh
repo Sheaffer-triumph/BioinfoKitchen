@@ -343,6 +343,7 @@ python
 #配置git
 git config --global user.name "Sheaffer-triumph"
 git config --global user.email zoranlee0118@gmail.com
+git clone https://github.com/XiaofangJ/PhaseFinder /path/to/A #从github上下载PhaseFinder软件到A文件夹中
 
 #NCBI工具entrez使用
 efetch -db Nucleotide -id NC_010355 -format gb  #在Nucleotide数据库中下载ID为NC_010355的gbk文件；-format指定文件格式，gb为gbk文件，fasta为fa文件；显然，此命令需要联网
