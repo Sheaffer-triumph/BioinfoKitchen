@@ -1,5 +1,8 @@
 #Thus have I heard
 
+#archlinux安装软件
+sudo pacman -S A B C D    #安装软件A B C D
+
 #连接登录集群
 ssh lizhuoran1@192.168.61.7 -p 22
 ssh cngb-software-0-1   #切换节点，登陆后为login节点，不能在此节点运行；操作运行需在xcompute节点；下载需在下载节点。
@@ -139,6 +142,9 @@ awk -F[:\\t] '{if($4>=60){print ($9/$11)}else{print 0}}' A.txt  #分隔符为:�
 awk -F '/' '{print $NF}' A                                      #提取A文件中每一行最后一个/后面的内容，$NF表示最后一个字段，$0表示整行，$1表示第一个字段，$NR表示行号
 awk 'NR%3==2' tmp1.txt                                          #输出tmp1.txt文件的第2行，NR表示行号，%表示取余；即当行号除以3余数为2时输出该行
 for((i=1;i<=100;i++)); do awk -v a=$i 'print $a' A; done        #提取A文件的第1-100列，需注意，awk命令无法直接用已设置的变量，需要使用-v选项传递变量
+awk '{for(i=3;i<=NF;i++) printf $i"\t"; print ""}' filename     #输出filename文件的第3列到最后一列，每一列之间用制表符分隔
+awk '{$1=$2=""; print $0}' filename                             #将filename文件的第一列和第二列置空，输出剩余列，$0表示整行，会在每一行的开头输出空格
+awk '{ print "Line " NR ": Length = " length($0) }' A           #输出A文件的每一行的长度，通常是字符数
 
 sed 's/aaa/bbb/' A                  #以行为单位在A文件中匹配aaa，并将每一行的第一个aaa改为bbb，并输出
 sed 's/aaa/bbb/g' A                 #将A文件中的aaa全部改为bbb并输出，可以使用正则表达式
