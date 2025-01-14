@@ -250,6 +250,8 @@ cd-hit-est -i A.fa -o B.fa -c 0.95 -aL 0.9 -M 16000 -T 8
 #在使用cd-hit时，如果处理序列的长度超过了最大序列长度。此时会有warning提示，可能伴随着无输出。可使用git clone重新下载cd-hit，并在cdhit目录下重新编译安装，安装时需要指定最大序列长度，如make MAX_SEQ=1000000，此时最大序列长度为1000000
 seqkit rmdup -s A.fa > B.fa     #去冗余，-s表示按照序列的相似度进行去冗余，只有完全相同的序列才会被去冗余
 
+
+
 #fastANI计算序列相似度
 fastANI --ql que.list --rl ref.list -o fastANI_result.txt -t 8    #--ql 指定查询序列列表，每一行为一个序列的路径; --rl 指定参考序列列表，每一行为一个序列的路径; -o 输出文件; -t 线程数
 
