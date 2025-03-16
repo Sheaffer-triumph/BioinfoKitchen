@@ -316,7 +316,7 @@ vcontact2_gene2genome -s Prodigal-FAA -p A.faa -o A.csv
 vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 8 --raw-proteins A.faa --proteins-fp A.csv --output-dir result
 
 #metaphlan
-metaphlan --input_type fastq --bowtie2out ./metagenome.bowtie2.bz2 --nproc 16 --bowtie2db /data/input/Files/ReferenceData/metaphlan_database --offline -1 DP8480003148BR_L01_410_1.fq -2 DP8480003148BR_L01_410_2.fq -o profiled_metagenome.txt
+metaphlan --input_type fastq DP8480003148BR_L01_410_1.fq,DP8480003148BR_L01_410_2.fq ./metagenome.bowtie2.bz2 --nproc 16 --bowtie2db /data/input/Files/ReferenceData/metaphlan_database --offline -o profiled_metagenome.txt --bowtie2out gut_1_bowtie2.txt
 
 #seqkit
 seqkit fx2tab --gc A.fa                                         #计算A序列的GC含量
