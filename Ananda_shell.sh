@@ -248,6 +248,8 @@ cd-hit-est -i A.fa -o B.fa -c 0.95 -aL 0.9 -M 16000 -T 8
     #-T 8表示使用8个线程
     #cd-hit-est用于处理核酸序列，cd-hit用于处理蛋白质序列
 #在使用cd-hit时，如果处理序列的长度超过了最大序列长度。此时会有warning提示，可能伴随着无输出。可使用git clone重新下载cd-hit，并在cdhit目录下重新编译安装，安装时需要指定最大序列长度，如make MAX_SEQ=1000000，此时最大序列长度为1000000
+#cd-hit使用时，如果出现完全一样的序列，会产生一些bug，不建议使用，建议使用mmseqs
+mmseqs easy-linclust -e 0.001 --cov-mode 1 -c 0.8 --min-seq-id 0.9 --kmer-per-seq 80 0.7_gene_dereplication/all_gene.fasta 07.gene_dereplication/clusterRes 07.gene_dereplication/tmp --threads 16
 seqkit rmdup -s A.fa > B.fa     #去冗余，-s表示按照序列的相似度进行去冗余，只有完全相同的序列才会被去冗余
 
 
@@ -306,12 +308,15 @@ megahit --presets meta-large -t 25 -1 A_qc_1.fq.gz -2 A_qc_2.fq.gz -o megahit_re
 megahit --presets meta-large -t 25 -1 A_qc_1.fq.gz -2 A_qc_2.fq.gz -o megahit_result --continue #继续组装，使用--continue参数时，会忽略除了-o之外的所有参数，直接读取-o指定的文件夹中的中间文件进行组装
 #如宏基因组序列实在太大，花费时间太长，可考虑质控后使用seqkit进行随机序列抽取，以加快组装速度
 
-#vContact2流程
+#vContact2流程，没什么用了，现在都用vContact3了
 source ~/.mamba_init.sh
 conda activate vcontact2
 prodigal -i A.fa -a A.faa
 vcontact2_gene2genome -s Prodigal-FAA -p A.faa -o A.csv
 vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 8 --raw-proteins A.faa --proteins-fp A.csv --output-dir result
+
+#metaphlan
+metaphlan --input_type fastq --bowtie2out ./metagenome.bowtie2.bz2 --nproc 16 --bowtie2db /data/input/Files/ReferenceData/metaphlan_database --offline -1 DP8480003148BR_L01_410_1.fq -2 DP8480003148BR_L01_410_2.fq -o profiled_metagenome.txt
 
 #seqkit
 seqkit fx2tab --gc A.fa                                         #计算A序列的GC含量
