@@ -209,6 +209,7 @@ unzip A.zip                             #解压A文件，会直接生成原来�
 gzip A                                  #压缩文件A，后缀为gz，会覆盖原来的文件
 gzip -d A.gz                            #适用于后缀为gz的解压缩
 gunzip A.gz                             #解压后缀为gz的文件，覆盖原先的gz文件
+gunzip -c A.gz > A                      #解压文件并输出到指定位置 
 tar xvzf A.tgz                          #在当前目录解压后缀为tgz的文件，也适用于tar.gz文件
                                         #z表示使用gzip作为解压方式；x表示解压；v显示正在处理的文件名称；f指定解压的文件
 tar cvzf A.tar.gz A                     #将A文件夹打包成A.tar.gz文件
@@ -316,7 +317,7 @@ vcontact2_gene2genome -s Prodigal-FAA -p A.faa -o A.csv
 vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin /hwfssz5/ST_HEALTH/P17Z10200N0246/USER/xingbo/software/cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 8 --raw-proteins A.faa --proteins-fp A.csv --output-dir result
 
 #metaphlan
-metaphlan --input_type fastq DP8480003148BR_L01_410_1.fq,DP8480003148BR_L01_410_2.fq ./metagenome.bowtie2.bz2 --nproc 16 --bowtie2db /data/input/Files/ReferenceData/metaphlan_database --offline -o profiled_metagenome.txt --bowtie2out gut_1_bowtie2.txt
+metaphlan DP8480003148BR_L01_410_1.fq,DP8480003148BR_L01_410_2.fq --bowtie2out metagenome.bowtie2.bz2 --nproc 16 --input_type fastq -o profiled_metagenome.txt --bowtie2db /data/input/Files/ReferenceData/metaphlan_database -x mpa_vJun23_CHOCOPhlAnSGB_202403 -s sam.bz2 -t rel_ab_w_read_stats --offline
 
 #seqkit
 seqkit fx2tab --gc A.fa                                         #计算A序列的GC含量
