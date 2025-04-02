@@ -1,3 +1,9 @@
+#下载安装软件时，先查找与此软件有关的文章，找到软件的官方网站，根据网站上的指引进行安装，如网站上提供了conda安装方式，优先使用conda安装
+
+#mamba
+wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+sh Miniforge3-$(uname)-$(uname -m).sh
+
 #bwa
 git clone https://github.com/lh3/bwa.git
 cd bwa
@@ -91,8 +97,9 @@ bakta_db install -i db-light.tar.xz
 mamba install -y -c bioconda megahit
 
 #deepvirfinder
-mamba create --name dvf -y -c conda-forge -c bioconda python=3.6 numpy theano=1.0.3 keras=2.2.4 scikit-learn Biopython h5py
+mamba create --name dvf
 mamba activate dvf
+mamba install -y -c conda-forge -c bioconda seqkit python=3.6 numpy theano=1.0.3 keras=2.2.4 scikit-learn Biopython h5py=2.10.0
 git clone https://github.com/jessieren/DeepVirFinder
 cd DeepVirFinder
 
