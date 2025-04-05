@@ -144,7 +144,7 @@ vcontact3 prepare_databases --get-version "latest" --set-location /path/to/downl
 
 #phold
 mamba create -n phold -y -c conda-forge -c bioconda phold pytorch=*=cuda* #这个命令运行时，需要存在gpu和cuda
-phold install
+phold install                                                             #默认路径为/software/miniforge3/envs/phold/lib/python3.11/site-packages/phold/database
 
 #phabox2
 mamba create -n phabox phabox=2.1.10 -c conda-forge -c bioconda -y
