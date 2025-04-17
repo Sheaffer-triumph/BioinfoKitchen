@@ -319,6 +319,15 @@ vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin /hw
 #metaphlan
 metaphlan DP8480003148BR_L01_410_1.fq,DP8480003148BR_L01_410_2.fq --bowtie2out metagenome.bowtie2.bz2 --nproc 16 --input_type fastq -o profiled_metagenome.txt --bowtie2db /data/input/Files/ReferenceData/metaphlan_database -x mpa_vJun23_CHOCOPhlAnSGB_202403 -s sam.bz2 -t rel_ab_w_read_stats --offline
 
+#phold
+phold run -i NC_043029.gbk -o test_output_phold -t 8 -f -d /home/zoran/software/databases/phold             #运行全流程，包括cds预测，蛋白质3D结构预测，结构比对，默认使用GPU
+    #-i 输入文件，可以是fasta和gbk；若输入是gbk文件，则需要保证gbk文件内容完整，否则报错。如果想要获得完整的gbk文件，可以使用phraokka对fasta文件进行注释，phraokka会自动生成完整的gbk文件
+    #-o 输出文件夹，该文件夹是被phold创建的，如果该文件夹已经存在，则会报错，可以添加-f参数，强制覆盖
+    #-t 线程数
+    #-d 数据库路径，如果下载数据库时没有指定路径，则会下载到默认路径；如果数据库存在于默认路径，则可以不用使用-d指定
+phold proteins-predict -i protein.faa -o predict_result -t 8 -d /home/zoran/software/databases/phold -f     #运行蛋白质结构预测，预测输入蛋白质氨基酸序列的3D结构
+phold proteins-compare -i protein.faa --predictions_dir predict_result -o compare_result -t 8 -d /home/zoran/software/databases/phold -f    #运行蛋白质结构比对，需要先完成上一步蛋白质结构预测
+
 #seqkit
 seqkit fx2tab --gc A.fa                                         #计算A序列的GC含量
 seqkit stat A.fa                                                #统计A序列长度
@@ -340,13 +349,6 @@ cat CPB0314_test8.fa | head -n 1 | sed 's/>//g' | xargs -I @ seqkit replace -p "
 
 #python相关
 sed -i 's/\r//' A.py      #将A.py文件中的\r替换为空，解决win下编写的python文件在linux下运行报错的问题
-
-python
-    import numpy
-    print(numpy.__version__)    #查看numpy版本
-    import pkg_resources
-    print(pkg_resources.get_distribution("numpy").version) #查看numpy版本
-\\
 
 #配置git
 git config --global user.name "Sheaffer-triumph"
