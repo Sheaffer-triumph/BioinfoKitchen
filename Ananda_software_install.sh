@@ -2,7 +2,7 @@
 
 #mamba
 wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-sh Miniforge3-$(uname)-$(uname -m).sh
+sh Miniforge3-$(uname)-$(uname -m).sh -b -p /data/work/software/miniforge3
 
 #bwa
 git clone https://github.com/lh3/bwa.git
@@ -30,13 +30,12 @@ cd checkv-db/genome_db
 diamond makedb --in checkv_reps.faa --db checkv_reps
 
 #prodigal
-#如果有安装checkv，可以不用安装这个
 git clone https://github.com/hyattpd/Prodigal
 cd Prodigal
-make install
+make install INSTALLDIR=/where/i/want/prodigal/
 
 #blast
-#如果有安装checkv，可以不用安装这个
+#如果有安装quast，可以不用安装这个
 wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.16.0+-x64-linux.tar.gz
 tar zxvf ncbi-blast-2.16.0+-x64-linux.tar.gz
 
@@ -144,8 +143,9 @@ vcontact3 prepare_databases --get-version "latest" --set-location /path/to/downl
 
 #phold
 mamba create -n phold -y -c conda-forge -c bioconda phold pytorch=*=cuda* #这个命令运行时，需要存在gpu和cuda
-phold install                                                             #默认路径为/software/miniforge3/envs/phold/lib/python3.11/site-packages/phold/database
-mamba create -n phold -y -c conda-forge -c bioconda phold pytorch=*=cuda*; mamba create -n pharokka -y -c bioconda pharokka
+phold install -d /path/to/download                                        #默认路径为/software/miniforge3/envs/phold/lib/python3.11/site-packages/phold/database
+nvidia-smi  #获得cuda版本
+mamba install -y -c conda-forge -c bioconda -c pytorch -c nvidia phold pytorch pytorch-cuda=12.4 #如果没有安装时系统没有gpu和cuda，需要指定cuda版本
 
 #phabox2
 mamba create -n phabox phabox=2.1.10 -c conda-forge -c bioconda -y

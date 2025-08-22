@@ -327,6 +327,8 @@ phold run -i NC_043029.gbk -o test_output_phold -t 8 -f -d /home/zoran/software/
     #-d 数据库路径，如果下载数据库时没有指定路径，则会下载到默认路径；如果数据库存在于默认路径，则可以不用使用-d指定
 phold proteins-predict -i protein.faa -o predict_result -t 8 -d /home/zoran/software/databases/phold -f     #运行蛋白质结构预测，预测输入蛋白质氨基酸序列的3D结构
 phold proteins-compare -i protein.faa --predictions_dir predict_result -o compare_result -t 8 -d /home/zoran/software/databases/phold -f    #运行蛋白质结构比对，需要先完成上一步蛋白质结构预测
+export HF_ENDPOINT=https://hf-mirror.com    #运行phold有时候会有代理问题，可以设置环境变量HF_ENDPOINT为https://hf-mirror.com，解决代理问题
+
 
 #seqkit
 seqkit fx2tab --gc A.fa                                         #计算A序列的GC含量
@@ -357,7 +359,13 @@ git clone https://github.com/XiaofangJ/PhaseFinder /path/to/A #从github上下�
 
 #NCBI工具entrez使用
 efetch -db Nucleotide -id NC_010355 -format gb  #在Nucleotide数据库中下载ID为NC_010355的gbk文件；-format指定文件格式，gb为gbk文件，fasta为fa文件；显然，此命令需要联网
+cat ICTV.list | sed 's/[^:]*: *//g' | sed 's/ *; */\n/g' | grep .
 
+#pip用法
+pip config list #查看pip的配置
+pip config unset global.index-url #取消pip的全局配置的index-url
+pip config set global.index-url https://pypi.org/simple #设置pip的全局配置的index-url为https://pypi.org/simple
+pip 
 
 #shell脚本相关
 
