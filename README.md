@@ -1020,7 +1020,7 @@ trusted-host = pypi.tuna.tsinghua.edu.cn
 
 接下来是其他软件的安装，大部分基于conda和pip。
 
-对要安装的软件或包，可先在https://anaconda.org里进行搜索，以确定安装的channel。
+对要安装的软件或包，可先在 https://anaconda.org 里进行搜索，以确定安装的channel。
 
 > [!WARNING]
 >
