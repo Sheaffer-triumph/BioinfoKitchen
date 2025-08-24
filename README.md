@@ -1,6 +1,6 @@
 # Thus have I heard     
 
-##### 本人(Zoran)的生信笔记，大致分3个板块，基础的Linux command line(我觉得基础)，常用的生信工具下载安装及运行(我觉得常用)，其他。
+##### 大致分3个板块，基础的Linux command line，我常用的生信工具下载安装及运行，其他。
 
 ### Linux command line
 
@@ -917,7 +917,7 @@ cat part_* > merged_file.txt     # 按字母/数字顺序合并
 
 ### Bioinformatics Software Download, Installation, and Execution
 
-`conda`是跨平台的包管理和环境管理工具，`mamba`是用C++重写的conda，解决依赖速度更快，命令与`conda`基本相同
+`conda`是跨平台的包管理和环境管理工具，`mamba`是用C++重写的conda，解决依赖速度更快，命令与`conda`基本相同。
 
 ```bash
 # 安装conda及mamba
@@ -984,5 +984,163 @@ custom_channels:
   bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   r: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+```
+
+`pip` 是Python的包管理工具，用来安装和管理Python软件包，很多生物信息学的Python工具除了通过conda安装外，也可以通过pip安装。使用conda在环境里安装了python时，也会一并安装pip及相关的工具。
+
+```bash
+# 基本用法
+pip install numpy                    	# 安装软件包
+pip install numpy==1.20.0          		# 安装指定版本
+pip install "numpy>=1.20.0"        		# 安装版本范围
+pip uninstall numpy                 	# 卸载软件包
+pip list                            	# 查看已安装的包
+pip show numpy                      	# 查看包详细信息
+pip upgrade numpy                   	# 更新软件包
+# 从requirements文件批量安装
+pip install -r requirements.txt
+# 导出当前环境的包列表
+pip freeze > requirements.txt
+# 查看pip配置信息和配置文件位置
+pip config list
+pip config debug
+# 配置国内镜像源（加速下载）
+# 方法1：临时使用
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple/ biopython
+# 方法2：永久配置（推荐）
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/
+pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
+# 手动编辑配置文件
+# 一般位于 ~/.pip/pip.conf 或 ~/.config/pip/pip.conf
+# 配置文件内容：
+[global]
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple/
+trusted-host = pypi.tuna.tsinghua.edu.cn
+```
+
+接下来是其他软件的安装，大部分基于conda和pip。
+
+对要安装的软件或包，可先在https://anaconda.org里进行搜索，以确定安装的channel。
+
+> [!WARNING]
+>
+> channel中的软件版本可能不是最新的，而且有些软件包并非由原作者上传和维护，版本更新可能滞后。
+>
+> 对于重要的分析软件，优先使用官方推荐的安装方式，conda版本可作为备选。
+
+BWA (https://github.com/lh3/bwa) 是用来将测序数据比对到参考基因组的工具，相当于把测序得到的短片段DNA序列找到它们在完整基因组上的正确位置。
+
+```bash
+# 安装
+git clone https://github.com/lh3/bwa.git
+cd bwa
+make
+# 也可使用conda安装
+mamba install -y -c bioconda bwa
+# 使用
+bwa index reference.fasta
+bwa mem -t 8 reference.fasta sample_R1.fastq sample_R2.fastq > sample.sam  # -t指定线程数
+```
+
+SOAPnuke (https://github.com/BGI-flexlab/SOAPnuke) 是BGI开发的二代测序数据质量控制工具，用来去除低质量序列、接头序列和污染序列，提高测序数据质量。我没用过，就不介绍用法了。
+
+```bash
+# 安装
+git clone https://github.com/BGI-flexlab/SOAPnuke.git
+cd SOAPnuke
+make
+```
+
+seqkit (https://bioinf.shenwei.me/seqkit/) 是一个高效的序列处理工具包，用来对FASTA/FASTQ格式的序列文件进行统计、过滤、格式转换、序列提取等各种操作。
+
+```bash
+# 安装
+mamba install -y -c bioconda seqkit
+# 使用
+seqkit fx2tab --gc A.fa                                         # 计算A序列的GC含量
+seqkit stat A.fa                                                # 统计A信息
+seqkit stat -a A.fa                                             # 统计A详细信息
+seqkit rmdup -i A.fa > B.fa                                     # 按照序列的ID去冗余
+seqkit rmdup -s A.fa > B.fa                                     # 按照序列相似度去冗余，只有完全相同的序列才会被去重
+# 抓取
+seqkit grep -n -f A.id B.fa > C.fa                              # 按照A文件中的ID，提取B文件中对应ID的序列
+																# -n按名字提取，两个文件的ID要完全一样才可以提取输出。
+																# 如不加-n，则默认按照ID提取
+seqkit grep -p "gene_675" B.fa > C.fa                           # 按照B文件中的序列名，将含有gene_675的序列提取出来输出至C文件
+																# 按work进行完全匹配，不必担心匹配到其他序列
+# 分割
+seqkit split -i A.fa                                            # 按照序列的ID，将A文件中的序列拆分成单个序列
+seqkit split -p 100 A.fa                                        # 将A文件中的序列拆分成100个序列为一组的文件
+# 随机抽提
+seqkit sample -s 100 -n 1000 A.fa > B.fa                        # 随机抽取1000个序列输出至B文件
+																# -s 100表示随机种子，-n 1000表示抽取的序列数
+seqkit sample -s 100 -p 0.5 A.fa > B.fa                         # -s 100表示随机种子，-p 0.5表示抽取的比例
+seqkit sample -s 100 -p 0.5 A.fa.gz | pigz -p 8 -6 > B.fa.gz    # 抽提并压缩；seqkit支持处理压缩文件，但不支持输出压缩文件
+# 排序
+seqkit sort -l A.fa > B.fa                                      #将序列按照长度排序由短到长输出
+seqkit sort -lr A.fa > B.fa                                     #将序列按照长度排序由长到短输出
+# 过滤
+seqkit seq -m 6000 A.fa > B.fa                                  #将序列长度大于6000的序列输出
+seqkit seq -m 6000 -M 10000 A.fa > B.fa                         #将序列长度在6000-10000之间的序列输出
+# ID修改
+cat CPB0314_test8.fa | head -n 1 | sed 's/>//g' | xargs -I @ seqkit replace -p "@" -r CPB0314 CPB0314_test8.fa > CPB0314.fa #将CPB0314_test8.fa文件中的第一行的ID替换为CPB0314，输出至CPB0314.fa文件
+```
+
+fastp (https://github.com/OpenGene/fastp) 是一个快速的FASTQ数据质控和预处理工具，集成了质量过滤、接头去除、质量报告等功能。
+
+```bash
+# 安装
+mamba install -y -c bioconda fastp
+# 双端测序数据质控（输出未压缩文件）
+fastp -i A_1.fastq.gz -o A_1.fq -I A_2.fastq.gz -O A_2.fq -5 -3 -q 20 -w 8 -c -j fastp.json -h fastp.html -R out.prefix -l 30
+# 双端测序数据质控（输出压缩文件，推荐）
+fastp -i A_1.fastq.gz -o A_1.fq.gz -I A_2.fastq.gz -O A_2.fq.gz -5 -3 -q 20 -w 8 -z 9 -c -j fastp.json -h fastp.html -R out.prefix -l 30
+# 参数说明：
+# -i/-I    输入文件（R1/R2）
+# -o/-O    输出文件（R1/R2）
+# -5/-3    对5'端和3'端进行质量剪切
+# -q 20    质量值阈值（低于20的碱基会被剪切）
+# -w 8     使用8个线程（fastp最多支持16线程）
+# -c       启用序列校正功能
+# -l 30    输出序列的最短长度阈值（短于30bp的序列被丢弃）
+# -j       输出JSON格式的质控报告
+# -h       输出HTML格式的质控报告（可在浏览器中查看）
+# -R       设置报告文件的标题前缀
+# -z 9     压缩等级（1-9，数字越大压缩越好但耗时更长）
+```
+
+CheckV (https://bitbucket.org/berkeleylab/checkv) 是一款全自动命令行流程工具，用于评估单条连续病毒基因组质量，其功能包括：识别整合原病毒中的宿主污染、评估基因组片段的完整性，以及鉴定完整闭合基因组。
+
+```bash
+# 安装
+mamba create -n checkv
+mamba activate checkv
+mamba install -y -c conda-forge -c bioconda checkv
+# 下载数据库
+wget https://portal.nersc.gov/CheckV/checkv-db-v1.5.tar.gz
+tar zxvf checkv-db-v1.5.tar.gz
+cd checkv-db/genome_db
+diamond makedb --in checkv_reps.faa --db checkv_reps
+# 使用
+checkv end_to_end input.fa output_path -d checkv-db-v1.5 -t 8
+```
+
+prodigal (https://github.com/hyattpd/Prodigal) 是用来预测原核生物（细菌和古菌）基因组中蛋白质编码基因的工具，能够自动识别和标注基因的位置和方向。
+
+```bash
+# 安装
+git clone https://github.com/hyattpd/Prodigal
+cd Prodigal
+make install INSTALLDIR=/where/i/want/prodigal/
+# 使用
+prodigal -i input_genome.fasta -o genes.gff -a proteins.faa -d genes.fna -p meta -f gff -c
+# 参数详解：
+# -i input_genome.fasta   输入的基因组序列文件
+# -o genes.gff            输出基因位置信息（GFF格式，包含基因坐标）
+# -a proteins.faa         输出预测的蛋白质序列（氨基酸序列）
+# -d genes.fna            输出基因的DNA序列（核酸序列）
+# -p meta                 使用宏基因组模式（适合多个物种混合的样本）
+# -f gff                  指定输出格式为GFF
+# -c                      只预测完整基因（不预测部分基因）
 ```
 
