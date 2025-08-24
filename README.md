@@ -916,3 +916,73 @@ cat part_* > merged_file.txt     # 按字母/数字顺序合并
 
 
 ### Bioinformatics Software Download, Installation, and Execution
+
+`conda`是跨平台的包管理和环境管理工具，`mamba`是用C++重写的conda，解决依赖速度更快，命令与`conda`基本相同
+
+```bash
+# 安装conda及mamba
+wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+sh Miniforge3-Linux-x86_64.sh          			# 安装时需要选择工作路径
+mamba shell init                                # 初始化mamba并写入.bashrc中，如果想初始化conda，则运行conda init
+# 我印象里旧版本的mamba的激活命令是mamba init，不知道从哪个版本开始变成mamba shell init
+# 如果安装的mamba不适用于mamba shell init，可以尝试mamba init
+# 环境管理（以下及后续部分中的命令里的conda均可替换为mamba）
+conda create -n amita                   		# 创建名为amita的环境
+conda activate amita                    		# 激活amita环境
+conda deactivate                        		# 退出当前环境
+# 软件安装和管理
+conda install -c conda-forge -c bioconda A  	# 从指定频道安装软件
+# conda-forge含有通用软件（Python包、数学库等）
+# bioconda含有生物信息学专用软件（BLAST等）
+# 在conda中，当指定多个频道时，conda会按照从左到右的顺序来搜索包
+conda uninstall A                       		# 卸载软件A
+conda update -c conda-forge -c bioconda A       # 更新软件
+# 指定版本安装
+mamba install -y -c conda-forge "numpy>=1.20.0"                 # 安装大于等于1.20.0版本，-y在安装时跳过确认步骤
+mamba install -y -c conda-forge "numpy=1.20.0"                  # 安装指定版本
+mamba install -y -c conda-forge "numpy>=1.20.0" "numpy<1.21.0"  # 安装版本范围
+# 创建环境时同时安装软件
+mamba create -n amita "python=3.8" "numpy=1.20.0"
+mamba create -n amita -c conda-forge -c bioconda "python=3.5" "numpy>=1.20.0"
+# 环境重命名（通过克隆实现）
+conda create --name hamburger --clone prokka    # 克隆环境并重命名
+conda remove --name prokka --all                # 删除原环境
+```
+
+如果你的工作环境网络无法顺畅访问境外网站，建议添加国内镜像源，conda默认从海外服务器下载软件很慢，使用国内镜像源（如清华源）更合适。
+
+```bash
+# 添加清华大学镜像源加速下载
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/			# 对应-c defaults
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/			# 对应-c defaults
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/	# 对应-c conda-forge
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/		# 对应-c bioconda
+# 查看当前配置的镜像源
+conda config --show channels
+# R语言包镜像源
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/r/				# 对应-c r
+# PyTorch镜像源
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/		# 对应-c pytorch
+# NVIDIA镜像源
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/nvidia/			# 对应-c nvidia
+# 建议：不要一次性全加，按实际需求添加，因为镜像源太多可能导致软件包依赖冲突
+# 一般来说前面4个(main、free、conda-forge、bioconda)就够用了
+# 只有在运行conda命令时使用-c手动指定了channel，才会从对应的镜像源进行下载。
+# 除了使用命令设置镜像源外，也可以手动更改.condarc的内容实现配置。
+conda info | grep "user config file"		#寻找.condarc的位置，通常为 ~/.condarc
+# 找到.condarc后，使用vim或其他方式打开，进行编辑。如下即可
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+show_channel_urls: true
+default_channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
+custom_channels:
+  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  r: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+```
+
