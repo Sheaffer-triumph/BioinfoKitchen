@@ -1,6 +1,6 @@
 # Thus have I heard     
 
-##### 大致分3个板块，基础的Linux command line，我常用的生信工具下载安装及运行，其他。
+大致分3个板块，基础的Linux command line，我常用的生信工具下载安装及运行，其他。
 
 ### Linux command line
 
