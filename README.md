@@ -734,6 +734,13 @@ tar -tvf archive.tar.gz                 	 # 列出tar.gz文件内容
 zcat file.gz                            	 # 直接查看.gz文件内容
 ```
 
+`which` 命令用来查找可执行程序的完整路径，告诉你系统在哪里找到了某个命令。
+
+```bash
+# 查找单个命令的位置
+which python                    # 显示python命令的完整路径，如 /usr/bin/python
+```
+
 Linux中的条件判断用来根据变量值、文件状态等条件执行不同操作，主要有`[ ]`和`(( ))`两种语法。
 
 ```bash
@@ -1076,6 +1083,7 @@ seqkit sample -s 100 -n 1000 A.fa > B.fa                        # 随机抽取10
 																# -s 100表示随机种子，-n 1000表示抽取的序列数
 seqkit sample -s 100 -p 0.5 A.fa > B.fa                         # -s 100表示随机种子，-p 0.5表示抽取的比例
 seqkit sample -s 100 -p 0.5 A.fa.gz | pigz -p 8 -6 > B.fa.gz    # 抽提并压缩；seqkit支持处理压缩文件，但不支持输出压缩文件
+# 随机种子是用来控制随机过程的一个数字，设置相同种子能确保每次得到相同的"随机"结果，保证数据分析的可重现性。
 # 排序
 seqkit sort -l A.fa > B.fa                                      #将序列按照长度排序由短到长输出
 seqkit sort -lr A.fa > B.fa                                     #将序列按照长度排序由长到短输出
@@ -1142,5 +1150,234 @@ prodigal -i input_genome.fasta -o genes.gff -a proteins.faa -d genes.fna -p meta
 # -p meta                 使用宏基因组模式（适合多个物种混合的样本）
 # -f gff                  指定输出格式为GFF
 # -c                      只预测完整基因（不预测部分基因）
+```
+
+BLAST是用来比较序列相似性的工具，能找到与你的查询序列相似的已知序列，用于基因功能注释和同源性分析。需要先用makeblastdb建立数据库索引，再用blastn/blastp等程序进行序列比对。
+
+```bash
+# 安装，很多软件包内都有BLAST，可以不必单独安装。比如CheckV的软件包里就有。
+wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.16.0+-x64-linux.tar.gz
+tar zxvf ncbi-blast-2.16.0+-x64-linux.tar.gz
+# 建立BLAST数据库
+makeblastdb -in A.fasta -dbtype prot -parse_seqids -out index
+# -in           输入的序列文件（所有序列需写在同一个文件中）
+# -dbtype       数据库类型（prot=蛋白质，nucl=核酸）  
+# -parse_seqids 解析序列ID（推荐加上）
+# -out          输出数据库前缀名（会生成一系列以index为前缀的索引文件）
+# 蛋白质序列比对蛋白质数据库
+blastp -query MF19343.faa -db alphafold_db.fasta -outfmt 6 -evalue 1e-5 -out result.txt
+# 核酸序列比对核酸数据库（自定义输出格式）
+blastn -query CPB1015.fa -db ./index -outfmt "6 qseqid sseqid qcovs qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore" -evalue 1e-5 -out ./CPB1015_blastn.txt
+# 参数说明：
+# -query       查询序列文件
+# -db          数据库路径，makeblastdb生成的索引前缀
+# -outfmt 6    表格输出格式
+# -evalue 1e-5 期望值阈值（一般设置为1e-5）
+# -out         输出结果文件
+# 自定义输出字段含义：
+# qseqid: 查询序列ID	sseqid: 目标序列ID
+# qcovs: 查询覆盖度	    pident: 相似度百分比
+# length: 比对长度      evalue: 期望值
+# bitscore: bit分数
+```
+
+HMMER是基于隐马尔科夫模型(HMM)的蛋白质序列分析工具包，主要用于蛋白质功能域预测和同源序列搜索。
+
+```bash
+# 安装
+wget http://eddylab.org/software/hmmer/hmmer-3.4.tar.gz
+tar zxf hmmer-3.4.tar.gz
+cd hmmer-3.4
+./configure --prefix /path/to/hmmer
+make
+make check
+make install
+```
+
+seqtk是一个轻量级的序列处理工具包，用来对FASTA/FASTQ文件进行采样、过滤、格式转换、统计等快速操作。
+
+```bash
+# 安装
+git clone https://github.com/lh3/seqtk.git
+cd seqtk
+make
+# 随机抽提
+seqtk sample -s 25 input.fastq 1000 > sample.fastq   # 设定随机种子抽样
+```
+
+SPAdes (https://ablab.github.io/spades/) - St. Petersburg genome assembler - a versatile toolkit designed for assembling and analyzing sequencing data from Illumina and IonTorrent technologies. In addition, most of SPAdes pipelines support a hybrid mode allowing the use of long reads (PacBio and Oxford Nanopore) as supplementary data.
+
+> [!WARNING]
+>
+> spades组装吃内存，尽量不要并行太多。
+
+```bash
+# 安装（非官方源）
+mamba install -y -c conda-forge -c bioconda spades # 也可以从源码进行编译安装，我测试时发现有些依赖冲突难解决，这里用conda安装，测试没问题
+# 组装
+python spades.py -k 21,45,63 --careful -1 A_1.fq -2 A_2.fq -o result -t 32
+python spades.py --careful -1 A_1.fq -2 A_2.fq -o result -t 32
+python spades.py --isolate -1 A_1.fq -2 A_2.fq -o result -t 32
+python spades.py --meta -1 A_1.fq -2 A_2.fq -o result -t 32
+# 参数介绍：
+# -k        	指定组装时使用的kmer组合，如不指定，会使用默认的kmer组合
+# --careful 	指定组装模式，careful是减少错误组装的高质量模式
+# --isolate 	分离株模式(确认用于测序的基因组来源于分离株)
+# --meta    	宏基因组组装模式
+# -t        	指定线程数，spades最多只使用32线程
+# 主要输出文件：
+# contigs.fasta    		- 组装的contigs序列
+# scaffolds.fasta  		- 组装的scaffolds序列
+# assembly_graph.gfa 	- 组装图文件
+# spades.log       		- 运行日志
+```
+
+QUAST是用来评估基因组组装质量的工具，能够统计组装结果的各种指标如N50、组装长度等。
+
+```bash
+# 安装
+mamba create -n quast -y -c conda-forge -c bioconda quast
+# 使用
+python quast.py -o result input.fa
+```
+
+seqret是EMBOSS软件包中的序列格式转换工具，能在各种序列格式之间进行转换。
+
+```bash
+# 安装
+mamba install -y -c conda-forge -c bioconda emboss
+# 使用
+seqret -sequence input.fa -feature -fformat gff -fopenfile input.gff -osformat genbank -outseq output.gbk
+# 参数详解：
+# -sequence        		输入的序列文件（FASTA格式）
+# -feature         		启用特征信息处理
+# -fformat gff     		指定特征文件格式为GFF
+# -fopenfile       		输入的注释文件路径（GFF格式）
+# -osformat genbank 	输出格式为GenBank格式
+# -outseq           	输出文件名
+```
+
+Bowtie2是一个快速准确的短序列比对工具，用来将测序数据比对到参考基因组上。
+
+```bash
+# 安装
+mamba install -y -c bioconda bowtie2
+# 使用前需要先建立索引
+bowtie2-build reference.fasta ref.fa
+# 完整的比对流程（一条命令完成比对、格式转换、排序），需额外安装samtools
+bowtie2 -p 32 -x ref.fa -1 A_1.fastq -2 A_2.fastq --very-sensitive | samtools view -bS | samtools sort -@ 20 -o sorted_bowtie2.bam
+# 参数详解：
+# -p 32              	使用32个线程并行处理
+# -x ref.fa          	参考基因组索引前缀
+# -1 A_1.fastq       	双端测序的第一个文件（R1）
+# -2 A_2.fastq       	双端测序的第二个文件（R2）
+# --very-sensitive   	使用最敏感的比对模式（更准确但较慢）
+```
+
+samtools是用来处理SAM/BAM格式比对文件的工具包，提供格式转换、排序、索引、统计、提取等各种操作功能。
+
+```bash
+# 安装
+wget https://github.com/samtools/samtools/releases/download/1.21/samtools-1.21.tar.bz2
+tar -xjf samtools-1.21.tar.bz2
+cd samtools-1.21
+./configure --prefix=/where/to/install
+make
+make install
+# 格式转换
+samtools view -bS input.sam > output.bam          # SAM转BAM（二进制压缩）
+samtools view -h input.bam > output.sam           # BAM转SAM（文本格式）
+samtools view -b -F 4 input.bam > output.bam	  # -F 4 过滤掉flag值为4的序列（flag 4 = 未比对
+# 排序索引
+samtools sort input.bam -o sorted.bam             # 按坐标排序
+samtools index sorted.bam                         # 建立索引（生成.bai文件）
+samtools stats sorted.bam						  # 给出整体详细统计
+samtools idxstats sorted.bam					  # 给出按序列分组的简要统计，必须用排序和索引后的
+```
+
+bedtools，功能很多，我只用过bamToFastq
+
+```bash
+# 安装
+wget https://github.com/arq5x/bedtools2/releases/download/v2.31.1/bedtools-2.31.1.tar.gz
+tar -zxvf bedtools-2.31.1.tar.gz
+# bamtofq
+bedtools bamtofastq -i input.bam -fq output_R1.fastq -fq2 output_R2.fastq
+```
+
+Prokka是一个快速的原核生物基因组注释工具，能够自动预测基因、tRNA、rRNA并进行功能注释，是细菌基因组注释的标准工具。
+
+```bash
+# 安装
+mamba install -y -c conda-forge -c bioconda prokka
+# 使用
+prokka --prefix ID --locustag ID --addgenes --addmrna --plasmid Plasmid --gcode 11 --outdir A --mincontiglen 100 A.fasta
+# 参数详解：
+# --prefix ID         		输出文件的前缀名（所有输出文件都以ID开头）
+# --locustag ID       		基因标签的前缀（如ID_00001, ID_00002）
+# --addgenes          		在输出中添加gene特征信息
+# --addmrna           		在输出中添加mRNA特征信息
+# --plasmid Plasmid   		指定序列为质粒，质粒名为"Plasmid"
+# --gcode 11          		使用遗传密码表11（细菌和古菌标准密码表）
+# --outdir A          		输出目录为A文件夹
+# --mincontiglen 100  		只注释长度≥100bp的contigs
+# A.fasta             		输入的基因组序列文件
+```
+
+batka (https://github.com/oschwengers/bakta)：Rapid & standardized annotation of bacterial genomes, MAGs & plasmids
+
+```bash
+# 安装
+mamba create -n batka -y -c conda-forge -c bioconda bakta
+# 下载安装数据库
+wget https://zenodo.org/record/14916843/files/db-light.tar.xz
+bakta_db install -i db-light.tar.xz
+# 使用
+bakta --db <db-path> genome.fasta
+bakta --db <db-path> --verbose --output results/ --prefix ecoli123 --locus-tag eco634 --prodigal-tf eco.tf --replicons replicon.tsv --threads 8 genome.fasta
+# 详细输出结果写入results目录，包含ecoli123文件prefix和eco634 locus-tag ，使用现有prodigal训练文件，附加复制子信息，并启用8线程处理
+```
+
+Pharokka (https://github.com/gbouras13/pharokka) is a rapid standardised annotation tool for bacteriophage genomes and metagenomes.
+
+```bash
+# 安装
+mamba create -n pharokka -y -c conda-forge -c bioconda pharokka
+# 下载安装数据库
+install_databases.py -o path/to/databse_dir
+# 使用
+pharokka.py -i phage.fa -o output -d path/to/database_dir -t threads
+```
+
+phold (https://github.com/gbouras13/phold) is a sensitive annotation tool for bacteriophage genomes and metagenomes using protein structural homology. 
+
+```bash
+# 安装
+mamba create -n phold -y -c conda-forge -c bioconda phold
+# 安装pytorch版本，此时需要服务器有GPU与cuda，会自动匹配pytorch版本
+mamba create -n phold -y -c conda-forge -c bioconda phold pytorch=*=cuda* 
+# 如果GPU服务器不能联网，联网节点又没有GPU，可以按如下操作
+# 获得GPU服务器中的cuda版本
+nvidia-smi
+# 安装指定cuda版本的pytorch
+mamba install -y -c conda-forge -c bioconda -c pytorch -c nvidia phold pytorch pytorch-cuda=12.4
+# 下载安装数据库，如不指定，会下载到默认路径
+# 默认路径为/path/to/miniforge3/envs/phold/lib/python3.11/site-packages/phold/database
+phold install -d /path/to/download
+# 运行全流程，包括cds预测，蛋白质3D结构预测，结构比对，默认使用GPU
+phold run -i phage.fa -o test_output_phold -t 8 -f -d /path/to/database
+# 参数详解：
+# -i 输入文件，可以是fasta和gbk；若输入是gbk文件，则需要保证gbk文件内容完整，否则报错。推荐使用pharokka注释产生的gbk文件。
+# -o 输出文件夹，该文件夹是被phold创建的，如果该文件夹已经存在，则会报错，可以添加-f参数强制覆盖
+# -d 数据库路径，如果数据库存在于默认路径，则不用指定
+# 运行时会检测系统是否有GPU，如果没有，会使用CPU模式，非常慢。建议使用GPU运行
+# phold使用pyrodigal预测蛋白序列，也许与其他途径生成的蛋白序列有差别
+# 为了避免由于蛋白序列差异带来的注释问题，可以直接向其提供蛋白序列
+# 运行蛋白质结构预测，预测输入蛋白质氨基酸序列的3D结构
+phold proteins-predict -i protein.faa -o predict_result -t 8 -d /path/to/database -f
+# 运行蛋白质结构比对，需要先完成上一步蛋白质结构预测
+phold proteins-compare -i protein.faa --predictions_dir predict_result -o compare_result -t 8 -d /path/to/database -f
+# 运行phold有时候会有代理问题，如遇到，可执行下列命令解决
+export HF_ENDPOINT=https://hf-mirror.com
 ```
 
