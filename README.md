@@ -924,7 +924,7 @@ cat part_* > merged_file.txt     # 按字母/数字顺序合并
 
 ### Bioinformatics Software Download, Installation, and Execution
 
-`conda`是跨平台的包管理和环境管理工具，`mamba`是用C++重写的conda，解决依赖速度更快，命令与`conda`基本相同。
+`conda` (https://github.com/conda/conda) 是跨平台的包管理和环境管理工具，`mamba` (https://github.com/mamba-org/mamba) 是用C++重写的conda，解决依赖速度更快，命令与`conda`基本相同。
 
 ```bash
 # 安装conda及mamba
@@ -993,7 +993,7 @@ custom_channels:
   pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
 ```
 
-`pip` 是Python的包管理工具，用来安装和管理Python软件包，很多生物信息学的Python工具除了通过conda安装外，也可以通过pip安装。使用conda在环境里安装了python时，也会一并安装pip及相关的工具。
+`pip`  (https://pypi.org/project/pip/) 是Python的包管理工具，用来安装和管理Python软件包，很多生物信息学的Python工具除了通过conda安装外，也可以通过pip安装。使用conda在环境里安装了python时，也会一并安装pip及相关的工具。
 
 ```bash
 # 基本用法
@@ -1152,7 +1152,7 @@ prodigal -i input_genome.fasta -o genes.gff -a proteins.faa -d genes.fna -p meta
 # -c                      只预测完整基因（不预测部分基因）
 ```
 
-BLAST是用来比较序列相似性的工具，能找到与你的查询序列相似的已知序列，用于基因功能注释和同源性分析。需要先用makeblastdb建立数据库索引，再用blastn/blastp等程序进行序列比对。
+BLAST (https://blast.ncbi.nlm.nih.gov/Blast.cgi) 是用来比较序列相似性的工具，能找到与你的查询序列相似的已知序列，用于基因功能注释和同源性分析。需要先用makeblastdb建立数据库索引，再用blastn/blastp等程序进行序列比对。
 
 ```bash
 # 安装，很多软件包内都有BLAST，可以不必单独安装。比如CheckV的软件包里就有。
@@ -1169,11 +1169,13 @@ blastp -query MF19343.faa -db alphafold_db.fasta -outfmt 6 -evalue 1e-5 -out res
 # 核酸序列比对核酸数据库（自定义输出格式）
 blastn -query CPB1015.fa -db ./index -outfmt "6 qseqid sseqid qcovs qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore" -evalue 1e-5 -out ./CPB1015_blastn.txt
 # 参数说明：
-# -query       查询序列文件
-# -db          数据库路径，makeblastdb生成的索引前缀
-# -outfmt 6    表格输出格式
-# -evalue 1e-5 期望值阈值（一般设置为1e-5）
-# -out         输出结果文件
+# blastn			核酸序列比对核酸序列
+# blastp			蛋白序列比对蛋白序列
+# -query       		查询序列文件
+# -db          		数据库路径，makeblastdb生成的索引前缀
+# -outfmt 6    		表格输出格式
+# -evalue 1e-5 		期望值阈值（一般设置为1e-5）
+# -out         		输出结果文件
 # 自定义输出字段含义：
 # qseqid: 查询序列ID	sseqid: 目标序列ID
 # qcovs: 查询覆盖度	    pident: 相似度百分比
@@ -1181,7 +1183,7 @@ blastn -query CPB1015.fa -db ./index -outfmt "6 qseqid sseqid qcovs qcovhsp pide
 # bitscore: bit分数
 ```
 
-HMMER是基于隐马尔科夫模型(HMM)的蛋白质序列分析工具包，主要用于蛋白质功能域预测和同源序列搜索。
+HMMER (http://hmmer.org/) 是基于隐马尔科夫模型(HMM)的蛋白质序列分析工具包，主要用于蛋白质功能域预测和同源序列搜索。
 
 ```bash
 # 安装
@@ -1194,7 +1196,7 @@ make check
 make install
 ```
 
-seqtk是一个轻量级的序列处理工具包，用来对FASTA/FASTQ文件进行采样、过滤、格式转换、统计等快速操作。
+seqtk (https://github.com/lh3/seqtk) 是一个轻量级的序列处理工具包，用来对FASTA/FASTQ文件进行采样、过滤、格式转换、统计等快速操作。
 
 ```bash
 # 安装
@@ -1232,7 +1234,7 @@ python spades.py --meta -1 A_1.fq -2 A_2.fq -o result -t 32
 # spades.log       		- 运行日志
 ```
 
-QUAST是用来评估基因组组装质量的工具，能够统计组装结果的各种指标如N50、组装长度等。
+QUAST (https://github.com/ablab/quast) 是用来评估基因组组装质量的工具，能够统计组装结果的各种指标如N50、组装长度等。
 
 ```bash
 # 安装
@@ -1241,7 +1243,7 @@ mamba create -n quast -y -c conda-forge -c bioconda quast
 python quast.py -o result input.fa
 ```
 
-seqret是EMBOSS软件包中的序列格式转换工具，能在各种序列格式之间进行转换。
+seqret (http://emboss.open-bio.org/) 是EMBOSS软件包中的序列格式转换工具，能在各种序列格式之间进行转换。
 
 ```bash
 # 安装
@@ -1257,7 +1259,7 @@ seqret -sequence input.fa -feature -fformat gff -fopenfile input.gff -osformat g
 # -outseq           	输出文件名
 ```
 
-Bowtie2是一个快速准确的短序列比对工具，用来将测序数据比对到参考基因组上。
+Bowtie2 (https://github.com/BenLangmead/bowtie2) 是一个快速准确的短序列比对工具，用来将测序数据比对到参考基因组上。
 
 ```bash
 # 安装
@@ -1295,7 +1297,7 @@ samtools stats sorted.bam						  # 给出整体详细统计
 samtools idxstats sorted.bam					  # 给出按序列分组的简要统计，必须用排序和索引后的
 ```
 
-bedtools，功能很多，我只用过bamToFastq
+bedtools (https://bedtools.readthedocs.io/) ，功能很多，我只用过bamToFastq
 
 ```bash
 # 安装
@@ -1305,7 +1307,7 @@ tar -zxvf bedtools-2.31.1.tar.gz
 bedtools bamtofastq -i input.bam -fq output_R1.fastq -fq2 output_R2.fastq
 ```
 
-Prokka是一个快速的原核生物基因组注释工具，能够自动预测基因、tRNA、rRNA并进行功能注释，是细菌基因组注释的标准工具。
+Prokka (https://github.com/tseemann/prokka) 是一个快速的原核生物基因组注释工具，能够自动预测基因、tRNA、rRNA并进行功能注释，是细菌基因组注释的标准工具。
 
 ```bash
 # 安装
@@ -1399,7 +1401,7 @@ megahit --continue -o megahit_result
 # --continue				直接读取-o指定的文件夹megahit_result中的中间文件进行组装
 ```
 
-DeepVirFinder (https://github.com/jessieren/DeepVirFinder) 使用深度学习方法预测病毒序列。该方法对短病毒序列具有良好的预测准确性，因此可用于预测来自宏基因组数据的序列。DeepVirFinder 的输入是包含待预测序列的 fasta 文件，输出是一个 .txt 文件，其中包含每个输入序列的预测分数和 p 值。分数越高或 p 值越低表示是病毒序列的可能性越高。
+DeepVirFinder (https://github.com/jessieren/DeepVirFinder) 使用深度学习方法预测病毒序列。该方法对短病毒序列具有良好的预测准确性，可用于预测来自宏基因组数据的序列。DeepVirFinder 的输入是包含待预测序列的 fasta 文件，输出是一个 .txt 文件，其中包含每个输入序列的预测分数和 p 值。分数越高或 p 值越低表示是病毒序列的可能性越高。
 
 ```bash
 # 安装
@@ -1410,6 +1412,10 @@ python dvf.py -i meta.fa -o dvf_result -m /path/to/DeepVirFinder/models -l 1500
 # 参数详解：
 # -m 		指定model路径，在git clone下载的DeepVirFinder文件夹下
 # -l 1500	只保留长度大于1500bp的序列
+# deepvirfinder运行时依赖theano库
+# theano在运行时会在home下创建.theano缓存目录，存储编译后的C代码和CUDA代码，多个并行进程会同时访问同一个缓存目录，导致冲突。
+# 运行脚本前，执行以下命令即可解决
+export THEANO_FLAGS='base_compiledir=/path/to/work,cxx=/usr/bin/g++'
 ```
 
 VirSorter2 (https://github.com/jiarong/VirSorter2) applies a multi-classifier, expert-guided approach to detect diverse DNA and RNA virus genomes.
@@ -1475,7 +1481,7 @@ tar zxvf iPHoP.latest_rw.tar.gz
 iphop predict --fa_file virus.fa --db_dir /path/to/db --out_dir result -t 8   
 ```
 
-MAFFT () 是一个用于类 Unix 操作系统的多序列比对程序。它提供了多种多序列比对方法。 
+MAFFT (https://mafft.cbrc.jp/alignment/software/) 是一个用于类 Unix 操作系统的多序列比对程序。它提供了多种多序列比对方法。 
 
 ```bash
 # 安装
