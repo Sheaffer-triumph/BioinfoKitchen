@@ -1381,3 +1381,178 @@ phold proteins-compare -i protein.faa --predictions_dir predict_result -o compar
 export HF_ENDPOINT=https://hf-mirror.com
 ```
 
+MEGAHIT (https://github.com/voutcn/megahit) 是一个快速、内存高效的宏基因组组装工具，专门用于从复杂微生物群落的测序数据中组装基因组片段。
+
+```bash
+# 安装
+mamba install -y -c bioconda megahit
+# 使用
+megahit --presets meta-large -t 25 -1 A_qc_1.fq.gz -2 A_qc_2.fq.gz -o megahit_result
+# megahit进行组装时，需要很长时间，同时也会产生很大的中间文件
+# 运行时需要注意内存、时间的设置以及磁盘空间。
+# 如发现磁盘空间不足，可结束任务，但不要删除-o里的中间文件。在磁盘空间充足时，继续组装。
+# megahit在组装时如果因内存不足而报错停止，也可以继续运行
+megahit --continue -o megahit_result
+# 参数详解：
+# --presets meta-large		使用预设的meta-large参数组进行组装
+# -t 25						使用25个线程
+# --continue				直接读取-o指定的文件夹megahit_result中的中间文件进行组装
+```
+
+DeepVirFinder (https://github.com/jessieren/DeepVirFinder) 使用深度学习方法预测病毒序列。该方法对短病毒序列具有良好的预测准确性，因此可用于预测来自宏基因组数据的序列。DeepVirFinder 的输入是包含待预测序列的 fasta 文件，输出是一个 .txt 文件，其中包含每个输入序列的预测分数和 p 值。分数越高或 p 值越低表示是病毒序列的可能性越高。
+
+```bash
+# 安装
+mamba create -n dvf -y -c conda-forge -c bioconda seqkit python=3.6 numpy theano=1.0.3 keras=2.2.4 scikit-learn Biopython h5py=2.10.0
+git clone https://github.com/jessieren/DeepVirFinder
+# 使用
+python dvf.py -i meta.fa -o dvf_result -m /path/to/DeepVirFinder/models -l 1500
+# 参数详解：
+# -m 		指定model路径，在git clone下载的DeepVirFinder文件夹下
+# -l 1500	只保留长度大于1500bp的序列
+```
+
+VirSorter2 (https://github.com/jiarong/VirSorter2) applies a multi-classifier, expert-guided approach to detect diverse DNA and RNA virus genomes.
+
+```bash
+# 安装
+mamba create -n vs2 -c conda-forge -c bioconda virsorter=2
+# 下载安装数据库
+mamba activate vs2
+wget https://osf.io/v46sc/download
+tar -xzf db.tgz
+virsorter config --init-source --db-dir=./db
+# 使用
+virsorter run -w vs2 -i meta.fa --min-length 1500 -j 4 all
+# 参数详解：
+# run                 运行VirSorter2的主命令
+# -w vs2              工作目录设为vs2文件夹（所有输出都在这里）
+# -i megahit.fa       输入的组装序列文件
+# --min-length 1500   只分析长度≥1500bp的序列
+# -j 4                使用4个线程并行处理
+# all                 运行所有分析步骤（预测+分类+质量评估）
+```
+
+geNomad (https://portal.nersc.gov/genomad/index.html) 的主要目标是在测序数据（分离株、宏基因组和宏转录组）中识别病毒和质粒。
+
+```bash
+# 安装
+mamba create -n genomad -c conda-forge -c bioconda genomad
+# 下载安装数据库
+mamba activate genomad
+genomad download-database ./
+# 运行
+genomad end-to-end --cleanup --splits 8 meta.fa genomad_result /path/to/genomad_db
+# 参数详解：
+# end-to-end	运行完整分析流程（预测+分类+注释）
+# --cleanup		强制geNomad删除执行过程中生成的中间文件。节省存储空间。
+# --splits 8	将搜索分成8个块。
+# geNomad会搜索一个占用大量内存的大型蛋白质profiles数据库。
+# 为防止执行因内存不足而失败，可以使用--splits参数将搜索分成多个块。
+# 如果在大型服务器上运行geNomad，可能不需要分割搜索，这样可以提高执行速度。
+# geNomad支持压缩为.gz/.bz2/.xz 的输入文件。
+```
+
+VIBRANT (https://github.com/AnantharamanLab/VIBRANT) 利用混合机器学习和蛋白质相似性方法，不依赖于序列特征，可从宏基因组组装中自动恢复和注释病毒，确定基因组质量和完整性，并表征病毒群落功能。
+
+```bash
+# 安装
+mamba create -n vibrant -y -c conda-forge -c bioconda python=3.5 prodigal hmmer
+pip install biopython pandas matplotlib "seaborn>=0.9.0" "numpy>=1.17.0" "scikit-learn==0.21.3"
+mamba install -y -c bioconda vibrant
+download-db.sh
+```
+
+iphop (https://bitbucket.org/srouxjgi/iphop) 用于从噬菌体基因组中计算预测宿主分类学。
+
+```bash
+# 安装
+mamba create -n iphop -y -c conda-forge -c bioconda python=3.8 iphop
+# 下载数据库，300G左右
+wget https://portal.nersc.gov/cfs/m342/iphop/db/iPHoP.latest_rw.tar.gz
+tar zxvf iPHoP.latest_rw.tar.gz
+# iphop预测宿主，如果输入文件过大，运行时间会很长，可以分片并行处理，然后合并结果
+iphop predict --fa_file virus.fa --db_dir /path/to/db --out_dir result -t 8   
+```
+
+MAFFT () 是一个用于类 Unix 操作系统的多序列比对程序。它提供了多种多序列比对方法。 
+
+```bash
+# 安装
+mamba install -y -c bioconda mafft
+# 使用，将输入的序列对齐
+mafft --auto input.fasta > algined.fasta
+```
+
+iqtree  (https://iqtree.github.io/) 是用来构建系统发育树的工具，使用最大似然法从序列比对结果推断物种或基因的进化关系。
+
+```bash
+# 安装
+mamba install -y -c bioconda iqtree
+# 使用
+iqtree -s algined_tree.fasta -bb 1000 --runs 8 -T 8 --mem 50G --prefix my_tree
+# 参数详解：
+# -s algined_tree.fasta    		输入的多序列比对文件（FASTA格式）
+# -bb 1000                 		进行1000次bootstrap重采样评估分支支持度
+# --runs 8                 		运行8次独立分析选择最佳结果
+# -T 8                     		使用8个线程并行计算
+# --mem 50G                		限制最大内存使用量为50GB
+# --prefix my_tree              输出文件前缀
+```
+
+vContact3 (https://bitbucket.org/MAVERICLab/vcontact3) 是用来对病毒基因组进行聚类和分类的工具，通过比较病毒蛋白质相似性构建网络来识别相关的病毒群体和家族。
+
+```bash
+# 安装
+mamba create -n vcontact3 -y -c bioconda vcontact3
+# 下载安装数据库
+vcontact3 prepare_databases --get-version "latest" --set-location /path/to/download/location
+# 使用
+vcontact3 run --nucleotide virus_genomes.fasta --output output_directory
+```
+
+cdhit (https://github.com/weizhongli/cdhit) 是用来对蛋白质或核酸序列进行聚类和去冗余的工具，能将相似序列合并成代表性序列，常用于构建非冗余数据库。
+
+> [!WARNING]
+>
+> 经测试，如果出现两条完全一样的序列，两条序列都不会被去除。
+
+```bash
+# 安装
+git clone https://github.com/weizhongli/cdhit
+cd cdhit
+make MAX_SEQ=1000000	
+# 编译完成后的cdhit处理序列长度的上限为1000000。
+# 若处理序列的长度超过了最大序列长度。会有warning提示，可能伴随着无输出。
+# 可重新编译安装，并在安装时指定新的序列长度。
+# 序列聚类
+cd-hit-est -i A.fa -o B.fa -c 0.95 -aL 0.9 -M 16000 -T 8    
+# 参数详解：
+# -c 0.95				相似度大于95%的序列会被去除；
+# -aL 0.9				比对覆盖率阈值为0.9，即只有当比对覆盖了较长序列的90%或以上时，两个序列才会被认为是相似的；
+# -M 16000				限制最大内存为16G，单位是M；
+# -T 8					使用8个线程；
+# cd-hit-est用于处理核酸序列，cd-hit用于处理蛋白质序列
+```
+
+MMseqs (https://github.com/soedinglab/MMseqs2) 是一个高速的蛋白质序列搜索和聚类工具，比BLAST快100-1000倍，比CD-HIT更快更准确，常用于大规模序列分析。
+
+> [!WARNING]
+>
+> 经测试，如果出现两条完全一样的序列，两条序列都不会被去除。
+
+```bash
+# 安装
+mamba install -y -c conda-forge -c bioconda mmseqs2
+# 使用
+mmseqs easy-linclust -e 0.001 --cov-mode 1 -c 0.8 --min-seq-id 0.9 --kmer-per-seq 80 0.7_gene_dereplication/all_gene.fasta 07.gene_dereplication/clusterRes 07.gene_dereplication/tmp --threads 16
+# 参数详解：
+# easy-linclust         线性聚类模式（比cluster更快但精度略低）
+# -e 0.001             E值阈值（期望值≤0.001）
+# --cov-mode 1         覆盖度计算模式（1=查询序列覆盖度）
+# -c 0.8               覆盖度阈值（80%的序列要被比对覆盖）
+# --min-seq-id 0.9     最小序列相似度（90%相似度）
+# --kmer-per-seq 80    每个序列选择的k-mer数量（影响敏感度和速度）
+# --threads 16         使用16线程并行处理
+```
+
