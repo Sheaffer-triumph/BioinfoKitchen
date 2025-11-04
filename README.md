@@ -487,6 +487,11 @@ sed '/^$/d' A                       # 删除空行（^$匹配空行，d表示删
 sed "s/${old}/${new}/g" A           # 用变量进行替换，必须使用双引号
 # 多个操作
 sed -e 's/aaa/bbb/; s/ccc/ddd/' A   # 同时进行两个替换操作
+sed -e '/complement/s/CDS/CDS -/g' -e '/complement/!s/CDS/CDS +/g' A
+# -e 指定一条编辑命令
+# /complement/ 指定条件，即行中要包含complement
+# /complement/！ 指定条件，即不包含complement
+# s/CDS/CDS -/g 替换
 # 直接修改文件
 sed -i 's/aaa/bbb/g' A              # -i参数直接修改原文件，不输出到屏幕，用前记得备份原文件
 # 删除指定行
