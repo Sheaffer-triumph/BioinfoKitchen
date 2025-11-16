@@ -1019,6 +1019,7 @@ pip config debug
 # 配置国内镜像源（加速下载）
 # 方法1：临时使用
 pip install -i https://pypi.tuna.tsinghua.edu.cn/simple/ biopython
+pip install biopython -i https://pypi.tuna.tsinghua.edu.cn/simple/ --trusted-host pypi.tuna.tsinghua.edu.cn
 # 方法2：永久配置（推荐）
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/
 pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
