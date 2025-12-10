@@ -739,6 +739,17 @@ tar -tvf archive.tar.gz                 	 # 列出tar.gz文件内容
 zcat file.gz                            	 # 直接查看.gz文件内容
 ```
 
+`ln` 用于创建文件链接（link），类似于 Windows 的快捷方式，但更强大。
+
+```bash
+# 创建符号链接（软链接）- 最常用，软链接是指向文件路径的指针。类似快捷方式，源文件删除会失效
+ln -s source.txt link.txt
+# -f: 强制覆盖已存在的链接
+ln -sf new_source.txt existing_link.txt 
+# 创建硬链接，硬链接是同一文件的另一个入口，删除源文件不受影响
+ln source.txt link.txt
+```
+
 `which` 命令用来查找可执行程序的完整路径，告诉你系统在哪里找到了某个命令。
 
 ```bash
@@ -996,6 +1007,23 @@ custom_channels:
   bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   r: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+```
+
+也许你在安装完miniforge3后，重启了bash，依旧找不到mamba（通常是由于~/.bashrc文件里没有配置），可以随便在一个文件里写下如下内容，然后使用 `source` 激活（例如，如果你将下列内容写在~/.bashrc里，只需 `source ~/.bashrc` 即可）
+
+```bash
+# >>> mamba initialize >>>
+# !! Contents within this block are managed by 'mamba shell init' !!
+export MAMBA_EXE='/home/zoran/software/miniforge3/bin/mamba';	#此路径需要根据实际情况进行替换，下同
+export MAMBA_ROOT_PREFIX='/home/zoran/software/miniforge3';
+__mamba_setup="$("$MAMBA_EXE" shell hook --shell bash --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__mamba_setup"
+else
+    alias mamba="$MAMBA_EXE"  # Fallback on help from mamba activate
+fi
+unset __mamba_setup
+# <<< mamba initialize <<<
 ```
 
 `pip`  (https://pypi.org/project/pip/) 是Python的包管理工具，用来安装和管理Python软件包，很多生物信息学的Python工具除了通过conda安装外，也可以通过pip安装。使用conda在环境里安装了python时，也会一并安装pip及相关的工具。
@@ -1367,7 +1395,7 @@ mamba create -n phold -y -c conda-forge -c bioconda phold pytorch=*=cuda*
 # 如果GPU服务器不能联网，联网节点又没有GPU，可以按如下操作
 # 获得GPU服务器中的cuda版本
 nvidia-smi
-# 安装指定cuda版本的pytorch
+# 安装指定cuda版本的pytorch，假设cuda版本是12.4
 mamba install -y -c conda-forge -c bioconda -c pytorch -c nvidia phold pytorch pytorch-cuda=12.4
 # 下载安装数据库，如不指定，会下载到默认路径
 # 默认路径为/path/to/miniforge3/envs/phold/lib/python3.11/site-packages/phold/database
@@ -1385,8 +1413,11 @@ phold run -i phage.fa -o test_output_phold -t 8 -f -d /path/to/database
 phold proteins-predict -i protein.faa -o predict_result -t 8 -d /path/to/database -f
 # 运行蛋白质结构比对，需要先完成上一步蛋白质结构预测
 phold proteins-compare -i protein.faa --predictions_dir predict_result -o compare_result -t 8 -d /path/to/database -f
-# 运行phold有时候会有代理问题，如遇到，可执行下列命令解决
+# 运行phold有时候会有代理等诸多问题，主要体现在prostT5模型下载上，可以使用以下命令
 export HF_ENDPOINT=https://hf-mirror.com
+mamba activate phold
+pip install -U huggingface_hub
+huggingface-cli download --resume-download Rostlab/ProstT5_fp16 --local-dir /path/to/database/Rostlab/ProstT5_fp16 --local-dir-use-symlinks False
 ```
 
 MEGAHIT (https://github.com/voutcn/megahit) 是一个快速、内存高效的宏基因组组装工具，专门用于从复杂微生物群落的测序数据中组装基因组片段。
