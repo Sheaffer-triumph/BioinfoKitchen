@@ -400,10 +400,12 @@ echo file1.txt file2.txt file3.txt | xargs -I {} mv {} {}.bak
 find . -name "*.tmp" | xargs rm              # 删除所有.tmp文件
 cat filelist.txt | xargs -I {} cp {} backup/ # 将文件列表中的文件复制到backup目录
 ls *.fasta | xargs -I {} wc -l {}            # 统计所有fasta文件的行数
+find -name "M*gz" | grep -v "rmhost" | xargs seqkit stat -a -j 32
 # 注意事项：
 # 1. 多重嵌套只能用$()，不能用``
 # 2. xargs后面只能使用实际命令，不能使用alias别名
 # 3. {}占位符可以换成其他符号，如{file}，但使用时要保持一致
+# 4. 如果不使用占位符，xargs会把所有的内容一次性全部传递给后面的命令
 ```
 
 `awk` 是Linux中强大的文本处理工具，专门用于处理结构化数据（如表格），可以提取列、计算、筛选和格式化数据。
