@@ -948,6 +948,7 @@ cat part_* > merged_file.txt     # 按字母/数字顺序合并
 # 安装conda及mamba
 wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 sh Miniforge3-Linux-x86_64.sh          			# 安装时需要选择工作路径
+bash Miniforge3.sh -b -p "/path/to/miniforge3"	# 静默安装，推荐
 mamba shell init                                # 初始化mamba并写入.bashrc中，如果想初始化conda，则运行conda init
 # 我印象里旧版本的mamba的激活命令是mamba init，不知道从哪个版本开始变成mamba shell init
 # 如果安装的mamba不适用于mamba shell init，可以尝试mamba init
