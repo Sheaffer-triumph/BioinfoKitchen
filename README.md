@@ -1,6 +1,6 @@
 # Thus have I heard     
 
-大致分3个板块，基础的Linux command line，我常用的生信工具下载安装及运行，其他。
+大致分3个板块：基础的Linux command line；我常用的生信工具下载安装及运行；其他。
 
 ### Linux command line
 
@@ -1313,20 +1313,20 @@ bowtie2 -p 32 -x ref.fa -1 A_1.fastq -2 A_2.fastq --very-sensitive | samtools vi
 # --very-sensitive   	使用最敏感的比对模式（更准确但较慢）
 ```
 
-samtools是用来处理SAM/BAM格式比对文件的工具包，提供格式转换、排序、索引、统计、提取等各种操作功能。
+Samtools(https://github.com/samtools/samtools)是用来处理SAM/BAM格式比对文件的工具包，提供格式转换、排序、索引、统计、提取等各种操作功能。
 
 ```bash
 # 安装
-wget https://github.com/samtools/samtools/releases/download/1.21/samtools-1.21.tar.bz2
-tar -xjf samtools-1.21.tar.bz2
-cd samtools-1.21
+wget https://github.com/samtools/samtools/releases/download/1.23/samtools-1.23.tar.bz2
+tar -xjf samtools-1.23.tar.bz2
+cd samtools-1.23
 ./configure --prefix=/where/to/install
 make
 make install
 # 格式转换
 samtools view -bS input.sam > output.bam          # SAM转BAM（二进制压缩）
 samtools view -h input.bam > output.sam           # BAM转SAM（文本格式）
-samtools view -b -F 4 input.bam > output.bam	  # -F 4 过滤掉flag值为4的序列（flag 4 = 未比对
+samtools view -b -F 4 input.bam > output.bam	  # -F 4 过滤掉flag值为4的序列（flag 4 = 未比对）
 # 排序索引
 samtools sort input.bam -o sorted.bam             # 按坐标排序
 samtools index sorted.bam                         # 建立索引（生成.bai文件）
