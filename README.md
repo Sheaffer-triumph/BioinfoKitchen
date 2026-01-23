@@ -1010,6 +1010,8 @@ custom_channels:
   bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   r: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+# 如果你所在的环境里无法修改默认的~/.condarc，但本身网络没有问题，可以忽略.condarc的内容
+mamba install -y -c conda-forge -c bioconda --override-channels phold
 ```
 
 也许你在安装完miniforge3后，重启了bash，依旧找不到mamba（通常是由于~/.bashrc文件里没有配置），可以随便在一个文件里写下如下内容，然后使用 `source` 激活（例如，如果你将下列内容写在~/.bashrc里，只需 `source ~/.bashrc` 即可）
