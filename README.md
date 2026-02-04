@@ -7,12 +7,12 @@
 `ssh`是用来远程连接Linux服务器的命令，运行如下
 
 ```bash
-# 以用户名lizhuoran1连接到IP地址为192.168.61.7的服务器，使用22端口（22是SSH默认端口，可省略-p 22）
-ssh lizhuoran1@192.168.61.7 -p 22
+# 以用户名eleanor连接到IP地址为192.168.61.7的服务器，使用22端口（22是SSH默认端口，可省略-p 22）
+ssh eleanor@192.168.61.7 -p 22
 # BGI集群服务器登录后默认在login节点，只能用来跳转，不能运行程序
 # 跳转到软件节点，在此可以下载安装软件
 ssh cngb-software-0-1
-# 跳转到计算节点，在这里可以运行生物信息学分析程序
+# 跳转到计算节点，在这里可以运行程序
 ssh cngb-xcompute-0-10
 ```
 
@@ -20,7 +20,7 @@ ssh cngb-xcompute-0-10
 
 ```bash
 # 连接到服务器的文件传输界面
-sftp lizhuoran1@192.168.61.7
+sftp eleanor@192.168.61.7
 # 使用sftp连接上服务器，可执行以下命令
 # 把本地电脑的A文件夹整个上传到服务器，重命名为B文件夹（-R表示递归传输整个文件夹）
 put -R Adir Bdir                
@@ -364,7 +364,7 @@ nohup command &             # 使用nohup在后台执行命令
 # 查看后台任务
 top                         # 查看系统所有进程状态（按q退出）
 htop                        # top的增强版，界面更友好，部分系统不自带，需要自行安装
-top -u lizhuoran1           # 只查看指定用户lizhuoran1的进程
+top -u eleanor           	# 只查看指定用户eleanor的进程
 jobs                        # 查看当前终端启动的后台任务状态
 jobs -l                     # 显示后台任务的详细信息，包括jobID
 ps aux                      # 显示系统所有进程详细信息
@@ -1019,8 +1019,8 @@ mamba install -y -c conda-forge -c bioconda --override-channels phold
 ```bash
 # >>> mamba initialize >>>
 # !! Contents within this block are managed by 'mamba shell init' !!
-export MAMBA_EXE='/home/zoran/software/miniforge3/bin/mamba';	#此路径需要根据实际情况进行替换，下同
-export MAMBA_ROOT_PREFIX='/home/zoran/software/miniforge3';
+export MAMBA_EXE='/home/eleanor/software/miniforge3/bin/mamba';	#此路径需要根据实际情况进行替换，下同
+export MAMBA_ROOT_PREFIX='/home/eleanor/software/miniforge3';
 __mamba_setup="$("$MAMBA_EXE" shell hook --shell bash --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__mamba_setup"
@@ -1365,7 +1365,7 @@ prokka --prefix ID --locustag ID --addgenes --addmrna --plasmid Plasmid --gcode 
 # A.fasta             		输入的基因组序列文件
 ```
 
-batka (https://github.com/oschwengers/bakta)：Rapid & standardized annotation of bacterial genomes, MAGs & plasmids
+Batka (https://github.com/oschwengers/bakta)：Rapid & standardized annotation of bacterial genomes, MAGs & plasmids
 
 ```bash
 # 安装
@@ -1390,28 +1390,28 @@ install_databases.py -o path/to/databse_dir
 pharokka.py -i phage.fa -o output -d path/to/database_dir -t threads
 ```
 
-phold (https://github.com/gbouras13/phold) is a sensitive annotation tool for bacteriophage genomes and metagenomes using protein structural homology. 
+Phold (https://github.com/gbouras13/phold) is a sensitive annotation tool for bacteriophage genomes and metagenomes using protein structural homology. 
 
 ```bash
 # 安装
 mamba create -n phold -y -c conda-forge -c bioconda phold
-# 安装pytorch版本，此时需要服务器有GPU与cuda，会自动匹配pytorch版本
+# 安装pytorch版本，此时需要服务器有GPU与cuda，会自动匹配pytorch版本。如果数据量不大，可以忽略，只使用CPU版本
 mamba create -n phold -y -c conda-forge -c bioconda phold pytorch=*=cuda* 
 # 如果GPU服务器不能联网，联网节点又没有GPU，可以按如下操作
 # 获得GPU服务器中的cuda版本
 nvidia-smi
 # 安装指定cuda版本的pytorch，假设cuda版本是12.4
 mamba install -y -c conda-forge -c bioconda -c pytorch -c nvidia phold pytorch pytorch-cuda=12.4
-# 下载安装数据库，如不指定，会下载到默认路径
+# 下载安装数据库，如不指定，会下载到默认路径，不建议安装到默认路径，否则更新python后需要重新下载
 # 默认路径为/path/to/miniforge3/envs/phold/lib/python3.11/site-packages/phold/database
 phold install -d /path/to/download
 # 运行全流程，包括cds预测，蛋白质3D结构预测，结构比对，默认使用GPU
 phold run -i phage.fa -o test_output_phold -t 8 -f -d /path/to/database
 # 参数详解：
-# -i 输入文件，可以是fasta和gbk；若输入是gbk文件，则需要保证gbk文件内容完整，否则报错。推荐使用pharokka注释产生的gbk文件。
+# -i 输入文件，可以是fasta和gbk；若输入是gbk文件，则需要保证gbk文件内容完整，否则报错。推荐使用pharokka注释产生的gbk文件
 # -o 输出文件夹，该文件夹是被phold创建的，如果该文件夹已经存在，则会报错，可以添加-f参数强制覆盖
 # -d 数据库路径，如果数据库存在于默认路径，则不用指定
-# 运行时会检测系统是否有GPU，如果没有，会使用CPU模式，非常慢。建议使用GPU运行
+# 运行时会检测系统是否有GPU，如果没有，会使用CPU模式，很慢。建议使用GPU运行
 # phold使用pyrodigal预测蛋白序列，也许与其他途径生成的蛋白序列有差别
 # 为了避免由于蛋白序列差异带来的注释问题，可以直接向其提供蛋白序列
 # 运行蛋白质结构预测，预测输入蛋白质氨基酸序列的3D结构
