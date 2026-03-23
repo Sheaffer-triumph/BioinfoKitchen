@@ -333,7 +333,7 @@ chmod 755 file.txt                  # 设置权限为755（所有者全权限，
 chmod -R 754 A                      # 递归设置A及子文件权限为754
 chmod +x script.sh                  # 给文件添加执行权限
 chmod +s ./A                        # 给目录设置粘滞位，使新建文件继承目录的属组
-chmod u+w,g-x,o=r file.txt         # 复杂权限设置：所有者加写权限，组用户去执行权限，其他人只读
+chmod u+w,g-x,o=r file.txt          # 复杂权限设置：所有者加写权限，组用户去执行权限，其他人只读
 # setfacl: 设置访问控制列表（ACL），实现更精细的权限控制
 setfacl -R -m u:st_stereonote:rx,u:st_notebook:rx,u:bigdata_autoanalysis:rx,u:bigdata_warehouse:rx,u:st_dcscloud_odms:rwx A
 # 分解说明：
@@ -739,6 +739,7 @@ pigz -p 8 -k large_genome.fasta         	 # 多线程压缩大基因组文件
 # 查看压缩文件内容（不解压）
 tar -tvf archive.tar.gz                 	 # 列出tar.gz文件内容
 zcat file.gz                            	 # 直接查看.gz文件内容
+# 如果觉得以上命令太过复杂，可以安装ouch软件
 ```
 
 `ln` 用于创建文件链接（link），类似于 Windows 的快捷方式，但更强大。
@@ -975,6 +976,23 @@ conda create --name hamburger --clone prokka    # 克隆环境并重命名
 conda remove --name prokka --all                # 删除原环境
 ```
 
+也许你在安装完miniforge3后，重启了bash，依旧找不到mamba（通常是由于~/.bashrc文件里没有配置），可以随便在一个文件里写下如下内容，然后使用 `source` 激活（例如，如果你将下列内容写在~/.bashrc里，只需 `source ~/.bashrc` 即可）
+
+```bash
+# >>> mamba initialize >>>
+# !! Contents within this block are managed by 'mamba shell init' !!
+export MAMBA_EXE='/home/eleanor/software/miniforge3/bin/mamba';	#此路径需要根据实际情况进行替换，下同
+export MAMBA_ROOT_PREFIX='/home/eleanor/software/miniforge3';
+__mamba_setup="$("$MAMBA_EXE" shell hook --shell bash --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__mamba_setup"
+else
+    alias mamba="$MAMBA_EXE"  # Fallback on help from mamba activate
+fi
+unset __mamba_setup
+# <<< mamba initialize <<<
+```
+
 如果你的工作环境网络无法顺畅访问境外网站，建议添加国内镜像源，conda默认从海外服务器下载软件很慢，使用国内镜像源（如清华源）更合适。
 
 ```bash
@@ -1011,24 +1029,8 @@ custom_channels:
   r: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
 # 如果你所在的环境里无法修改默认的~/.condarc，但本身网络没有问题，可以忽略.condarc的内容
-mamba install -y -c conda-forge -c bioconda --override-channels phold
-```
-
-也许你在安装完miniforge3后，重启了bash，依旧找不到mamba（通常是由于~/.bashrc文件里没有配置），可以随便在一个文件里写下如下内容，然后使用 `source` 激活（例如，如果你将下列内容写在~/.bashrc里，只需 `source ~/.bashrc` 即可）
-
-```bash
-# >>> mamba initialize >>>
-# !! Contents within this block are managed by 'mamba shell init' !!
-export MAMBA_EXE='/home/eleanor/software/miniforge3/bin/mamba';	#此路径需要根据实际情况进行替换，下同
-export MAMBA_ROOT_PREFIX='/home/eleanor/software/miniforge3';
-__mamba_setup="$("$MAMBA_EXE" shell hook --shell bash --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__mamba_setup"
-else
-    alias mamba="$MAMBA_EXE"  # Fallback on help from mamba activate
-fi
-unset __mamba_setup
-# <<< mamba initialize <<<
+CONDA_CHANNELS="" CONDA_OVERRIDE_CHANNELS=1
+mamba install -y -c https://conda.anaconda.org/conda-forge -c https://conda.anaconda.org/bioconda --override-channels --no-channel-priority taxmyphage
 ```
 
 `pip`  (https://pypi.org/project/pip/) 是Python的包管理工具，用来安装和管理Python软件包，很多生物信息学的Python工具除了通过conda安装外，也可以通过pip安装。使用conda在环境里安装了python时，也会一并安装pip及相关的工具。
@@ -1172,7 +1174,7 @@ diamond makedb --in checkv_reps.faa --db checkv_reps
 checkv end_to_end input.fa output_path -d checkv-db-v1.5 -t 8
 ```
 
-prodigal (https://github.com/hyattpd/Prodigal) 是用来预测原核生物（细菌和古菌）基因组中蛋白质编码基因的工具，能够自动识别和标注基因的位置和方向。
+prodigal (https://github.com/hyattpd/Prodigal) 是用来预测原核生物（细菌和古菌）基因组中蛋白质编码基因的工具，能够自动识别和标注基因的位置和方向。有分支prodigal-gv以及python版本的pyrodigal和pyrodigal-gv
 
 ```bash
 # 安装
@@ -1191,7 +1193,7 @@ prodigal -i input_genome.fasta -o genes.gff -a proteins.faa -d genes.fna -p meta
 # -c                      只预测完整基因（不预测部分基因）
 ```
 
-BLAST (https://blast.ncbi.nlm.nih.gov/Blast.cgi) 是用来比较序列相似性的工具，能找到与你的查询序列相似的已知序列，用于基因功能注释和同源性分析。需要先用makeblastdb建立数据库索引，再用blastn/blastp等程序进行序列比对。
+BLAST (https://blast.ncbi.nlm.nih.gov/Blast.cgi) 是用来比较序列相似性的工具，能找到与你的查询序列相似的已知序列，用于基因功能注释和同源性分析。需要先用makeblastdb建立数据库索引，再用blastn/blastp等程序进行序列比对。绝大多数工作流都会使用到BLAST
 
 ```bash
 # 安装，很多软件包内都有BLAST，可以不必单独安装。比如CheckV的软件包里就有。
@@ -1222,7 +1224,7 @@ blastn -query CPB1015.fa -db ./index -outfmt "6 qseqid sseqid qcovs qcovhsp pide
 # bitscore: bit分数
 ```
 
-HMMER (http://hmmer.org/) 是基于隐马尔科夫模型(HMM)的蛋白质序列分析工具包，主要用于蛋白质功能域预测和同源序列搜索。
+HMMER (http://hmmer.org/) 是基于隐马尔科夫模型(HMM)的蛋白质序列分析工具包，主要用于蛋白质功能域预测和同源序列搜索。绝大多数工作流都会使用到HMMER。
 
 ```bash
 # 安装
@@ -1253,8 +1255,8 @@ SPAdes (https://ablab.github.io/spades/) - St. Petersburg genome assembler - a v
 > spades组装吃内存，尽量不要并行太多。
 
 ```bash
-# 安装（非官方源）
-mamba install -y -c conda-forge -c bioconda spades # 也可以从源码进行编译安装，我测试时发现有些依赖冲突难解决，这里用conda安装，测试没问题
+# 安装（非官方）
+mamba install -y -c conda-forge -c bioconda spades # 也可以从源码进行编译安装，比较麻烦，这里用conda安装，测试没问题
 # 组装
 python spades.py -k 21,45,63 --careful -1 A_1.fq -2 A_2.fq -o result -t 32
 python spades.py --careful -1 A_1.fq -2 A_2.fq -o result -t 32
@@ -1365,7 +1367,7 @@ prokka --prefix ID --locustag ID --addgenes --addmrna --plasmid Plasmid --gcode 
 # A.fasta             		输入的基因组序列文件
 ```
 
-Batka (https://github.com/oschwengers/bakta)：Rapid & standardized annotation of bacterial genomes, MAGs & plasmids
+Batka (https://github.com/oschwengers/bakta)：Rapid & standardized annotation of bacterial genomes, MAGs & plasmids, considered by the author of Prokka to be the successor to Prokka
 
 ```bash
 # 安装
@@ -1548,7 +1550,7 @@ iqtree -s algined_tree.fasta -bb 1000 --runs 8 -T 8 --mem 50G --prefix my_tree
 # --prefix my_tree              输出文件前缀
 ```
 
-vContact3 (https://bitbucket.org/MAVERICLab/vcontact3) 是用来对病毒基因组进行聚类和分类的工具，通过比较病毒蛋白质相似性构建网络来识别相关的病毒群体和家族。
+vContact3 (https://bitbucket.org/MAVERICLab/vcontact3) 是用来对病毒基因组进行聚类和分类的工具，通过比较病毒蛋白质相似性构建网络来识别相关的病毒群体和家族。相比起vContact2, 使用更简单，速度更快。
 
 ```bash
 # 安装
@@ -1595,12 +1597,51 @@ mamba install -y -c conda-forge -c bioconda mmseqs2
 # 使用
 mmseqs easy-linclust -e 0.001 --cov-mode 1 -c 0.8 --min-seq-id 0.9 --kmer-per-seq 80 0.7_gene_dereplication/all_gene.fasta 07.gene_dereplication/clusterRes 07.gene_dereplication/tmp --threads 16
 # 参数详解：
-# easy-linclust         线性聚类模式（比cluster更快但精度略低）
+# easy-linclust        线性聚类模式（比cluster更快但精度略低）
 # -e 0.001             E值阈值（期望值≤0.001）
 # --cov-mode 1         覆盖度计算模式（1=查询序列覆盖度）
 # -c 0.8               覆盖度阈值（80%的序列要被比对覆盖）
 # --min-seq-id 0.9     最小序列相似度（90%相似度）
 # --kmer-per-seq 80    每个序列选择的k-mer数量（影响敏感度和速度）
 # --threads 16         使用16线程并行处理
+```
+
+### Others
+
+这一版块的内容很散乱，大抵是一些我觉得有用的命令、配置、知识点，以及一些和AI一起写的小玩意。脚本放在main/scripts文件夹下。
+
+`~/.bashrc` 的配置，基于学习时的先入为主，我个人习惯使用Bash，Zsh和Fish都有体验过，最后还是换成了Bash。
+
+```bash
+# PS1配置
+export PS1="\[\e[33;1m\]\u@\h \[\e[35;1m\]\d \t \`if [ \$? = 0 ]; then echo \[\e[32m\]^_^ ; else echo \[\e[31m\]O_O ; fi\` \[\e[36;1m\]\$(pwd -P)\[\e[0m\]\n\[\e[32;1m\]$ \[\e[0m\]"
+# 显示用户、主机名、日期、时间、当前所在目录、前一个命令的返回状态（^_^和O_O）
+
+# export
+export PATH="$HOME/software/samtools/bin/:$PATH"
+export PATH="$HOME/software/minimap2-2.30_x64-linux/:$PATH"
+export PATH="$HOME/software/miniforge3/envs/Isvara/bin:$PATH"
+export PATH="$HOME/software/bin:$PATH"	
+# 将特定的路径放入PATH变量里，可以直接调用该路径下的可执行文件。但在涉及python时需谨慎，需使用which command判断路径是否正确。
+# 可执行文件的匹配是从下至上的。在这里给出的例子中，假设四个路径都有python，会优先使用$HOME/software/bin下的python
+
+# alias
+alias reload='exec bash -l'	# 为exec bash -l设置别名reload，修改~/.bashrc的内容后，需要运行source ~/.bashrc重新载入配置。也可以使用exec bash -l 这个命令会更彻底。
+
+# WSL Proxy Auto-Configuration & Connection Check
+_host=$(ip route show | grep default | awk '{print $3}')
+_port=10808 #根据自己本地的代理软件端口进行替换，我使用的是v2rayN，端口为10808
+if curl -s -I --connect-timeout 2 --proxy "http://${_host}:${_port}" \
+    https://www.google.com >/dev/null 2>&1; then
+    export http_proxy="http://${_host}:${_port}"
+    export https_proxy=$http_proxy
+    export HTTP_PROXY=$http_proxy
+    export HTTPS_PROXY=$http_proxy
+    echo -e "\033[32m[√] Proxy: ${_host}:${_port}\033[0m"
+else
+    echo -e "\033[31m[!] Proxy unavailable\033[0m"
+    unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+fi
+unset _host _port
 ```
 
