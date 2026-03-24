@@ -29,7 +29,7 @@ get -R Adir Bdir
 # 使用技巧：不同终端软件功能不同
 # iTerm2支持通配符*，可以批量传输文件，比如 get *.fasta
 # Xshell不支持通配符，只能传单个文件
-# 如果文件很多，可以先打包成.tar.gz再传输，或者直接用Xftp图形界面拖拽文件
+# 如果文件很多，可以先打包成.tar.gz再传输，或者直接用Xftp图形化操作批量拖拽文件
 ```
 
 `vim`是Linux系统中的文本编辑器，按`i`进入编辑模式，按`Esc`退出编辑模式，输入`:wq`保存并退出。
@@ -1627,10 +1627,11 @@ export PATH="$HOME/software/bin:$PATH"
 
 # alias
 alias reload='exec bash -l'	# 为exec bash -l设置别名reload，修改~/.bashrc的内容后，需要运行source ~/.bashrc重新载入配置。也可以使用exec bash -l 这个命令会更彻底。
+alias ll='ls -lthr' 		# list目录时，按最后修改时间倒序排列
 
 # WSL Proxy Auto-Configuration & Connection Check
 _host=$(ip route show | grep default | awk '{print $3}')
-_port=10808 #根据自己本地的代理软件端口进行替换，我使用的是v2rayN，端口为10808
+_port=10808 #根据自己本地的代理软件端口进行替换
 if curl -s -I --connect-timeout 2 --proxy "http://${_host}:${_port}" \
     https://www.google.com >/dev/null 2>&1; then
     export http_proxy="http://${_host}:${_port}"
