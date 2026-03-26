@@ -192,7 +192,7 @@ def print_world_response(hexagram: List[int]) -> None:
     world, response, gua_type = calculate_world_response(hexagram)
     
     print(f"\n")
-    print("【世爻与应爻】")
+    print("世爻与应爻")
     print(f"{'='*50}")
     print(f"卦类型：{gua_type}")
     print(f"世爻：{POSITIONS[world - 1]}")
@@ -265,7 +265,7 @@ def print_dizhi_wuxing(hexagram: List[int]) -> None:
     world_pos, response_pos, _ = calculate_world_response(hexagram)
     
     print(f"\n")
-    print("【地支与五行】")
+    print("地支与五行")
     print(f"{'='*50}")
     print(f"本卦：{data['name']}")
     print(f"查询键：{key}")
@@ -286,8 +286,8 @@ def print_dizhi_wuxing(hexagram: List[int]) -> None:
     response_dizhi = dizhi_list[response_pos - 1]
     response_wuxing = get_wuxing(response_dizhi)
     
-    print(f"世爻（{POSITIONS[world_pos - 1]}）：{world_dizhi}  {world_wuxing}")
-    print(f"应爻（{POSITIONS[response_pos - 1]}）：{response_dizhi}  {response_wuxing}")
+    print(f"世爻（{POSITIONS[world_pos - 1]}）：{world_dizhi} {world_wuxing}")
+    print(f"应爻（{POSITIONS[response_pos - 1]}）：{response_dizhi} {response_wuxing}")
     print(f"{'='*50}")
 
 
@@ -300,7 +300,7 @@ def print_yaoci(hexagram: List[int]) -> None:
         return
     
     print(f"\n")
-    print("【爻辞】")
+    print("爻辞")
     print(f"{'='*50}")
     
     for line in data['yaoci']:
@@ -341,9 +341,9 @@ def get_divination_time() -> str:
         
         # 3. 组合输出
         lines = [
-            f"【占卜时间】：农历 {lunar.getMonthInChinese()}月{lunar.getDayInChinese()} {time_ganzhi}时",
-            f"【日建月建】：{month_ganzhi}月 {day_ganzhi}日",
-            f"【节气深浅】：目前处于「{jie_qi_name}」之后第 {delta_days} 天",
+            f"占卜时间：农历 {lunar.getMonthInChinese()}月{lunar.getDayInChinese()} {time_ganzhi}时",
+            f"日建月建：{month_ganzhi}月 {day_ganzhi}日",
+            f"节气深浅：目前处于「{jie_qi_name}」之后第 {delta_days} 天",
         ]
         
         return "\n".join(lines)
