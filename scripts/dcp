@@ -1,0 +1,380 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+dcp - DCS任务批量投递工具
+
+用法:
+  dcp sub <script_list> -c <cpu> -m <memory> [--tag TAG] [--image IMAGE]
+  dcp stat [TAG]
+  dcp list
+  dcp image
+
+命令说明:
+  sub     批量投递任务
+  stat    查询任务状态（默认查最近一批）
+  list    列出历史批次
+  image   显示当前使用的镜像信息
+
+示例:
+  # 投递任务（自动使用最新镜像）
+  dcp sub scripts.txt -c 4 -m 32g --tag batch1
+  
+  # 指定镜像投递
+  dcp sub scripts.txt -c 4 -m 32g --image xxx:latest
+  
+  # 查询最近一批任务状态
+  dcp stat
+  
+  # 查询指定批次状态
+  dcp stat batch1
+  
+  # 列出历史批次
+  dcp list
+  
+  # 查看当前镜像
+  dcp image
+
+环境变量:
+  DCS_IMAGE - 指定镜像URL，优先级高于自动查询
+
+配置:
+  数据存储: /data/work/.dcp.db
+  历史保留: 最近20批或7天内
+  镜像前缀: vscode（自动查询最新）
+"""
+
+import sys
+import os
+import subprocess
+import sqlite3
+import re
+from pathlib import Path
+from datetime import datetime, timedelta
+
+# ============= 配置区域 =============
+IMAGE_PREFIX = "vscode"  # 镜像名称前缀，用于自动查询
+DB_PATH = "/data/work/.dcp.db"
+KEEP_BATCHES = 20
+KEEP_DAYS = 7
+# ====================================
+
+def get_latest_image(prefix=IMAGE_PREFIX):
+    """
+    查询最新镜像URL
+    
+    解析 dcs image ls -n <prefix> 输出:
+    镜像名称             镜像URL                                              创建时间
+    vscode-v260204       stereonote_hpc.../xxx_private:latest    vscode  ...  2026-02-04 00:04:52
+    """
+    cmd = ['dcs', 'image', 'ls', '-a', '-n', prefix]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    
+    if result.returncode != 0:
+        print(f"警告: 查询镜像失败: {result.stderr}", file=sys.stderr)
+        return None
+    
+    latest_time = None
+    latest_url = None
+    latest_name = None
+    
+    for line in result.stdout.strip().split('\n'):
+        # 跳过表头和统计行
+        if '镜像名称' in line or line.startswith('共') or not line.strip():
+            continue
+        
+        parts = line.split()
+        if len(parts) < 5:
+            continue
+        
+        name = parts[0]
+        
+        # 找URL（包含:latest的）
+        url = None
+        for part in parts:
+            if ':latest' in part:
+                url = part
+                break
+        
+        # 找创建时间（YYYY-MM-DD HH:MM:SS）
+        time_match = re.search(r'(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})', line)
+        if not time_match or not url:
+            continue
+        
+        time_str = f"{time_match.group(1)} {time_match.group(2)}"
+        try:
+            create_time = datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S')
+            if latest_time is None or create_time > latest_time:
+                latest_time = create_time
+                latest_url = url
+                latest_name = name
+        except ValueError:
+            continue
+    
+    if latest_url:
+        return {'name': latest_name, 'url': latest_url, 'time': latest_time}
+    return None
+
+def get_image():
+    """获取镜像URL：环境变量 > 自动查询最新"""
+    env_image = os.getenv('DCS_IMAGE')
+    if env_image:
+        return env_image
+    
+    latest = get_latest_image()
+    if latest:
+        return latest['url']
+    
+    print("错误: 无法获取镜像，请设置 DCS_IMAGE 环境变量或检查 dcs image ls 命令", file=sys.stderr)
+    sys.exit(1)
+
+def init_db():
+    """初始化数据库"""
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS tasks (
+            task_id TEXT PRIMARY KEY,
+            batch_tag TEXT NOT NULL,
+            script TEXT NOT NULL,
+            cpu INTEGER NOT NULL,
+            memory TEXT NOT NULL,
+            image TEXT NOT NULL,
+            submitted INTEGER NOT NULL
+        )
+    ''')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_batch ON tasks(batch_tag)')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_submitted ON tasks(submitted)')
+    return conn
+
+def cleanup_old_data(conn):
+    """清理旧数据"""
+    cutoff_time = int((datetime.now() - timedelta(days=KEEP_DAYS)).timestamp())
+    
+    keep_tags = conn.execute('''
+        SELECT DISTINCT batch_tag FROM tasks 
+        ORDER BY submitted DESC LIMIT ?
+    ''', (KEEP_BATCHES,)).fetchall()
+    
+    if not keep_tags:
+        return
+    
+    keep_tags = [tag[0] for tag in keep_tags]
+    placeholders = ','.join('?' * len(keep_tags))
+    
+    conn.execute(f'''
+        DELETE FROM tasks 
+        WHERE batch_tag NOT IN ({placeholders}) AND submitted < ?
+    ''', keep_tags + [cutoff_time])
+    conn.commit()
+
+def submit_task(script, cpu, memory, image):
+    """投递单个任务"""
+    script = Path(script)
+    if not script.is_file():
+        print(f"错误: 文件不存在: {script}", file=sys.stderr)
+        return None
+    
+    if not os.access(script, os.X_OK):
+        try:
+            script.chmod(script.stat().st_mode | 0o111)
+        except PermissionError:
+            print(f"错误: 无法修改权限: {script}", file=sys.stderr)
+            return None
+    
+    cmd = [
+        'dcs', 'task', 'run', '--type', 's',
+        '-i', str(script),
+        '-l', f'vf={memory},num_proc={cpu}',
+        '--image', image
+    ]
+    
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"错误: 投递失败: {result.stderr}", file=sys.stderr)
+        return None
+    
+    return result.stdout.strip()
+
+def query_status(task_ids):
+    """查询任务状态"""
+    if not task_ids:
+        return {}
+    
+    cmd = ['dcs', 'task', 'ls', '-t', 'a', '-i', ','.join(task_ids)]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    
+    if result.returncode != 0:
+        return {}
+    
+    status_map = {}
+    for line in result.stdout.strip().split('\n'):
+        if '任务编号' in line or not line.strip():
+            continue
+        
+        parts = line.split()
+        if len(parts) < 5:
+            continue
+        
+        task_id = parts[0]
+        status_match = re.search(r'(完成|失败|运行中|待提交|已提交)', line)
+        status_map[task_id] = status_match.group(1) if status_match else "未知"
+    
+    return status_map
+
+def cmd_sub(args):
+    """投递任务"""
+    import argparse
+    parser = argparse.ArgumentParser(prog='dcp sub', add_help=False)
+    parser.add_argument('script_list')
+    parser.add_argument('-c', '--cpu', type=int, required=True)
+    parser.add_argument('-m', '--memory', required=True)
+    parser.add_argument('--tag')
+    parser.add_argument('--image')
+    
+    try:
+        opts = parser.parse_args(args)
+    except SystemExit:
+        print("用法: dcp sub <script_list> -c <cpu> -m <memory> [--tag TAG] [--image IMAGE]")
+        sys.exit(1)
+    
+    tag = opts.tag or datetime.now().strftime("batch_%Y%m%d_%H%M%S")
+    image = opts.image or get_image()
+    
+    scripts = [s.strip() for s in Path(opts.script_list).read_text().strip().split('\n') if s.strip()]
+    
+    if not scripts:
+        print("错误: 脚本列表为空")
+        sys.exit(1)
+    
+    print(f"批次: {tag}")
+    print(f"配置: CPU={opts.cpu}, 内存={opts.memory}")
+    print(f"镜像: {image}")
+    print(f"脚本数: {len(scripts)}")
+    print("-" * 60)
+    
+    conn = init_db()
+    submitted = []
+    
+    for i, script in enumerate(scripts, 1):
+        print(f"[{i}/{len(scripts)}] {script} ... ", end='', flush=True)
+        
+        task_id = submit_task(script, opts.cpu, opts.memory, image)
+        if task_id:
+            conn.execute(
+                'INSERT INTO tasks VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (task_id, tag, script, opts.cpu, opts.memory, image, int(datetime.now().timestamp()))
+            )
+            submitted.append(task_id)
+            print(f"✓ {task_id}")
+        else:
+            print("✗ 失败")
+    
+    conn.commit()
+    cleanup_old_data(conn)
+    conn.close()
+    
+    print("-" * 60)
+    print(f"成功: {len(submitted)}/{len(scripts)}")
+    if submitted:
+        print(f"\n提示: dcp stat {tag}")
+
+def cmd_stat(args):
+    """查询任务状态"""
+    conn = init_db()
+    
+    if args:
+        tag = args[0]
+    else:
+        row = conn.execute('SELECT batch_tag FROM tasks ORDER BY submitted DESC LIMIT 1').fetchone()
+        if not row:
+            print("没有找到任务记录")
+            conn.close()
+            return
+        tag = row[0]
+    
+    tasks = conn.execute('SELECT task_id, script FROM tasks WHERE batch_tag = ?', (tag,)).fetchall()
+    conn.close()
+    
+    if not tasks:
+        print(f"没有找到批次: {tag}")
+        return
+    
+    print(f"批次: {tag}")
+    print(f"任务数: {len(tasks)}")
+    print("-" * 80)
+    
+    status_map = query_status([t[0] for t in tasks])
+    
+    print(f"{'任务ID':<22} {'状态':<8} 脚本")
+    print("-" * 80)
+    
+    stats = {}
+    for task_id, script in tasks:
+        status = status_map.get(task_id, '查询失败')
+        stats[status] = stats.get(status, 0) + 1
+        print(f"{task_id:<22} {status:<8} {script}")
+    
+    print("-" * 80)
+    print("  ".join(f"{k}: {v}" for k, v in stats.items()))
+
+def cmd_list(args):
+    """列出历史批次"""
+    conn = init_db()
+    batches = conn.execute('''
+        SELECT batch_tag, COUNT(*), MIN(submitted), cpu, memory
+        FROM tasks GROUP BY batch_tag
+        ORDER BY MIN(submitted) DESC LIMIT ?
+    ''', (KEEP_BATCHES,)).fetchall()
+    conn.close()
+    
+    if not batches:
+        print("没有历史记录")
+        return
+    
+    print(f"{'批次标签':<30} {'任务数':<6} {'投递时间':<20} CPU  内存")
+    print("-" * 80)
+    
+    for tag, count, ts, cpu, mem in batches:
+        time_str = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        print(f"{tag:<30} {count:<6} {time_str:<20} {cpu:<4} {mem}")
+
+def cmd_image(args):
+    """显示当前镜像信息"""
+    print("正在查询最新镜像...")
+    
+    latest = get_latest_image()
+    if latest:
+        print(f"\n最新镜像:")
+        print(f"  名称: {latest['name']}")
+        print(f"  URL:  {latest['url']}")
+        print(f"  时间: {latest['time'].strftime('%Y-%m-%d %H:%M:%S')}")
+    else:
+        print("未找到镜像")
+    
+    env_image = os.getenv('DCS_IMAGE')
+    if env_image:
+        print(f"\n环境变量 DCS_IMAGE: {env_image}")
+        print("(将使用环境变量指定的镜像)")
+
+def main():
+    if len(sys.argv) < 2:
+        print(__doc__)
+        sys.exit(1)
+    
+    cmd = sys.argv[1]
+    args = sys.argv[2:]
+    
+    commands = {
+        'sub': cmd_sub,
+        'stat': cmd_stat,
+        'list': cmd_list,
+        'image': cmd_image,
+    }
+    
+    if cmd in commands:
+        commands[cmd](args)
+    else:
+        print(__doc__)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,22 @@
+{
+    "FASTP": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/amita/bin/fastp",
+    "SEQTK": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/amita/bin/seqtk",
+    "SEQKIT": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/amita/bin/seqkit",
+    "SPADES": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/amita/bin/spades.py",
+    "CHECKV": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/checkv/bin/checkv",
+    "CHECKVDB": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online//software/db/checkv-db-v1.5",
+    "QUAST_PYTHON": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/quast/bin/python",
+    "QUAST": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/quast/bin/quast.py",
+    "PRODIGAL": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/checkv/bin/prodigal-gv",
+    "BLASTP": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/checkv/bin/blastp",
+    "NR_PHAGE_DB": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/db/phagex-db-v20250904/nr/nr_phage.fasta",
+    "PHMMER": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/checkv/bin/phmmer",
+    "UNIREF_DB": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/db/phagex-db-v20250904/uniref/uniref.fasta",
+    "UNIPROTKB_DB": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/db/phagex-db-v20250904/uniprotkb/uniprotkb_phage_AND_taxonomy_id_10239_2025_09_02.fasta",
+    "HMMSCAN": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/checkv/bin/hmmscan",
+    "PFAM_PATH": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/db/phagex-db-v20250904/pfam/Pfam-A.hmm",
+    "SEQRET": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/Miniforge3-Linux-x86_64/envs/amita/bin/seqret",
+    "HMMER_UNIQ": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/script/hmmer_hit_uniq.py",
+    "GET_RESULT_PY": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/script/get_result_v250908.py",
+    "RESULT2GFF": "/data/users/eliezer1/eliezer1_e14c6d02829e4806980658cbeefb9c2e/online/software/script/result2gff_1.py"
+}

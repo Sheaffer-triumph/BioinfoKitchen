@@ -1,0 +1,647 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+PhageX - Phage Genome Assembly and Annotation Pipeline
+
+这是个实用工具，不是艺术品。它解决一个真实问题：
+从测序数据到注释好的噬菌体基因组。
+
+设计原则：
+1. 数据结构描述流程，代码只是执行器
+2. 没有特殊情况，统一处理
+3. 简单直接，不过度设计
+
+作者启发来源：Linus Torvalds的编程哲学
+"Bad programmers worry about the code. 
+ Good programmers worry about data structures."
+"""
+
+import os
+import sys
+import json
+import time
+import hashlib
+import logging
+import argparse
+import subprocess
+from pathlib import Path
+from typing import List, Dict, Callable, Optional
+from dataclasses import dataclass, field
+
+# =============================================================================
+# 核心数据结构：这才是重点
+# =============================================================================
+
+@dataclass
+class Command:
+    """单个命令：template + 参数"""
+    template: str
+    critical: bool = True  # 失败是否中断
+    
+    def format(self, **kwargs) -> str:
+        """格式化命令"""
+        return self.template.format(**kwargs)
+
+
+@dataclass  
+class Step:
+    """Pipeline步骤：最核心的数据结构"""
+    name: str
+    commands: List[Command] = field(default_factory=list)
+    cmd_gen: Optional[Callable] = None  # 动态生成命令
+    deps: List[str] = field(default_factory=list)
+    
+    def get_commands(self, ctx) -> List[Command]:
+        """获取命令列表"""
+        if self.cmd_gen:
+            return self.cmd_gen(ctx)
+        return self.commands
+
+
+# =============================================================================
+# Pipeline定义：用数据描述，不是代码
+# =============================================================================
+
+def define_steps() -> Dict[str, Step]:
+    """定义所有步骤：这是整个pipeline的核心"""
+    
+    return {
+        # ===== 质控 =====
+        "qc": Step(
+            name="quality_control",
+            commands=[Command(
+                "{fastp} -i {input1} -o {out}/01_fastp/{id}_1.fq "
+                "-I {input2} -O {out}/01_fastp/{id}_2.fq "
+                "-5 -3 -w {threads} -q 20 -c -l 30 "
+                "-j {out}/01_fastp/fastp.json "
+                "-h {out}/01_fastp/fastp.html "
+                "-R {out}/01_fastp/out.prefix"
+            )]
+        ),
+        
+        # ===== 采样 =====
+        "sampling": Step(
+            name="sampling",
+            deps=["qc"],
+            cmd_gen=lambda ctx: gen_sampling_cmds(ctx)
+        ),
+        
+        # ===== 组装 =====
+        "assembly": Step(
+            name="assembly", 
+            deps=["sampling"],
+            cmd_gen=lambda ctx: gen_spades_cmds(ctx)
+        ),
+        
+        # ===== 筛选contigs =====
+        "filter": Step(
+            name="filter_contigs",
+            deps=["assembly"],
+            commands=[
+                Command("cat {out}/03_spades/*/*/scaffolds.fasta > {out}/04_select_6k/all.fa"),
+                Command("{seqkit} seq -m 6000 {out}/04_select_6k/all.fa > {out}/04_select_6k/6k.fa"),
+                Command("{seqkit} sort -lr {out}/04_select_6k/6k.fa > {out}/04_select_6k/sorted.fa")
+            ]
+        ),
+        
+        # ===== CheckV质控 =====
+        "checkv": Step(
+            name="checkv_qc",
+            deps=["filter"],
+            commands=[
+                Command(
+                    "{checkv} end_to_end {out}/04_select_6k/sorted.fa "
+                    "{out}/05_checkv -t {threads} -d {checkv_db}"
+                ),
+                Command(
+                    "cat {out}/05_checkv/quality_summary.tsv | sed '1d' | "
+                    "grep -v 'high kmer_freq may indicate large duplication' | "
+                    "sort -k10,10nr -k2,2nr | head -n 1 | cut -f1 > "
+                    "{out}/05_checkv/best_id.txt"
+                )
+            ]
+        ),
+        
+        # ===== 提取最佳序列 =====
+        "extract": Step(
+            name="extract_best",
+            deps=["checkv"],
+            commands=[
+                Command("{seqkit} grep -n -f {out}/05_checkv/best_id.txt {out}/04_select_6k/sorted.fa > {out}/final.fa"),
+                Command("cat {out}/final.fa | head -n 1 | sed 's/>//g' | xargs -I @ {seqkit} replace -p '@' -r {id} {out}/final.fa > {out}/{id}.fa")
+            ]
+        ),
+        
+        # ===== 最终CheckV =====
+        "final_checkv": Step(
+            name="final_checkv",
+            deps=["extract"],
+            commands=[
+                Command("rm -rf {out}/05_checkv && mkdir -p {out}/05_checkv"),
+                Command("{checkv} end_to_end {out}/{id}.fa {out}/05_checkv -t {threads} -d {checkv_db}"),
+                Command("cp {out}/05_checkv/quality_summary.tsv {out}/{id}_quality.tsv")
+            ]
+        ),
+        
+        # ===== QUAST评估 =====
+        "quast": Step(
+            name="quast",
+            deps=["extract"],
+            commands=[Command(
+                "{quast_py} {quast} -o {out}/06_quast {out}/{id}.fa"
+            )]
+        ),
+        
+        # ===== 基因预测 =====
+        "prodigal": Step(
+            name="gene_prediction",
+            deps=["extract"],
+            commands=[Command(
+                "{prodigal} -i {out}/{id}.fa -o {out}/07_prodigal/{id}.gff -a {out}/07_prodigal/{id}.faa -d {out}/07_prodigal/{id}.fna -p meta -f gff -c"
+            )]
+        ),
+        
+        # ===== BLASTP =====
+        "blastp": Step(
+            name="blastp",
+            deps=["prodigal"],
+            commands=[Command(
+                '{blastp} -query {out}/07_prodigal/{id}.faa -db {nr_db} -evalue 1e-5 -max_target_seqs 1 -num_threads {threads} -out {out}/08_blastp/{id}.blastp.txt -outfmt "6 qseqid sseqid stitle pident length mismatch gapopen qstart qend sstart send evalue bitscore"'
+            )]
+        ),
+        
+        # ===== PHMMER =====
+        "phmmer": Step(
+            name="phmmer",
+            deps=["prodigal"],
+            commands=[
+                Command(
+                    "{phmmer} -E 1e-5 --cpu {threads} -o {out}/09_phmmer/uniref.out --tblout {out}/09_phmmer/uniref.tbl {out}/07_prodigal/{id}.faa {uniref_db}"
+                ),
+                Command(
+                    "{phmmer} -E 1e-5 --cpu {threads} -o {out}/09_phmmer/uniprotkb.out --tblout {out}/09_phmmer/uniprotkb.tbl {out}/07_prodigal/{id}.faa {uniprotkb_db}"
+                ),
+                Command("grep -v '#' {out}/09_phmmer/uniref.tbl > {out}/09_phmmer/uniref.hit"),
+                Command("grep -v '#' {out}/09_phmmer/uniprotkb.tbl > {out}/09_phmmer/uniprotkb.hit")
+            ]
+        ),
+        
+        # ===== HMMSCAN =====
+        "hmmscan": Step(
+            name="hmmscan",
+            deps=["prodigal"],
+            commands=[
+                Command(
+                    "{hmmscan} -E 1e-5 --cpu {threads} -o {out}/10_hmmscan/pfam.out --tblout {out}/10_hmmscan/pfam.tbl {pfam_db} {out}/07_prodigal/{id}.faa"
+                ),
+                Command("grep -v '#' {out}/10_hmmscan/pfam.tbl > {out}/10_hmmscan/pfam.hit")
+            ]
+        ),
+        
+        # ===== 整合注释 =====
+        "integrate": Step(
+            name="integrate",
+            deps=["blastp", "phmmer", "hmmscan"],
+            commands=[
+                Command(
+                    "cat {out}/10_hmmscan/pfam.hit {out}/09_phmmer/uniref.hit {out}/09_phmmer/uniprotkb.hit > {out}/11_annotation/hmm.hit"
+                ),
+                Command("{hmmer_uniq} {out}/11_annotation/hmm.hit {out}/11_annotation/hmm.uniq"),
+                Command(
+                    "{get_result} {out}/08_blastp/{id}.blastp.txt {out}/11_annotation/hmm.uniq {out}/11_annotation/{id}_anno.txt"
+                )
+            ]
+        ),
+        
+        # ===== 生成输出格式 =====
+        "format": Step(
+            name="generate_formats",
+            deps=["integrate"],
+            commands=[
+                Command(
+                    "{result2gff} {out}/11_annotation/{id}_anno.txt {out}/07_prodigal/{id}.gff {out}/12_output/{id}.gff"
+                ),
+                Command(
+                    "{seqret} -sequence {out}/{id}.fa -feature -fformat gff -fopenfile {out}/12_output/{id}.gff -osformat genbank -outseq {out}/12_output/{id}.gbk"
+                )
+            ]
+        ),
+        
+        # ===== 复制最终结果 =====
+        "finalize": Step(
+            name="finalize",
+            deps=["format", "quast"],
+            cmd_gen=lambda ctx: gen_copy_cmds(ctx)
+        )
+    }
+
+
+def gen_sampling_cmds(ctx) -> List[Command]:
+    """生成采样命令：seqtk和seqkit各3个版本"""
+    cmds = []
+    
+    # 参数矩阵
+    tools = [("seqtk", "{seqtk} sample -s {seed}"), 
+            ("seqkit", "{seqkit} sample -s {seed}")]
+    seeds = [(25, "v1"), (75, "v2"), (100, "v3")]
+    reads = ["1", "2"]
+    
+    for tool_name, tool_cmd in tools:
+        for seed, version in seeds:
+            for read in reads:
+                cmd = (
+                    f"{tool_cmd} "
+                    f"{{out}}/01_fastp/{{id}}_{read}.fq -n 25000 > "
+                    f"{{out}}/02_sampling/{tool_name}_{version}_{read}.fq"
+                )
+                cmds.append(Command(cmd.format(seed=seed), critical=False))
+    
+    return cmds
+
+
+def gen_spades_cmds(ctx) -> List[Command]:
+    """生成SPAdes命令：消除5层嵌套的典范"""
+    
+    # 参数空间：用生成器而不是嵌套循环
+    def param_space():
+        kmers = [("21,45,63", "k1"), ("17,21", "k2"), ("auto", "k3")]
+        modes = ["careful", "isolate"]
+        tools = ["seqtk", "seqkit"]
+        versions = ["v1", "v2", "v3"]
+        
+        for kmer, kdir in kmers:
+            for mode in modes:
+                for tool in tools:
+                    for ver in versions:
+                        yield {
+                            "kmer": kmer if kmer != "auto" else "",
+                            "kmer_dir": kdir,
+                            "mode": mode,
+                            "tool": tool,
+                            "ver": ver
+                        }
+    
+    cmds = []
+    for p in param_space():
+        kmer_opt = f"-k {p['kmer']}" if p['kmer'] else ""
+        cmd = (
+            "{{spades}} {kmer_opt} --{mode} "
+            "-1 {{out}}/02_sampling/{tool}_{ver}_1.fq "
+            "-2 {{out}}/02_sampling/{tool}_{ver}_2.fq "
+            "-o {{out}}/03_spades/{kmer_dir}/{tool}_{ver}_{mode} "
+            "-t {{threads}}"
+        ).format(**p, kmer_opt=kmer_opt)
+        
+        cmds.append(Command(cmd, critical=False))  # SPAdes允许部分失败
+    
+    return cmds
+
+
+def gen_copy_cmds(ctx) -> List[Command]:
+    """生成最终复制命令"""
+    files = [
+        ("12_output/{id}.gbk", "{id}.gbk"),
+        ("12_output/{id}.gff", "{id}.gff"),
+        ("11_annotation/{id}_anno.txt", "{id}_annotation.txt"),
+        ("07_prodigal/{id}.faa", "{id}.faa"),
+        ("07_prodigal/{id}.fna", "{id}.fna"),
+        ("06_quast/report.tsv", "{id}_quast.tsv")
+    ]
+    
+    return [Command(f"cp {{out}}/{src} {{out}}/{dst}") 
+            for src, dst in files]
+
+
+# =============================================================================
+# Pipeline模式：消除特殊情况
+# =============================================================================
+
+MODES = {
+    "full": [
+        "qc", "sampling", "assembly", "filter", "checkv", "extract",
+        "final_checkv", "quast", "prodigal", "blastp", "phmmer", 
+        "hmmscan", "integrate", "format", "finalize"
+    ],
+    "assembly": [
+        "qc", "sampling", "assembly", "filter", "checkv", "extract",
+        "final_checkv", "quast"
+    ],
+    "annotation": [
+        "prodigal", "blastp", "phmmer", "hmmscan", "integrate", 
+        "format"
+    ]
+}
+
+
+# =============================================================================
+# 执行引擎：统一处理所有步骤
+# =============================================================================
+
+class Pipeline:
+    """Pipeline执行器：简单、直接、有效"""
+    
+    def __init__(self, args):
+        self.args = args
+        self.cfg = {}
+        self.steps = define_steps()
+        self.done = set()
+        self.log = None
+        
+    def setup(self):
+        """初始化"""
+        os.makedirs(self.args.output, exist_ok=True)
+        self._setup_log()
+        self._load_config()
+        self._load_checkpoint()
+        self._create_dirs()
+        
+    def _setup_log(self):
+        """配置日志"""
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s [%(levelname)s] %(message)s',
+            handlers=[
+                logging.FileHandler(f"{self.args.output}/phagex.log"),
+                logging.StreamHandler()
+            ]
+        )
+        self.log = logging.getLogger(__name__)
+        
+    def _load_config(self):
+        """加载配置"""
+        cfg_file = self.args.config or os.path.join(
+            os.path.dirname(__file__), "phagex.json"
+        )
+        
+        if not os.path.exists(cfg_file):
+            self.log.error(f"Config not found: {cfg_file}")
+            sys.exit(1)
+            
+        with open(cfg_file) as f:
+            tools = json.load(f)
+        
+        # 构建上下文
+        self.cfg = {
+            **tools,  # 工具路径
+            "out": self.args.output,
+            "id": getattr(self.args, 'phage_id', 'unknown'),
+            "threads": self.args.threads,
+            "input1": getattr(self.args, 'input1', ''),
+            "input2": getattr(self.args, 'input2', '')
+        }
+        
+    def _load_checkpoint(self):
+        """加载检查点"""
+        ckpt = f"{self.args.output}/checkpoint.json"
+        
+        if os.path.exists(ckpt) and not self.args.force:
+            with open(ckpt) as f:
+                data = json.load(f)
+                self.done = set(data.get("completed", []))
+            self.log.info(f"Loaded checkpoint: {len(self.done)} steps done")
+        else:
+            if self.args.force:
+                self.log.info("Force restart: ignoring checkpoint")
+                
+    def _save_checkpoint(self, step_name):
+        """保存检查点"""
+        self.done.add(step_name)
+        with open(f"{self.args.output}/checkpoint.json", 'w') as f:
+            json.dump({
+                "completed": list(self.done),
+                "timestamp": time.time()
+            }, f, indent=2)
+            
+    def _create_dirs(self):
+        """创建目录结构"""
+        dirs = [
+            "01_fastp", "02_sampling", "03_spades", "04_select_6k",
+            "05_checkv", "06_quast", "07_prodigal", "08_blastp",
+            "09_phmmer", "10_hmmscan", "11_annotation", "12_output"
+        ]
+        for d in dirs:
+            os.makedirs(f"{self.args.output}/{d}", exist_ok=True)
+            
+    def run_step(self, step_name: str) -> bool:
+        """执行单个步骤"""
+        if step_name in self.done:
+            self.log.info(f"Skip: {step_name} (already done)")
+            return True
+            
+        step = self.steps[step_name]
+        
+        # 检查依赖
+        for dep in step.deps:
+            if dep not in self.done:
+                self.log.error(f"Dependency not met: {dep}")
+                return False
+        
+        self.log.info(f"Running: {step_name}")
+        
+        # 执行命令
+        commands = step.get_commands(self.cfg)
+        for i, cmd in enumerate(commands):
+            cmd_str = cmd.format(**self.cfg)
+            self.log.debug(f"  CMD[{i+1}]: {cmd_str}")
+            
+            try:
+                subprocess.run(
+                    cmd_str, 
+                    shell=True, 
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+            except subprocess.CalledProcessError as e:
+                if cmd.critical:
+                    self.log.error(f"Failed: {step_name}")
+                    self.log.error(f"Command: {cmd_str}")
+                    self.log.error(f"Error: {e.stderr}")
+                    return False
+                else:
+                    self.log.warning(f"Non-critical failure: {cmd_str}")
+                    continue
+        
+        self._save_checkpoint(step_name)
+        self.log.info(f"Done: {step_name}")
+        return True
+        
+    def run(self, mode: str) -> bool:
+        """运行指定模式的pipeline"""
+        if mode not in MODES:
+            self.log.error(f"Unknown mode: {mode}")
+            return False
+            
+        steps = MODES[mode]
+        self.log.info(f"Starting pipeline: {mode} ({len(steps)} steps)")
+        
+        for step_name in steps:
+            if not self.run_step(step_name):
+                self.log.error(f"Pipeline failed at: {step_name}")
+                return False
+                
+        self.log.info("Pipeline completed successfully!")
+        return True
+
+
+# =============================================================================
+# 批处理生成：特殊模式，但统一接口
+# =============================================================================
+
+def generate_batch(args):
+    """生成批处理脚本"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(message)s'
+    )
+    log = logging.getLogger(__name__)
+    
+    if not os.path.exists(args.list_file):
+        log.error(f"List file not found: {args.list_file}")
+        return False
+        
+    os.makedirs(args.output, exist_ok=True)
+    script_path = os.path.abspath(__file__)
+    cfg_path = args.config or os.path.join(
+        os.path.dirname(__file__), "phagex.json"
+    )
+    
+    count = 0
+    with open(args.list_file) as f:
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+                
+            parts = line.split()
+            if len(parts) != 3:
+                log.warning(f"Line {line_num}: invalid format")
+                continue
+                
+            phage_id, fq1, fq2 = parts
+            
+            if not os.path.exists(fq1) or not os.path.exists(fq2):
+                log.warning(f"Line {line_num}: file not found")
+                continue
+                
+            out_dir = f"{args.output}/{phage_id}"
+            script = f"{args.output}/{phage_id}.sh"
+            
+            with open(script, 'w') as sf:
+                sf.write("#!/bin/bash\n")
+                sf.write(f"# PhageX batch script for {phage_id}\n")
+                sf.write(f"# Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                sf.write(
+                    f"python {script_path} full "
+                    f"-1 {fq1} -2 {fq2} -i {phage_id} "
+                    f"-o {out_dir} -t {args.threads} -c {cfg_path}\n"
+                )
+            
+            os.chmod(script, 0o755)
+            log.info(f"Generated: {script}")
+            count += 1
+            
+    log.info(f"Generated {count} batch scripts")
+    return True
+
+
+# =============================================================================
+# 主入口
+# =============================================================================
+
+HELP_DOC = """
+PhageX - 噬菌体基因组组装与注释流程
+
+用法：
+    phagex.py <mode> [options]
+
+模式：
+    full       完整流程（组装 + 注释）
+    assembly   仅组装
+    annotation 仅注释
+    generate   生成批处理脚本
+
+示例：
+
+    # 完整流程
+    phagex.py full -1 R1.fq -2 R2.fq -i phage001 -o result -t 16
+
+    # 仅组装
+    phagex.py assembly -1 R1.fq -2 R2.fq -i phage001 -o result
+
+    # 仅注释
+    phagex.py annotation -i genome.fa -o result
+
+    # 批处理
+    phagex.py generate -l samples.txt -o batch_result -t 16
+
+批处理文件格式：
+    每行三列，空格或制表符分隔：
+    phage_id  forward.fq  reverse.fq
+
+配置：
+    默认使用脚本目录下的 phagex.json
+    可用 -c 指定其他配置文件
+
+检查点：
+    pipeline会自动保存进度，失败后可继续
+    使用 -f 强制重新开始
+
+设计哲学：
+    这个脚本遵循 Linus Torvalds 的编程理念：
+    - 数据结构优先于算法
+    - 消除特殊情况
+    - 简洁直接，不过度设计
+"""
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="PhageX Pipeline",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=HELP_DOC
+    )
+    
+    parser.add_argument(
+        "mode",
+        choices=["full", "assembly", "annotation", "generate"],
+        help="运行模式"
+    )
+    
+    parser.add_argument("-1", "--input1", help="正向测序文件（full/assembly需要）")
+    parser.add_argument("-2", "--input2", help="反向测序文件（full/assembly需要）")
+    parser.add_argument("-i", "--input", dest="input_id", help="噬菌体ID或fasta文件")
+    parser.add_argument("-l", "--list", dest="list_file", help="批处理列表文件（generate需要）")
+    parser.add_argument("-o", "--output", required=True, help="输出目录")
+    parser.add_argument("-c", "--config", help="配置文件（默认：phagex.json）")
+    parser.add_argument("-t", "--threads", type=int, default=8, help="线程数")
+    parser.add_argument("-f", "--force", action="store_true", help="强制重新运行")
+    
+    args = parser.parse_args()
+    
+    # 参数验证：简单的if，不需要复杂逻辑
+    if args.mode in ["full", "assembly"]:
+        if not args.input1 or not args.input2 or not args.input_id:
+            parser.error(f"{args.mode} mode requires -1, -2, -i")
+        args.phage_id = args.input_id
+        
+    elif args.mode == "annotation":
+        if not args.input_id:
+            parser.error("annotation mode requires -i (fasta file)")
+        args.phage_id = Path(args.input_id).stem
+        
+    elif args.mode == "generate":
+        if not args.list_file:
+            parser.error("generate mode requires -l (list file)")
+        return 0 if generate_batch(args) else 1
+    
+    # 运行pipeline
+    pipeline = Pipeline(args)
+    pipeline.setup()
+    success = pipeline.run(args.mode)
+    
+    return 0 if success else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

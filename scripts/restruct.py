@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+import os
+import json
+import shutil
+import concurrent.futures
+import argparse
+import time
+
+def rebuild_directory(structure, file_paths, output_dir, max_workers=4):
+    """并行重建目录结构"""
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # 构建文件映射
+    file_map = {}
+    for path in file_paths:
+        basename = os.path.basename(path)
+        file_map[basename] = path
+    
+    # 存储所有复制任务
+    copy_tasks = []
+    
+    def collect_tasks(node, current_dir):
+        """收集所有复制任务而不立即执行"""
+        if node["type"] == "directory":
+            # 创建目录
+            if "name" in node:
+                new_dir = os.path.join(current_dir, node["name"])
+                os.makedirs(new_dir, exist_ok=True)
+            else:
+                new_dir = current_dir
+            
+            # 处理子节点
+            if "children" in node:
+                for child in node["children"]:
+                    collect_tasks(child, new_dir)
+        
+        elif node["type"] == "file":
+            # 添加文件复制任务
+            file_name = node["name"]
+            if file_name in file_map:
+                source_file = file_map[file_name]
+                target_path = os.path.join(current_dir, file_name)
+                copy_tasks.append((source_file, target_path, file_name))
+    
+    # 收集所有任务
+    collect_tasks(structure["root"], output_dir)
+    
+    # 定义复制函数
+    def copy_file(task):
+        source, target, name = task
+        start = time.time()
+        try:
+            shutil.copy2(source, target)
+            elapsed = time.time() - start
+            size_mb = os.path.getsize(target) / (1024 * 1024)
+            speed = size_mb / elapsed if elapsed > 0 else 0
+            return (True, f"Copied {name} ({size_mb:.1f} MB) in {elapsed:.1f}s ({speed:.1f} MB/s)")
+        except Exception as e:
+            return (False, f"Failed to copy {name}: {str(e)}")
+    
+    # 并行执行复制任务
+    total_bytes = 0
+    successful = 0
+    results = []
+    
+    print(f"Starting to copy {len(copy_tasks)} files with {max_workers} parallel workers")
+    start_time = time.time()
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_task = {executor.submit(copy_file, task): task for task in copy_tasks}
+        for future in concurrent.futures.as_completed(future_to_task):
+            success, message = future.result()
+            results.append(message)
+            print(message)
+            if success:
+                successful += 1
+                src, _, _ = future_to_task[future]
+                total_bytes += os.path.getsize(src)
+    
+    elapsed = time.time() - start_time
+    total_gb = total_bytes / (1024**3)
+    avg_speed = total_gb / elapsed if elapsed > 0 else 0
+    
+    summary = f"""
+Directory reconstruction completed:
+- Total files: {len(copy_tasks)}
+- Successfully copied: {successful}
+- Failed: {len(copy_tasks) - successful}
+- Total data: {total_gb:.2f} GB
+- Time elapsed: {elapsed:.1f} seconds
+- Average speed: {avg_speed:.2f} GB/s
+"""
+    print(summary)
+    return summary, results
+
+def main():
+    parser = argparse.ArgumentParser(description="Rebuild directory structure from JSON and file paths")
+    parser.add_argument("structure_json", help="Structure JSON file")
+    parser.add_argument("file_list", help="Text file with list of file paths (one per line)")
+    parser.add_argument("output_dir", help="Directory where to rebuild the structure")
+    parser.add_argument("--workers", type=int, default=4, help="Number of parallel workers (default: 4)")
+    
+    args = parser.parse_args()
+    
+    with open(args.structure_json, 'r') as f:
+        structure = json.load(f)
+    
+    with open(args.file_list, 'r') as f:
+        file_paths = [line.strip() for line in f if line.strip()]
+    
+    summary, _ = rebuild_directory(structure, file_paths, args.output_dir, args.workers)
+    
+    with open(os.path.join(args.output_dir, "rebuild_report.txt"), "w") as f:
+        f.write(summary)
+
+if __name__ == "__main__":
+    main()

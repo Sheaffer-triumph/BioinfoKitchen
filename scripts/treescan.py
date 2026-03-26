@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+import os
+import json
+import argparse
+
+def scan_directory(directory_path, base_path=None):
+    """扫描目录并生成结构描述"""
+    if base_path is None:
+        base_path = directory_path
+    
+    result = {"type": "directory"}
+    dir_name = os.path.basename(directory_path)
+    if dir_name:
+        result["name"] = dir_name
+    
+    children = []
+    for item in sorted(os.listdir(directory_path)):
+        item_path = os.path.join(directory_path, item)
+        rel_path = os.path.relpath(item_path, base_path)
+        
+        if os.path.isdir(item_path):
+            # 递归处理子目录
+            subdir = scan_directory(item_path, base_path)
+            children.append(subdir)
+        else:
+            # 处理文件
+            children.append({
+                "type": "file",
+                "name": item,
+                "path": rel_path
+            })
+    
+    if children:
+        result["children"] = children
+    
+    return result
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate directory structure JSON")
+    parser.add_argument("directory", help="Directory to scan")
+    parser.add_argument("output_json", help="Output JSON file")
+    
+    args = parser.parse_args()
+    
+    # 扫描目录
+    structure = scan_directory(args.directory)
+    
+    # 创建完整结构
+    complete_structure = {"root": structure}
+    
+    # 保存JSON
+    with open(args.output_json, 'w') as f:
+        json.dump(complete_structure, f, indent=2)
+    
+    print(f"Structure JSON saved to {args.output_json}")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,249 @@
+#!/usr/bin/bash
+# Viral genome analysis batch submitter
+# Handles disk quota management for tasks that produce ~100GB temporary files
+set -euo pipefail
+
+# =============================================================================
+# Configuration
+# =============================================================================
+readonly SCRIPT_VERSION="2.0.0"
+readonly LOG_FILE="autoqsub.log"
+readonly QUEUE_FILE=".job_queue"
+readonly STATE_FILE=".autoqsub.state"
+
+# Defaults
+MAX_JOBS=20
+PROCESSES=8
+MEMORY=50
+SLEEP_MINUTES=5
+DISK_LIMIT=""
+JOB_LIST=""
+
+readonly USER="${USER:-$(whoami)}"
+readonly QUEUE="st.q"
+readonly PROJECT="P17Z10200N0246"
+
+# State tracking
+STATE_NORMAL="NORMAL"
+STATE_DISK_FULL="DISK_FULL"
+CURRENT_STATE="$STATE_NORMAL"
+
+# =============================================================================
+# Utilities
+# =============================================================================
+log() {
+    printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" | tee -a "$LOG_FILE"
+}
+
+die() {
+    printf 'ERROR: %s\n' "$*" >&2
+    cleanup
+    exit 1
+}
+
+cleanup() {
+    rm -f "$QUEUE_FILE" "$STATE_FILE"
+}
+
+show_help() {
+    cat <<'HELP'
+Usage: autoqsub -l LIST [OPTIONS]
+
+Purpose:
+    Batch job submission with disk quota management.
+    When disk is full, STOPS submitting new jobs and WAITS for running
+    jobs to complete and cleanup. Does NOT pause running jobs (qhold).
+
+Required:
+    -l LIST     Job list file (one script path per line)
+
+Options:
+    -n NUM      Max concurrent jobs (default: 20)
+    -p NUM      Processes per job (default: 8)  
+    -m NUM      Memory in GB (default: 50)
+    -s NUM      Sleep minutes between checks (default: 5)
+    -d NUM      Disk limit in TB (pauses submission when exceeded)
+    -h          Show help
+    -v          Show version
+
+Disk Management Logic:
+    When disk usage > limit:
+        - STOP submitting new jobs
+        - LET existing jobs run to completion
+        - WAIT for jobs to cleanup temp files
+        - Resume when disk drops below limit
+    
+    Note: Jobs MUST cleanup their temp files on completion for this to work!
+
+Examples:
+    # Basic usage
+    autoqsub -l jobs.list -n 50 -p 16 -m 100
+    
+    # With disk management (for tasks with large temp files)
+    autoqsub -l jobs.list -n 20 -d 80.5
+HELP
+}
+
+# =============================================================================
+# State management
+# =============================================================================
+save_state() {
+    cat > "$STATE_FILE" <<EOF
+STATE $CURRENT_STATE
+JOBS_TOTAL $(wc -l < "$JOB_LIST")
+JOBS_REMAINING $(wc -l < "$QUEUE_FILE")
+JOBS_SUBMITTED $(($(wc -l < "$JOB_LIST") - $(wc -l < "$QUEUE_FILE")))
+EOF
+}
+
+# =============================================================================
+# Core functions
+# =============================================================================
+get_running_jobs() {
+    qstat 2>/dev/null | awk -v user="$USER" 'NR>2 && $4==user {count++} END {print count+0}'
+}
+
+check_disk_quota() {
+    [[ -z "$DISK_LIMIT" ]] && return 0
+    
+    local usage
+    usage=$(lfs quota -gh "st_${PROJECT,,}" /ldfssz1/ 2>/dev/null |
+            awk 'NR==3 {gsub(/T/,"",$2); print $2}')
+    
+    # Handle empty/error case
+    [[ -z "$usage" ]] && {
+        log "WARNING: Cannot read disk quota, assuming OK"
+        return 0
+    }
+    
+    # State transition based on disk usage
+    if awk -v u="$usage" -v l="$DISK_LIMIT" 'BEGIN {exit !(u > l)}'; then
+        if [[ "$CURRENT_STATE" != "$STATE_DISK_FULL" ]]; then
+            CURRENT_STATE="$STATE_DISK_FULL"
+            log "STATE CHANGE: DISK FULL (${usage}T / ${DISK_LIMIT}T)"
+            log "Strategy: Waiting for running jobs to complete and cleanup"
+        fi
+        return 1
+    else
+        if [[ "$CURRENT_STATE" == "$STATE_DISK_FULL" ]]; then
+            CURRENT_STATE="$STATE_NORMAL"
+            log "STATE CHANGE: DISK OK (${usage}T / ${DISK_LIMIT}T)"
+            log "Strategy: Resuming job submission"
+        fi
+        return 0
+    fi
+}
+
+submit_batch() {
+    local count="$1"
+    local submitted=0
+    local job_script
+    
+    # Read and submit jobs
+    head -n "$count" "$QUEUE_FILE" | while IFS= read -r job_script; do
+        [[ -z "$job_script" ]] && continue
+        
+        local job_dir job_name
+        job_dir=$(dirname "$job_script")
+        job_name=$(basename "$job_script")
+        
+        (
+            cd "$job_dir" && \
+            qsub -cwd \
+                 -q "$QUEUE" \
+                 -P "$PROJECT" \
+                 -l "vf=${MEMORY}g,num_proc=${PROCESSES}" \
+                 -binding "linear:${PROCESSES}" \
+                 "$job_name" >/dev/null
+        ) && {
+            log "Submitted: $job_script"
+            ((submitted++))
+        } || {
+            log "FAILED to submit: $job_script"
+        }
+    done
+    
+    # Update queue - remove submitted jobs
+    if ((submitted > 0)); then
+        sed -i "1,${submitted}d" "$QUEUE_FILE"
+    fi
+    
+    return 0
+}
+
+# =============================================================================
+# Main loop - State machine, no special cases
+# =============================================================================
+main() {
+    while getopts "l:n:p:m:s:d:hv" opt; do
+        case "$opt" in
+            l) JOB_LIST="$OPTARG" ;;
+            n) MAX_JOBS="$OPTARG" ;;
+            p) PROCESSES="$OPTARG" ;;
+            m) MEMORY="$OPTARG" ;;
+            s) SLEEP_MINUTES="$OPTARG" ;;
+            d) DISK_LIMIT="$OPTARG" ;;
+            h) show_help; exit 0 ;;
+            v) echo "Autoqsub v$SCRIPT_VERSION"; exit 0 ;;
+            *) die "Invalid option. Use -h for help" ;;
+        esac
+    done
+    
+    # Validation
+    [[ -z "$JOB_LIST" ]] && die "Job list required (-l). Use -h for help"
+    [[ ! -f "$JOB_LIST" ]] && die "Job list not found: $JOB_LIST"
+    
+    # Setup
+    cp "$JOB_LIST" "$QUEUE_FILE" || die "Cannot create queue file"
+    trap cleanup EXIT
+    
+    log "=========================================="
+    log "Autoqsub v$SCRIPT_VERSION starting"
+    log "Config: max_jobs=$MAX_JOBS, proc=$PROCESSES, mem=${MEMORY}G, sleep=${SLEEP_MINUTES}m"
+    [[ -n "$DISK_LIMIT" ]] && log "Disk management: enabled (limit=${DISK_LIMIT}T)"
+    log "Total jobs: $(wc -l < "$JOB_LIST")"
+    log "=========================================="
+    
+    # Main state machine
+    while [[ -s "$QUEUE_FILE" ]]; do
+        local running slots remaining
+        
+        # Check disk quota first - this updates CURRENT_STATE
+        check_disk_quota
+        local disk_ok=$?
+        
+        running=$(get_running_jobs)
+        remaining=$(wc -l < "$QUEUE_FILE")
+        
+        # State: DISK_FULL - wait for cleanup
+        if ((disk_ok != 0)); then
+            log "[$CURRENT_STATE] Waiting for cleanup ($running running, $remaining queued)"
+            save_state
+            sleep "${SLEEP_MINUTES}m"
+            continue
+        fi
+        
+        # State: NORMAL - check queue capacity
+        slots=$((MAX_JOBS - running))
+        
+        if ((slots <= 0)); then
+            log "[$CURRENT_STATE] Queue full ($running/$MAX_JOBS running, $remaining queued)"
+            save_state
+            sleep "${SLEEP_MINUTES}m"
+            continue
+        fi
+        
+        # State: NORMAL + slots available - submit jobs
+        log "[$CURRENT_STATE] Submitting $slots jobs ($running/$MAX_JOBS running, $remaining queued)"
+        submit_batch "$slots"
+        save_state
+        
+        sleep "${SLEEP_MINUTES}m"
+    done
+    
+    log "=========================================="
+    log "All jobs submitted successfully"
+    log "=========================================="
+}
+
+main "$@"
