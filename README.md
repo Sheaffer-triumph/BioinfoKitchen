@@ -1646,4 +1646,345 @@ fi
 unset _host _port
 ```
 
-`yi.py`：我与claude一同完成的脚本。灵感来源于2023年在网络上看到的蓍草占卜法，起初只是一个简单的shell脚本，在Claude的帮助下，最终写成python脚本。
+`yi.py`：灵感来源于2023年在看到的蓍草占卜法，大衍之数五十，其用四十有九，分而为二，以象两，挂一象三，揲之以四，以象四时，归奇于扐，以象闰，五岁再闰，故再扐而后挂。
+
+蓍草起卦需要手动将蓍草进行分堆，脚本使用正态分布及随机标准差模拟手动分堆。连续计算六次，根据结果形成本卦、进而定之卦、互卦、世爻、应爻、五行。
+
+后续更新计划：引入LLM API对结果进行解读，已有尝试deepseek-v3.2，效果很不好。
+
+> [!WARNING]
+>
+> By the way，此脚本仅图一乐，切勿迷信。太公有言：枯骨死草，何知而凶。今者或曰：浮码虚言，岂断祸福。
+
+```bash
+# 使用方法，依赖hexagram_dizhi_yaoci.json，脚本与json文件需位于同一路径下。
+python yi.py
+# 输出示例
+蓍草起卦模拟器
+使用正态分布+随机标准差模拟真实随机分堆
+
+原始数据: [8, 8, 7, 8, 7, 6]
+
+本卦：
+==================================================
+上爻:  - -   [6]  老阴
+五爻:  ───   [7]  少阳
+四爻:  - -   [8]  少阴
+三爻:  ───   [7]  少阳
+二爻:  - -   [8]  少阴
+初爻:  - -   [8]  少阴
+==================================================
+
+之卦：
+==================================================
+上爻:  ───   [7]  少阳
+五爻:  ───   [7]  少阳
+四爻:  - -   [8]  少阴
+三爻:  ───   [7]  少阳
+二爻:  - -   [8]  少阴
+初爻:  - -   [8]  少阴
+==================================================
+
+互卦：
+==================================================
+上爻:  ───   [7]  少阳
+五爻:  - -   [8]  少阴
+四爻:  ───   [7]  少阳
+三爻:  - -   [8]  少阴
+二爻:  ───   [7]  少阳
+初爻:  - -   [8]  少阴
+==================================================
+
+
+世爻与应爻
+==================================================
+卦类型：正卦
+世爻：四爻
+应爻：初爻
+==================================================
+
+
+地支与五行
+==================================================
+本卦：水山蹇
+查询键：001010
+
+各爻地支：
+  初爻: 辰（土）
+  二爻: 午（火）
+  三爻: 申（金）
+  四爻: 申（金）
+  五爻: 戌（土）
+  上爻: 子（水）
+
+世爻（四爻）：申 金
+应爻（初爻）：辰 土
+==================================================
+
+
+爻辞
+==================================================
+蹇：利西南，不利東北；利見大人，貞吉。
+初六：往蹇，來譽。
+六二：王臣蹇蹇，匪躬之故。
+九三：往蹇來反。
+六四：往蹇來連。
+九五：大蹇朋來。
+上六：往蹇來碩，吉；利見大人。
+==================================================
+
+==================================================
+占卜时间：农历 二月初八 壬申时
+日建月建：辛卯月 己亥日
+节气深浅：目前处于「春分」之后第 6 天
+==================================================
+```
+
+`phagex`：噬菌体基因组组装注释脚本。是项目组积累的流程，最早是shell脚本，后续基于shell开发成perl脚本，经由我开发成python脚本，整合了先前的众多依赖脚本。
+
+脚本流程包括fastp质控，seqkit/seqtk随机抽提，spades组装，checkv评估完整度，prodigal预测cds，blastp/hmmerscan/phmmer注释并去冗余，seqret转化成gbk。
+
+phagex.json是用来记录phagex流程所需要的软件路径以及注释用数据库路径。这些都需要在运行前安装好。为更好的进行注释，需要定期对注释所用数据库进行更新。
+
+```bash
+$ ./phagex -h
+usage: phagex [-h] [-1 INPUT1] [-2 INPUT2] [-i INPUT_ID] [-l LIST_FILE] -o OUTPUT [-c CONFIG] [-t THREADS] [-f] {full,assembly,annotation,generate}
+
+PhageX Pipeline
+
+positional arguments:
+  {full,assembly,annotation,generate}
+                        运行模式
+
+options:
+  -h, --help            show this help message and exit
+  -1, --input1 INPUT1   正向测序文件（full/assembly需要）
+  -2, --input2 INPUT2   反向测序文件（full/assembly需要）
+  -i, --input INPUT_ID  噬菌体ID或fasta文件
+  -l, --list LIST_FILE  批处理列表文件（generate需要）
+  -o, --output OUTPUT   输出目录
+  -c, --config CONFIG   配置文件（默认：phagex.json）
+  -t, --threads THREADS
+                        线程数
+  -f, --force           强制重新运行
+
+PhageX - 噬菌体基因组组装与注释流程
+
+用法：
+    phagex.py <mode> [options]
+
+模式：
+    full       完整流程（组装 + 注释）
+    assembly   仅组装
+    annotation 仅注释
+    generate   生成批处理脚本
+
+示例：
+
+    # 完整流程
+    phagex.py full -1 R1.fq -2 R2.fq -i phage001 -o result -t 16
+
+    # 仅组装
+    phagex.py assembly -1 R1.fq -2 R2.fq -i phage001 -o result
+
+    # 仅注释
+    phagex.py annotation -i genome.fa -o result
+
+    # 批处理
+    phagex.py generate -l samples.txt -o batch_result -t 16
+
+批处理文件格式：
+    每行三列，空格或制表符分隔：
+    phage_id  forward.fq  reverse.fq
+
+配置：
+    默认使用脚本目录下的 phagex.json
+    可用 -c 指定其他配置文件
+
+检查点：
+    pipeline会自动保存进度，失败后可继续
+    使用 -f 强制重新开始
+```
+
+`dcp`：DCS cloud离线任务批量投递脚本。基于DCS cloud的终端命令行开发，仅在DCS cloud个性分析里可用。使用前需提前安装依赖，详见：https://cloud.stomics.tech/helpcenter/zh/cli/cli.html
+
+输入的scipts.txt的内容应为所需投递的脚本路径。
+
+```bash
+$ ./dcp
+
+dcp - DCS任务批量投递工具
+
+用法:
+  dcp sub <script_list> -c <cpu> -m <memory> [--tag TAG] [--image IMAGE]
+  dcp stat [TAG]
+  dcp list
+  dcp image
+
+命令说明:
+  sub     批量投递任务
+  stat    查询任务状态（默认查最近一批）
+  list    列出历史批次
+  image   显示当前使用的镜像信息
+
+示例:
+  # 投递任务（自动使用最新镜像）
+  dcp sub scripts.txt -c 4 -m 32g --tag batch1
+  
+  # 指定镜像投递
+  dcp sub scripts.txt -c 4 -m 32g --image xxx:latest
+  
+  # 查询最近一批任务状态
+  dcp stat
+  
+  # 查询指定批次状态
+  dcp stat batch1
+  
+  # 列出历史批次
+  dcp list
+  
+  # 查看当前镜像
+  dcp image
+
+环境变量:
+  DCS_IMAGE - 指定镜像URL，优先级高于自动查询
+
+配置:
+  数据存储: /data/work/.dcp.db
+  历史保留: 最近20批或7天内
+  镜像前缀: vscode（自动查询最新），可在脚本第54行，配置区域里修改查询前缀。
+```
+
+`phold-circos.py`: 噬菌体基因组环状可视化脚本。基于phold的plot功能模块二次开发。
+
+```bash
+$ python ./phold-circos.py -h
+usage: phold-circos.py [-h] -i INPUT -o OUTPUT [--contig CONTIG] [--title TITLE] [--title_size TITLE_SIZE] [--dpi DPI] [--label_size LABEL_SIZE] [--interval INTERVAL] [--max_label_width MAX_LABEL_WIDTH] [--label_hypotheticals] [--remove_other_features_labels] [--no_labels]
+                       [--label_force_list [LABEL_FORCE_LIST ...]] [--also_png] [--also_svg]
+
+从 phold 输出的 GenBank 文件生成 Circos 圆形基因组图 (PDF)
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        输入的 GenBank (.gbk) 文件路径
+  -o OUTPUT, --output OUTPUT
+                        输出的 PDF 文件路径
+  --contig CONTIG       指定要绘制的 contig ID。默认绘制第一个 contig
+  --title TITLE         图的标题。默认使用 contig ID
+  --title_size TITLE_SIZE
+                        标题字体大小 (默认: 14)
+  --dpi DPI             输出分辨率 (默认: 300)
+  --label_size LABEL_SIZE
+                        标签字体大小 (默认: 6)
+  --interval INTERVAL   x 轴刻度间隔 (bp)。默认自动计算
+  --max_label_width MAX_LABEL_WIDTH
+                        标签每行最大字符数，超过自动换行 (默认: 15)
+  --label_hypotheticals
+                        是否标注 hypothetical protein (默认: 否)
+  --remove_other_features_labels
+                        是否移除 tRNA/tmRNA/CRISPR 的文字标签 (默认: 否，即显示)
+  --no_labels           不显示任何 CDS/tRNA 标签 (默认: 否)
+  --label_force_list [LABEL_FORCE_LIST ...]
+                        强制标注的 feature ID 列表
+  --also_png            同时输出 PNG 格式
+  --also_svg            同时输出 SVG 格式
+
+示例:
+  python phold_plot_standalone.py -i phold.gbk -o output.pdf
+  python phold_plot_standalone.py -i phold.gbk -o output.pdf --dpi 600
+  python phold_plot_standalone.py -i phold.gbk -o output.pdf --title "My Phage"
+  python phold_plot_standalone.py -i phold.gbk -o output.pdf --no_labels
+```
+
+`autoqsub`：自动使用qsub投递任务脚本，基于qsub、sleep等一系列bash命令开发。开发背景是当时需要跑大量的病毒组分析，每个分析都会有接近50G的中间文件，因此分析任务无法一次性全部投递，只能分批投递。
+
+脚本适用于集群工作环境，且支持qsub。目前该脚本已进行重构，但还未经测试。脚本不适用于DCS cloud。
+
+```bash
+$ ./autoqsub -h
+Usage: autoqsub -l LIST [OPTIONS]
+
+Purpose:
+    Batch job submission with disk quota management.
+    When disk is full, STOPS submitting new jobs and WAITS for running
+    jobs to complete and cleanup. Does NOT pause running jobs (qhold).
+
+Required:
+    -l LIST     Job list file (one script path per line)
+
+Options:
+    -n NUM      Max concurrent jobs (default: 20)
+    -p NUM      Processes per job (default: 8)  
+    -m NUM      Memory in GB (default: 50)
+    -s NUM      Sleep minutes between checks (default: 5)
+    -d NUM      Disk limit in TB (pauses submission when exceeded)
+    -h          Show help
+    -v          Show version
+
+Disk Management Logic:
+    When disk usage > limit:
+        - STOP submitting new jobs
+        - LET existing jobs run to completion
+        - WAIT for jobs to cleanup temp files
+        - Resume when disk drops below limit
+    
+    Note: Jobs MUST cleanup their temp files on completion for this to work!
+
+Examples:
+    # Basic usage
+    autoqsub -l jobs.list -n 50 -p 16 -m 100
+    
+    # With disk management (for tasks with large temp files)
+    autoqsub -l jobs.list -n 20 -d 80.5
+```
+
+`pytorch_cudatest.py`：基于PyTorch的cuda检测脚本。用于判断当前工作环境的PyTorch以及cuda版本。
+
+```bash
+$ python ./pytorch_cudatest.py 
+PyTorch版本: 2.6.0
+CUDA是否可用: True
+CUDA版本: 12.6
+当前设备: NVIDIA GeForce RTX 4080 Laptop GPU
+tensor([[0.6117, 0.7539, 0.2959],
+        [1.0216, 0.7309, 1.3222],
+        [1.4246, 0.9736, 1.1359],
+        [1.4000, 0.1608, 1.0276],
+        [0.9358, 1.2633, 1.4139]], device='cuda:0')
+```
+
+`treescan.py`：用于扫描指定目录，并将结果记录为json文件，该json文件可用于`resturct.py`的输入，在指定目录下，重构treescan文件所扫描的目录
+
+```bash
+$ python ./treescan.py -h
+usage: python treescan.py [-h] directory output_json
+
+Generate directory structure JSON
+
+positional arguments:
+  directory    Directory to scan
+  output_json  Output JSON file
+
+options:
+  -h, --help   show this help message and exit
+```
+
+`resturct.py`：用于重构目录。输入文件除`treescan.py`扫描的json文件外，还需提供所有文件的绝对路径
+
+```bash
+$ python ./restruct.py -h
+usage: restruct.py [-h] [--workers WORKERS] structure_json file_list output_dir
+
+Rebuild directory structure from JSON and file paths
+
+positional arguments:
+  structure_json     Structure JSON file
+  file_list          Text file with list of file paths (one per line)
+  output_dir         Directory where to rebuild the structure
+
+options:
+  -h, --help         show this help message and exit
+  --workers WORKERS  Number of parallel workers (default: 4)
+```
+
