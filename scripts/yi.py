@@ -191,7 +191,7 @@ def print_world_response(hexagram: List[int]) -> None:
     """打印世爻应爻信息"""
     world, response, gua_type = calculate_world_response(hexagram)
     
-    print(f"\n{'='*50}")
+    print(f"\n")
     print("【世爻与应爻】")
     print(f"{'='*50}")
     print(f"卦类型：{gua_type}")
@@ -264,7 +264,7 @@ def print_dizhi_wuxing(hexagram: List[int]) -> None:
     
     world_pos, response_pos, _ = calculate_world_response(hexagram)
     
-    print(f"\n{'='*50}")
+    print(f"\n")
     print("【地支与五行】")
     print(f"{'='*50}")
     print(f"本卦：{data['name']}")
@@ -273,7 +273,7 @@ def print_dizhi_wuxing(hexagram: List[int]) -> None:
     
     # 各爻地支
     dizhi_list = data['dizhi']
-    print("各爻地支（从初爻到上爻）：")
+    print("各爻地支：")
     for i, dizhi in enumerate(dizhi_list):
         wuxing = get_wuxing(dizhi)
         print(f"  {POSITIONS[i]}: {dizhi}（{wuxing}）")
@@ -286,8 +286,8 @@ def print_dizhi_wuxing(hexagram: List[int]) -> None:
     response_dizhi = dizhi_list[response_pos - 1]
     response_wuxing = get_wuxing(response_dizhi)
     
-    print(f"世爻（{POSITIONS[world_pos - 1]}）：{world_dizhi} → {world_wuxing}行")
-    print(f"应爻（{POSITIONS[response_pos - 1]}）：{response_dizhi} → {response_wuxing}行")
+    print(f"世爻（{POSITIONS[world_pos - 1]}）：{world_dizhi}  {world_wuxing}")
+    print(f"应爻（{POSITIONS[response_pos - 1]}）：{response_dizhi}  {response_wuxing}")
     print(f"{'='*50}")
 
 
@@ -299,7 +299,7 @@ def print_yaoci(hexagram: List[int]) -> None:
     if not data:
         return
     
-    print(f"\n{'='*50}")
+    print(f"\n")
     print("【爻辞】")
     print(f"{'='*50}")
     
@@ -383,7 +383,7 @@ def print_hexagram(hexagram: List[int], title: str = "本卦") -> None:
     打印卦象（从上到下显示）
     注：hexagram数组是从下到上存储的
     """
-    print(f"\n{title}（从下到上）：")
+    print(f"\n{title}：")
     print("=" * 50)
     
     # 倒序遍历：index 5->0 对应 上爻->初爻

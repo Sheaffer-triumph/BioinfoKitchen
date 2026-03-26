@@ -1646,3 +1646,4 @@ fi
 unset _host _port
 ```
 
+`yi.py`：我与claude一同完成的脚本。灵感来源于2023年在网络上看到的蓍草占卜法，起初只是一个简单的shell脚本，在Claude的帮助下，最终写成python脚本。
