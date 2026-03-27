@@ -1508,12 +1508,13 @@ VIBRANT (https://github.com/AnantharamanLab/VIBRANT) 利用混合机器学习和
 ```bash
 # 安装
 mamba create -n vibrant -y -c conda-forge -c bioconda python=3.5 prodigal hmmer
+mamba activtae vibrant
 pip install biopython pandas matplotlib "seaborn>=0.9.0" "numpy>=1.17.0" "scikit-learn==0.21.3"
 mamba install -y -c bioconda vibrant
 download-db.sh
 ```
 
-iphop (https://bitbucket.org/srouxjgi/iphop) 用于从噬菌体基因组中计算预测宿主分类学。
+iphop (https://bitbucket.org/srouxjgi/iphop) 用于从噬菌体基因组中计算预测宿主，数据库很大。
 
 ```bash
 # 安装
@@ -1550,6 +1551,19 @@ iqtree -s algined_tree.fasta -bb 1000 --runs 8 -T 8 --mem 50G --prefix my_tree
 # --prefix my_tree              输出文件前缀
 ```
 
+vContact2（）是用来对病毒基因组进行聚类和分类的工具，通过比较病毒蛋白质相似性构建网络来识别相关的病毒群体和家族。软件已停止维护，数据库较老。建议使用下面介绍的`vContact3`
+
+```bash
+# 安装
+mamba create -n vContact2 -y -c conda-forge -c bioconda python=3.8.13 numpy=1.23.5 scipy=1.8.1 pandas=1.3.5 vcontact2 mcl blast diamond openjdk=17
+wget http://paccanarolab.org/static_content/clusterone/cluster_one-1.0.jar
+# 使用
+mamba activate vContact2
+prodigal -i A.fa -a A.faa
+vcontact2_gene2genome -s Prodigal-FAA -p A.faa -o A.csv
+vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 4 --raw-proteins A.faa --proteins-fp A.csv --output-dir result
+```
+
 vContact3 (https://bitbucket.org/MAVERICLab/vcontact3) 是用来对病毒基因组进行聚类和分类的工具，通过比较病毒蛋白质相似性构建网络来识别相关的病毒群体和家族。相比起vContact2, 使用更简单，速度更快。
 
 ```bash
@@ -1574,7 +1588,7 @@ cd cdhit
 make MAX_SEQ=1000000	
 # 编译完成后的cdhit处理序列长度的上限为1000000。
 # 若处理序列的长度超过了最大序列长度。会有warning提示，可能伴随着无输出。
-# 可重新编译安装，并在安装时指定新的序列长度。
+# 可重新编译安装，并在make时指定新的序列长度。
 # 序列聚类
 cd-hit-est -i A.fa -o B.fa -c 0.95 -aL 0.9 -M 16000 -T 8    
 # 参数详解：
@@ -1606,11 +1620,37 @@ mmseqs easy-linclust -e 0.001 --cov-mode 1 -c 0.8 --min-seq-id 0.9 --kmer-per-se
 # --threads 16         使用16线程并行处理
 ```
 
+`parallel-fastq-dump`: 如需分析公开发表在NCBI上的宏基因组测序数据，需要先下载SRA数据，再使用fastq-dump将sra数据转化成fastq数据。此工具通过将工作分配到多个线程来加速这一过程。
+
+```bash
+# 安装
+mamba install -y -c conda-forge -c bioconda parallel-fastq-dump
+# 运行
+parallel-fastq-dump --sra-id SRR2244401 --threads 4 --outdir ./SRR2244401 --split-files --gzip
+# 输出fq.gz文件
+```
+
+EggNOG-mapper是一款用于快速功能注释新序列的工具。它利用 eggNOG 数据库（http://eggnog5.embl.de）中预先计算好的直系同源群和系统发育树，仅通过精细直系同源物传递功能信息。
+
+```bash
+# 安装，需要额外安装数据库
+mamba create -n emapper -y -c bioconda -c conda-forge eggnog-mapper
+# 用法见宏基因组分析
+```
+
+Kraken2是一种用于为短 DNA 序列分配分类学标签的系统，通常通过宏基因组学研究获得。
+
+```bash
+# 安装，需要额外安装数据库
+mamba create -n kraken2 -y -c bioconda kraken2
+# 用法见宏基因组分析
+```
+
 ### Others
 
-这一版块的内容很散乱，大抵是一些我觉得有用的命令、配置、知识点，以及一些和AI一起写的小玩意。脚本放在main/scripts文件夹下。
+这一版块的内容很散乱，大抵是一些我觉得有用的命令、配置、知识点，以及和AI一起写的一些小玩意。脚本及其依赖文件放在scripts文件夹下。
 
-`~/.bashrc` 的配置，基于学习时的先入为主，我个人习惯使用Bash，Zsh和Fish都有体验过，最后还是换成了Bash。
+`~/.bashrc` 的配置，基于学习时的先入为主，我个人习惯使用Bash，Zsh和Fish都有体验过，最后还是换成了Bash。Bash历史最久，虽然功能最简陋，但胜在学习成本低，易入门。
 
 ```bash
 # PS1配置
@@ -1806,9 +1846,7 @@ PhageX - 噬菌体基因组组装与注释流程
     使用 -f 强制重新开始
 ```
 
-`dcp`：DCS cloud离线任务批量投递脚本。基于DCS cloud的终端命令行开发，仅在DCS cloud个性分析里可用。使用前需提前安装依赖，详见：https://cloud.stomics.tech/helpcenter/zh/cli/cli.html
-
-输入的scipts.txt的内容应为所需投递的脚本路径。
+`dcp`：DCS cloud离线任务批量投递脚本。基于DCS cloud的终端命令行开发，仅在DCS cloud个性分析里可用。输入的scipts.txt的内容应为所需投递的脚本路径。使用前需提前安装依赖，详见：https://cloud.stomics.tech/helpcenter/zh/cli/cli.html
 
 ```bash
 $ ./dcp
@@ -1899,7 +1937,7 @@ options:
 
 `autoqsub`：自动使用qsub投递任务脚本，基于qsub、sleep等一系列bash命令开发。开发背景是当时需要跑大量的病毒组分析，每个分析都会有接近50G的中间文件，因此分析任务无法一次性全部投递，只能分批投递。
 
-脚本适用于集群工作环境，且支持qsub。目前该脚本已进行重构，但还未经测试。脚本不适用于DCS cloud。
+脚本适用于集群工作环境。目前该脚本已进行重构，但还未经测试。脚本不适用于DCS cloud。
 
 ```bash
 $ ./autoqsub -h
@@ -1986,5 +2024,163 @@ positional arguments:
 options:
   -h, --help         show this help message and exit
   --workers WORKERS  Number of parallel workers (default: 4)
+```
+
+宏基因组分析流程：从宏基因组测序下机数据出发，进行分析。我结合接触到的脚本进行整理的。所使用的软件在第二部分都有介绍。
+
+> [!WARNING]
+>
+> 下面的脚本我很久没有运行过了，具体的输出文件不一定对，运行的时候自行更改。
+
+```bash
+mkdir ERR1620272-meta
+cd ERR1620272-meta
+
+# SRA转fq（如数据是测序下机数据，省略这一步）
+mkdir SRA2FQ
+cd ERR1620272-meta/SRA2FQ
+parallel-fastq-dump --sra-id ERR1620272.sra --threads 8 -T ERR1620272-meta/SRA2FQ --split-3 --gzip -O meta/SRA2FQ
+
+# 质控
+cd ERR1620272-meta/SRA2FQ
+fastp -i ERR1620272_1.fastq.gz -o ERR1620272_qc_1.fq.gz -I ERR1620272_2.fastq.gz -O ERR1620272_qc_2.fq.gz -5 -3 -z 9 -q 20 -c -j fastp.json -h fastp.html -R out.prefix -l 30
+
+# 去宿主
+# 取决于样本来源，如果是小鼠，可在NCBI下载mm39小鼠基因组，如果是人，可下载hg38基因组。以小鼠mm39基因组为例。
+# 构建宿主参考序列数据库（只需运行一次即可，后续其他分析也可直接使用）
+mkdir -p ERR1620272-meta/host
+cd ERR1620272-meta/host
+bowtie2-build mm39.fa mm39ref
+# 去宿主
+mkdir -p ERR1620272-meta/De-host
+cd ERR1620272-meta/De-host
+bowtie2 --very-sensitive -p 32 -x ERR1620272-meta/host/mm39ref -1 ERR1620272-meta/SRA2FQ/ERR1620272_qc_1.fq.gz -2 ERR1620272-meta/SRA2FQ/ERR1620272_qc_2.fq.gz -S mapping.sam --un-conc ERR1620272.rmhost 2> ERR1620272_bowtie2_host.log 
+samtools view -bS mapping.sam | samtools sort -o ERR1620272.sorted.bam - 
+samtools index ERR1620272.sorted.bam
+rm -f mapping.sam
+mv ERR1620272.1.rmhost ERR1620272.rmhost_1.fq
+mv ERR1620272.2.rmhost ERR1620272.rmhost_2.fq
+gzip ERR1620272.rmhost_1.fq
+gzip ERR1620272.rmhost_2.fq
+
+# 组装
+mkdir ERR1620272-meta/assembly
+cd ERR1620272-meta
+megahit --presets meta-large -t 8 -1 De-host/ERR1620272.rmhost_1.fq.gz -2 De-host/ERR1620272.rmhost_2.fq.gz -o assembly
+rm -rf ERR1620272-meta/assembly/tmp ERR1620272-meta/assembly/intermediate_contigs
+
+==================================================
+# 病毒序列鉴定分析
+==================================================
+mkdir -p ERR1620272-meta/virus
+cd ERR1620272-meta/virus
+
+# dvf
+mamba activate dvf
+export THEANO_FLAGS='base_compiledir=ERR1620272-meta,cxx=/usr/bin/g++'
+dvf.py -i ERR1620272-meta/assembly/fa -o dvf_result  -m dvf/models -l 1500 1>dvf.std 2>dvf.err
+# 自己写一个脚本，自己设置阈值，提取长度大于1.5k，打分大于0.9
+python dvf_extract.py dvf dvf_result/*gt1500bp_dvfpred.txt > dvfpred.id
+seqkit grep -n -f dvf_result/dvfpred.id ERR1620272-meta/assembly/fa  > ERR1620272-meta/virus/dvf_result/ERR1620272-dvf.fa
+
+# VirSorter2
+mamba activate vs2
+virsorter run -w ERR1620272-meta/virus/vs2 -i ERR1620272-meta/assembly/fa --min-length 1500 -j 4 all 1>vs2.std 2>vs2.err
+
+# genomad
+mamba activate Genomad
+genomad end-to-end --cleanup --splits 8 ERR1620272-meta/assembly/fa  ERR1620272-meta/virus/genomad database/genomad_db
+
+# vibrant
+mamba activate vibrant
+mkdir -p ERR1620272-meta/virus/vibrant
+VIBRANT_run.py -i ERR1620272-meta/assembly/fa -t 8 -d vibrant/db -m vibrant/model
+
+# 整合 
+cd ERR1620272-meta/virus
+cat ERR1620272-meta/virus/dvf_result/.fa ERR1620272-meta/virus/vs2/fa ERR1620272-meta/virus/genomad/fa ERR1620272-meta/virus/vibrant/fa > ERR1620272_all_vir.fa
+seqkit rmdup -i ERR1620272_all_vir.fa > ERR1620272_all_vir_rmdup.fa
+mamba activate checkv
+checkv end_to_end ERR1620272_all_vir_rmdup.fa ./checkv -d checkv-db-v1.5 -t 16 1>checkv.std 2>checkv.err
+# 自己写一个脚本，提取完整度大于50（自己设计阈值）的病毒ID，并使用seqkit提取。
+bash checkv_filter.sh 50 ./checkv/quality_summary.tsv > ERR1620272_all_vir_rmdup_completeness_gt50.id
+sekqit grep -n -f ERR1620272_all_vir_rmdup_completeness_gt50.id ERR1620272_all_vir_rmdup.fa > ERR1620272_all_vir_rmdup_completeness_gt50.fa
+
+# 聚类去冗余
+cd-hit-est -i ERR1620272_all_vir_rmdup_completeness_gt50.fa -o ERR1620272_all_vir_rmdup_completeness_gt50_cdhit0pt95.fa -c 0.95 -aL 0.9 -M 16000 -T 8
+
+# vcontact2，也可以用vContac3，更简单一些
+mkdir -p ERR1620272-meta/virus/vc2
+cd ERR1620272-meta/virus/
+mamba activate vContact2
+prodigal -i ERR1620272_all_vir_rmdup_completeness_gt50_cdhit0pt95.fa -a ERR1620272_all_vir_rmdup_completeness_gt50_cdhit0pt95.faa
+vcontact2_gene2genome -s Prodigal-FAA -p ERR1620272_all_vir_rmdup_completeness_gt50_cdhit0pt95.faa -o ERR1620272_all_vir_rmdup_completeness_gt50_cdhit0pt95.csv
+vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 32 --raw-proteins ERR1620272_all_vir_rmdup_completeness_gt50_cdhit0pt95.faa --proteins-fp ERR1620272_all_vir_rmdup_completeness_gt50_cdhit0pt95.csv --output-dir vc2
+
+# iphop
+mamba activate iphop
+iphop predict --fa_file ERR1620272_all_vir_rmdup_completeness_gt50_cdhit0pt95.fa --db_dir iphop/database/Sept_2021_pub --out_dir ERR1620272-meta/virus/iphop -t 32
+
+==================================================
+# 细菌物种鉴定及功能分析
+==================================================
+mkdir -p ERR1620272-meta/bacteria
+cd ERR1620272-meta/bacteria
+
+# cds预测
+prodigal -i ERR1620272-meta/assembly/final.contigs.fa -f gff -o ERR1620272.gff -a ERR1620272.faa -d ERR1620272.fa -p meta
+
+# 聚类去冗余
+cd-hit -i ERR1620272.faa -o ERR1620272-cdhit.faa -c 0.90 -s 0.8 -n 5 -M 0 -g 1 -d 0 -T 32
+
+# 功能注释
+mkdir ERR1620272-meta/bacteria/eggnog
+mamba activate eggnog
+emapper.py -i cd-hit.faa --output protein.eggout --cpu 32 --sensmode default -m diamond --usemem --dbmem  --data_dir db/eggnog/
+
+# 物种鉴定
+mkdir -p ERR1620272-meta/bacteria/kraken2
+mamba activate kraken2
+kraken2 --db kraken2-db-pluspf --threads 32 --gzip-compressed --paired --output ERR1620272-meta/bacteria/kraken2/ERR1620272.output.kraken --report ERR1620272-meta/bacteria/kraken2/ERR1620272.report.kraken ERR1620272-meta/De-host/ERR1620272.rmhost_1.fq.gz ERR1620272-meta/De-host/ERR1620272.rmhost_2.fq.gz
+bracken -db kraken2-db-pluspf -i ERR1620272-meta/bacteria/kraken2/ERR1620272.report.kraken -o ERR1620272-meta/bacteria/kraken2/ERR1620272.output.bracken
+kreport2krona.py -r ERR1620272-meta/bacteria/kraken2/ERR1620272.report.kraken -o ERR1620272-meta/bacteria/kraken2/ERR1620272.report.krona
+KronaTools-2.8.1/scripts/ImportText.pl -o ERR1620272-meta/bacteria/kraken2/ERR1620272.kraken2.krona.html ERR1620272-meta/bacteria/kraken2/ERR1620272.report.krona
+```
+
+丰富与流行度分析：分析目标序列（例如噬菌体序列）与某一个样本的宏基因组测序数据的比对结果，进而判断目标序列是否存在于该样本中，以及目标片段在该样本中的丰富如何。
+
+```bash
+mkdir ERR1620272-meta
+cd ERR1620272-meta
+
+# SRA转fq（如数据是测序下机数据，省略这一步）
+mkdir SRA2FQ
+cd ERR1620272-meta/SRA2FQ
+parallel-fastq-dump --sra-id ERR1620272.sra --threads 8 -T ERR1620272-meta/SRA2FQ --split-3 --gzip -O meta/SRA2FQ
+
+# 质控
+cd ERR1620272-meta/SRA2FQ
+fastp -i ERR1620272_1.fastq.gz -o ERR1620272_qc_1.fq.gz -I ERR1620272_2.fastq.gz -O ERR1620272_qc_2.fq.gz -5 -3 -z 9 -q 20 -c -j fastp.json -h fastp.html -R out.prefix -l 30
+
+# 去宿主（以hg39为例,这里没有使用bowtie2, 两个工具可以相互替换）
+mkdir -p ERR1620272-meta/De-host
+cd ERR1620272-meta/De-host
+bwa index hg38.fa
+bwa mem -t 32 hg38.fa ERR1620272-meta/SRA2FQ/ERR1620272_qc_1.fq.gz ERR1620272-meta/SRA2FQ/ERR1620272_qc_2.fq.gz > bwa.sam
+samtools view -b -f 4 bwa.sam > bwa.bam
+bamToFastq -i bwa.bam -fq ERR1620272_rmhost_1.fastq -fq2 ERR1620272_rmhost_2.fastq
+rm -rf bwa.sam ERR1620272-meta/SRA2FQ/ERR1620272_qc_1.fq.gz ERR1620272-meta/SRA2FQ/ERR1620272_qc_2.fq.gz
+
+# bowtie2比对
+mkdir -p ERR1620272-meta/bowtie2
+cd ERR1620272-meta/bowtie2
+bowtie2 -p 20 -x phage.fa -1 ERR1620272-meta/De-host/ERR1620272_rmhost_1.fastq -2 ERR1620272-meta/De-host/ERR1620272_rmhost_2.fastq --very-sensitive | samtools view -bS | samtools sort -@ 20 -o sorted_bowtie2.bam
+samtools view -b -F 4 ERR1620272-meta/bowtie2/sorted_bowtie2.bam > ERR1620272-meta/bowtie2/mapped_bowtie2.bam
+samtools view -h ERR1620272-meta/bowtie2/mapped_bowtie2.bam > ERR1620272-meta/bowtie2/mapped_bowtie2.sam
+
+#计算覆盖度.使用soapcoverage，-cvg表示计算覆盖度
+soap.coverage -cvg -sam -p 5 -i ERR1620272-meta/bowtie2/mapped_bowtie2.sam -refsingle phage.fa -o ERR1620272-meta/bowtie2/coverage.txt
+samtools index ERR1620272-meta/bowtie2/mapped_bowtie2.bam
+samtools idxstats ERR1620272-meta/bowtie2/mapped_bowtie2.bam > ERR1620272-meta/bowtie2/mapped_bowtie2.bam.idxstats
 ```
 
