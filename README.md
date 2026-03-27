@@ -2149,6 +2149,10 @@ KronaTools-2.8.1/scripts/ImportText.pl -o ERR1620272-meta/bacteria/kraken2/ERR16
 
 丰富与流行度分析：分析目标序列（例如噬菌体序列）与某一个样本的宏基因组测序数据的比对结果，进而判断目标序列是否存在于该样本中，以及目标片段在该样本中的丰富如何。
 
+> [!WARNING]
+>
+> 下面的脚本我很久没有运行过了，具体的输出文件不一定对，运行的时候自行更改。
+
 ```bash
 mkdir ERR1620272-meta
 cd ERR1620272-meta
