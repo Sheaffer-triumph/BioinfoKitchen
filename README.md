@@ -1650,7 +1650,9 @@ mamba create -n kraken2 -y -c bioconda kraken2
 
 这一版块的内容很散乱，大抵是一些我觉得有用的命令、配置、知识点，以及和AI一起写的一些小玩意。脚本及其依赖文件放在scripts文件夹下。
 
-`~/.bashrc` 的配置，基于学习时的先入为主，我个人习惯使用Bash，Zsh和Fish都有体验过，最后还是换成了Bash。Bash历史最久，虽然功能最简陋，但胜在学习成本低，易入门。
+`~/.bashrc` 的配置，基于学习时的先入为主，我个人习惯使用Bash，Zsh和Fish都有体验过，最后还是换成了Bash。
+
+Bash历史最久，虽然功能最简陋，但胜在学习成本低，易入门。
 
 ```bash
 # PS1配置
@@ -1666,7 +1668,8 @@ export PATH="$HOME/software/bin:$PATH"
 # 可执行文件的匹配是从下至上的。在这里给出的例子中，假设四个路径都有python，会优先使用$HOME/software/bin下的python
 
 # alias
-alias reload='exec bash -l'	# 为exec bash -l设置别名reload，修改~/.bashrc的内容后，需要运行source ~/.bashrc重新载入配置。也可以使用exec bash -l 这个命令会更彻底。
+alias reload='exec bash -l'	# 为exec bash -l设置别名reload，修改~/.bashrc的内容后，需要运行source ~/.bashrc重新载入配置。
+# 也可以使用 exec bash -l 这个命令会更彻底。
 alias ll='ls -lthr' 		# list目录时，按最后修改时间倒序排列
 
 # WSL Proxy Auto-Configuration & Connection Check
