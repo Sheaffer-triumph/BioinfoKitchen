@@ -1317,7 +1317,7 @@ bowtie2 -p 32 -x ref.fa -1 A_1.fastq -2 A_2.fastq --very-sensitive | samtools vi
 # --very-sensitive   	使用最敏感的比对模式（更准确但较慢）
 ```
 
-Samtools(https://github.com/samtools/samtools)是用来处理SAM/BAM格式比对文件的工具包，提供格式转换、排序、索引、统计、提取等各种操作功能。
+Samtools (https://github.com/samtools/samtools) 是用来处理SAM/BAM格式比对文件的工具包，提供格式转换、排序、索引、统计、提取等各种操作功能。
 
 ```bash
 # 安装
