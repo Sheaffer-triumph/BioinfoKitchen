@@ -1694,7 +1694,7 @@ unset _host _port
 
 > [!IMPORTANT]
 >
-> By the way，此脚本仅图一乐，切勿迷信。太公有言：枯骨死草，何知而凶。今者或曰：浮码虚言，岂断祸福。
+> By the way，此脚本仅图一乐，切勿迷信。太公有言：枯骨死草，何知而凶。今者或曰：浮码虚文，岂断祸福。
 
 ```bash
 # 使用方法，依赖hexagram_dizhi_yaoci.json，脚本与json文件需位于同一路径下。
