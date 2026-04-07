@@ -1609,7 +1609,7 @@ MMseqs (https://github.com/soedinglab/MMseqs2) 是一个高速的蛋白质序列
 # 安装
 mamba install -y -c conda-forge -c bioconda mmseqs2
 # 使用
-mmseqs easy-linclust -e 0.001 --cov-mode 1 -c 0.8 --min-seq-id 0.9 --kmer-per-seq 80 0.7_gene_dereplication/all_gene.fasta 07.gene_dereplication/clusterRes 07.gene_dereplication/tmp --threads 16
+mmseqs easy-linclust -e 0.001 --cov-mode 1 -c 0.8 --min-seq-id 0.9 --kmer-per-seq 80 gene.fasta tmp --threads 16
 # 参数详解：
 # easy-linclust        线性聚类模式（比cluster更快但精度略低）
 # -e 0.001             E值阈值（期望值≤0.001）
