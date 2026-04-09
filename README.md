@@ -946,13 +946,17 @@ cat part_* > merged_file.txt     # 按字母/数字顺序合并
 `conda` (https://github.com/conda/conda) 是跨平台的包管理和环境管理工具，`mamba` (https://github.com/mamba-org/mamba) 是用C++重写的conda，解决依赖速度更快，命令与`conda`基本相同。
 
 ```bash
-# 安装conda及mamba
+# 下载Miniforge3安装脚本
 wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+# 安装（二选一）
 sh Miniforge3-Linux-x86_64.sh          			# 安装时需要选择工作路径
 bash Miniforge3.sh -b -p "/path/to/miniforge3"	# 静默安装，推荐
-mamba shell init                                # 初始化mamba并写入.bashrc中，如果想初始化conda，则运行conda init
+# 激活 mamba/conda
+mamba shell init	# 初始化mamba并写入.bashrc中，如果想初始化conda，则运行conda init
 # 我印象里旧版本的mamba的激活命令是mamba init，不知道从哪个版本开始变成mamba shell init
 # 如果安装的mamba不适用于mamba shell init，可以尝试mamba init
+# 运行完mamba shell init后，记住运行source ~/.bashrc或者重启terminal
+
 # 环境管理（以下及后续部分中的命令里的conda均可替换为mamba）
 conda create -n amita                   		# 创建名为amita的环境
 conda activate amita                    		# 激活amita环境
@@ -976,7 +980,7 @@ conda create --name hamburger --clone prokka    # 克隆环境并重命名
 conda remove --name prokka --all                # 删除原环境
 ```
 
-也许你在安装完miniforge3后，重启了bash，依旧找不到mamba（通常是由于~/.bashrc文件里没有配置），可以随便在一个文件里写下如下内容，然后使用 `source` 激活（例如，如果你将下列内容写在~/.bashrc里，只需 `source ~/.bashrc` 即可）
+也许你在安装完miniforge3后，重启了bash，依旧找不到mamba（通常是由于~/.bashrc文件里没有配置），这时我们可以在任意文件里写下如下内容，然后使用 `source` 激活（例如，如果你将下列内容写在~/.bashrc里，只需 `source ~/.bashrc` 即可）
 
 ```bash
 # >>> mamba initialize >>>
@@ -997,23 +1001,23 @@ unset __mamba_setup
 
 ```bash
 # 添加清华大学镜像源加速下载
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/			# 对应-c defaults
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/			# 对应-c defaults
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/	# 对应-c defaults
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/	# 对应-c defaults
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/	# 对应-c conda-forge
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/		# 对应-c bioconda
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/	# 对应-c bioconda
 # 查看当前配置的镜像源
 conda config --show channels
 # R语言包镜像源
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/r/				# 对应-c r
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/r/	# 对应-c r
 # PyTorch镜像源
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/		# 对应-c pytorch
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/	# 对应-c pytorch
 # NVIDIA镜像源
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/nvidia/			# 对应-c nvidia
-# 建议：不要一次性全加，按实际需求添加，因为镜像源太多可能导致软件包依赖冲突
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/nvidia/	# 对应-c nvidia
+# 建议：不要一次性全加，按实际需求添加，镜像源太多可能导致软件包依赖冲突
 # 一般来说前面4个(main、free、conda-forge、bioconda)就够用了
 # 只有在运行conda命令时使用-c手动指定了channel，才会从对应的镜像源进行下载。
 # 除了使用命令设置镜像源外，也可以手动更改.condarc的内容实现配置。
-conda info | grep "user config file"		#寻找.condarc的位置，通常为 ~/.condarc
+conda info | grep "user config file"	#寻找.condarc的位置，通常为 ~/.condarc
 # 找到.condarc后，使用vim或其他方式打开，进行编辑。如下即可
 channels:
   - conda-forge
@@ -1028,7 +1032,7 @@ custom_channels:
   bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   r: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
   pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
-# 如果你所在的环境里无法修改默认的~/.condarc，但本身网络没有问题，可以忽略.condarc的内容
+# 如果你所在的环境里无法修改默认的~/.condarc，但本身网络没有问题，可以忽略.condarc的内容并在下载安装时强制指定源
 CONDA_CHANNELS="" CONDA_OVERRIDE_CHANNELS=1
 mamba install -y -c https://conda.anaconda.org/conda-forge -c https://conda.anaconda.org/bioconda --override-channels --no-channel-priority taxmyphage
 ```
@@ -1700,7 +1704,7 @@ unset _host _port
 > By the way，此脚本仅图一乐，切勿迷信。太公有言：枯骨死草，何知而凶。今者或曰：浮码虚文，岂断祸福。
 
 ```bash
-# 使用方法，依赖hexagram_dizhi_yaoci.json，脚本与json文件需位于同一路径下。
+# 使用方法，依赖hexagram_dizhi_yaoci.json(scripts目录下)，脚本与json文件需位于同一路径下。
 python yi.py
 # 输出示例
 蓍草起卦模拟器
