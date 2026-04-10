@@ -1,0 +1,62 @@
+{
+    "software": {
+        "fastp": "/path/to/fastp",
+        "minimap2": "/path/to/minimap2",
+        "kraken2": "/path/to/kraken2",
+        "bracken": "/path/to/bracken",
+        "metaphlan4": "/path/to/metaphlan4",
+        "megahit": "/path/to/megahit",
+        "prodigal": "/path/to/prodigal",
+        "mmseqs2": "/path/to/mmseqs2",
+        "salmon": "/path/to/salmon",
+        "diamond": "/path/to/diamond",
+        "emapper": "/path/to/emapper.py",
+        "seqkit": "/path/to/seqkit",
+        "samtools": "/path/to/samtools",
+        "python3": "/path/to/python3",
+        "Rscript": "/path/to/Rscript"
+    },
+    "database": {
+        "kraken2_db": "/path/to/kraken2_db",
+        "bracken_db": "/path/to/bracken_db",
+        "metaphlan4_db": "/path/to/metaphlan4_db",
+        "cazy_db": "/path/to/cazy_db",
+        "go_db": "/path/to/go_db",
+        "eggnog_db": "/path/to/eggnog_db",
+        "anno_ref": "/path/to/Metagenome-assembled-genomes-reference"
+    },
+    "parameters": {
+        "_comment_threads": "分析使用的线程数，建议根据服务器CPU核心数设置，默认16",
+        "threads": 16,
+
+        "_comment_memory": "内存限制，用于某些需要指定内存的软件（如MEGAHIT），格式如: 64G, 128G",
+        "memory": "64G",
+
+        "_comment_min_contig_length": "组装后contig的最小长度阈值（bp），小于此长度的contig会被过滤掉，默认300",
+        "min_contig_length": 300,
+
+        "_comment_species_identification": "物种鉴定工具选择: kraken2 或 metaphlan4，默认kraken2",
+        "species_identification": "kraken2",
+
+        "_comment_only_reads_mapping": "是否仅运行基于reads的分析（跳过组装），true表示只分析物种不组装，false表示完整分析",
+        "only_reads_mapping": false,
+
+        "_comment_qc_cut_mean_quality": "质控时滑窗平均质量阈值，低于此值的碱基会被切除，默认20",
+        "qc_cut_mean_quality": 20,
+
+        "_comment_qc_length_required": "质控后reads最小长度要求（bp），短于此长度的reads会被丢弃，默认30",
+        "qc_length_required": 30,
+
+        "_comment_mmseqs_min_seq_id": "MMseqs2聚类时最小序列相似度（0-1），默认0.95表示95%相似度",
+        "mmseqs_min_seq_id": 0.95,
+
+        "_comment_mmseqs_coverage": "MMseqs2聚类时最小比对覆盖率（0-1），默认0.9表示90%覆盖率",
+        "mmseqs_coverage": 0.9,
+
+        "_comment_diamond_evalue": "Diamond比对时的E-value阈值，默认1e-5，越小越严格",
+        "diamond_evalue": "1e-5",
+
+        "_comment_salmon_lib_type": "Salmon的文库类型，A表示自动检测，也可指定为ISR, ISF等",
+        "salmon_lib_type": "A"
+    }
+}
