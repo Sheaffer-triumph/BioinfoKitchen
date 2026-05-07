@@ -1649,9 +1649,7 @@ mamba create -n kraken2 -y -c bioconda kraken2
 
 这一版块的内容很散乱，大抵是一些我觉得有用的命令、配置、知识点，以及和AI一起写的一些小玩意。脚本及其依赖文件放在scripts文件夹下。
 
-`~/.bashrc` 的配置，基于学习时的先入为主，我个人习惯使用Bash，Zsh和Fish都有体验过，最后还是换成了Bash。
-
-Bash历史最久，虽简陋，但学习成本低，易入门。
+`~/.bashrc` 的配置，基于学习时的先入为主，我个人习惯使用Bash，Zsh和Fish都有体验过，最后还是换成了Bash。Bash历史最久，虽简陋，但学习成本低，易入门。
 
 ```bash
 # PS1配置
@@ -2184,9 +2182,36 @@ bowtie2 -p 20 -x phage.fa -1 ERR1620272-meta/De-host/ERR1620272_rmhost_1.fastq -
 samtools view -b -F 4 ERR1620272-meta/bowtie2/sorted_bowtie2.bam > ERR1620272-meta/bowtie2/mapped_bowtie2.bam
 samtools view -h ERR1620272-meta/bowtie2/mapped_bowtie2.bam > ERR1620272-meta/bowtie2/mapped_bowtie2.sam
 
-#计算覆盖度.使用soapcoverage，-cvg表示计算覆盖度
+# 计算覆盖度.使用soapcoverage，-cvg表示计算覆盖度
 soap.coverage -cvg -sam -p 5 -i ERR1620272-meta/bowtie2/mapped_bowtie2.sam -refsingle phage.fa -o ERR1620272-meta/bowtie2/coverage.txt
 samtools index ERR1620272-meta/bowtie2/mapped_bowtie2.bam
 samtools idxstats ERR1620272-meta/bowtie2/mapped_bowtie2.bam > ERR1620272-meta/bowtie2/mapped_bowtie2.bam.idxstats
+```
+
+Claude Code 是驻留在终端中的智能编码工具，能够理解你的代码库，并通过自然语言命令执行日常任务、解释复杂代码、处理 git 工作流，从而帮助你更快地编码。简单介绍下载安装Claude code并将deepseek-v4系列模型接入其中。详情可参考：https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
+
+```bash
+# 下载安装（对网络环境有要求）
+curl -fsSL https://claude.ai/install.sh | bash
+
+# 配置deepseek
+export ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
+export ANTHROPIC_AUTH_TOKEN="sk-7c4oays3u6ihpx2wmy5wgckjgh9xyai2" # 替换成自己的api key
+export ANTHROPIC_MODEL=deepseek-v4-pro[1m]	# 要有[1m]标记Claude code才会使用1m上下文
+export ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash[1m]
+export CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-pro[1m]
+export DISABLE_TELEMETRY=1
+export DISABLE_ERROR_REPORTING=1
+export DISABLE_FEEDBACK_COMMAND=1
+export CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK=1
+export CLAUDE_CODE_EFFORT_LEVEL=max	# 强制思考强度为max
+export API_TIMEOUT_MS=3000000
+
+# 启动Claude code
+claude
+
+# 上述配置命令可以写在文件里，例如，将其写入~/.claude/deepseek.env中，只需要在启动前输入source ~/.claude/deepseek.env即可
 ```
 
