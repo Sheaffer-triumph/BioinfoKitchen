@@ -5,6 +5,7 @@
 import random
 import datetime
 import json
+import os
 from typing import List, Tuple, Optional
 
 # ============ 数据定义 ============
@@ -65,7 +66,8 @@ DIZHI_TO_WUXING = {
     "寅": "木", "卯": "木",
     "巳": "火", "午": "火",
     "申": "金", "酉": "金",
-    "辰": "土", "戌": "土", "丑": "土", "未": "土",
+    "辰": "土", "戌": "土", 
+    "丑": "土", "未": "土",
 }
 
 
@@ -238,7 +240,9 @@ def load_hexagram_data(key: str) -> Optional[dict]:
     返回：{"name": "...", "dizhi": [...], "yaoci": [...]} 或 None
     """
     try:
-        with open("hexagram_dizhi_yaoci.json", 'r', encoding='utf-8') as f:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(script_dir, "..", "assets", "hexagram_dizhi_yaoci.json")
+        with open(json_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         return data.get(key)
     except (FileNotFoundError, json.JSONDecodeError) as e:
@@ -251,62 +255,70 @@ def get_wuxing(dizhi: str) -> str:
     return DIZHI_TO_WUXING.get(dizhi, "未知")
 
 
-def print_dizhi_wuxing(hexagram: List[int]) -> None:
+def print_dizhi_wuxing(hexagram: List[int], title: str = "本卦") -> None:
     """
     打印地支和五行信息
-    包含：本卦名称、各爻地支、世应地支及五行
+    包含：卦名、各爻地支、世应地支及五行
     """
     key = hexagram_to_key(hexagram)
     data = load_hexagram_data(key)
-    
+
     if not data:
         return
-    
+
     world_pos, response_pos, _ = calculate_world_response(hexagram)
-    
+
     print(f"\n")
-    print("地支与五行")
+    print(f"{title}：地支与五行")
     print(f"{'='*50}")
-    print(f"本卦：{data['name']}")
+    print(f"卦名：{data['name']}")
     print(f"查询键：{key}")
     print()
-    
+
     # 各爻地支
     dizhi_list = data['dizhi']
     print("各爻地支：")
     for i, dizhi in enumerate(dizhi_list):
         wuxing = get_wuxing(dizhi)
         print(f"  {POSITIONS[i]}: {dizhi}（{wuxing}）")
-    
+
     print()
-    
+
     # 世应地支
     world_dizhi = dizhi_list[world_pos - 1]
     world_wuxing = get_wuxing(world_dizhi)
     response_dizhi = dizhi_list[response_pos - 1]
     response_wuxing = get_wuxing(response_dizhi)
-    
+
     print(f"世爻（{POSITIONS[world_pos - 1]}）：{world_dizhi} {world_wuxing}")
     print(f"应爻（{POSITIONS[response_pos - 1]}）：{response_dizhi} {response_wuxing}")
     print(f"{'='*50}")
 
 
-def print_yaoci(hexagram: List[int]) -> None:
+def print_yaoci(hexagram: List[int], title: str = "本卦") -> None:
     """打印爻辞"""
     key = hexagram_to_key(hexagram)
     data = load_hexagram_data(key)
-    
+
     if not data:
         return
-    
+
     print(f"\n")
-    print("爻辞")
+    print(f"{title}：爻辞")
     print(f"{'='*50}")
-    
+
     for line in data['yaoci']:
         print(line)
-    
+
     print(f"{'='*50}")
+
+
+def print_hexagram_name(hexagram: List[int], title: str) -> None:
+    """只打印卦名"""
+    key = hexagram_to_key(hexagram)
+    data = load_hexagram_data(key)
+    if data:
+        print(f"{title}：{data['name']}")
 
 
 # ============ 农历时间模块 ============
@@ -404,26 +416,24 @@ def main():
     
     # 1. 本卦
     print_hexagram(hexagram, "本卦")
-    
+    print_dizhi_wuxing(hexagram, "本卦")
+    print_yaoci(hexagram, "本卦")
+
     # 2. 之卦（有变爻时）
     if any(y in CHANGING for y in hexagram):
         transformed = transform_hexagram(hexagram)
         print_hexagram(transformed, "之卦")
-    
+        print_hexagram_name(transformed, "之卦")
+
     # 3. 互卦
     mutual = calculate_mutual_hexagram(hexagram)
     print_hexagram(mutual, "互卦")
-    
+    print_hexagram_name(mutual, "互卦")
+
     # 4. 世爻应爻
     print_world_response(hexagram)
-    
-    # 5. 地支与五行（新增）
-    print_dizhi_wuxing(hexagram)
-    
-    # 6. 爻辞（新增）
-    print_yaoci(hexagram)
-    
-    # 7. 起卦时间
+
+    # 5. 起卦时间
     print(f"\n{'='*50}")
     print(get_divination_time())
     print(f"{'='*50}\n")
