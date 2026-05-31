@@ -1506,11 +1506,43 @@ VIBRANT (https://github.com/AnantharamanLab/VIBRANT) 利用混合机器学习和
 
 ```bash
 # 安装
-mamba create -n vibrant -y -c conda-forge -c bioconda python=3.5 prodigal hmmer
+mamba create -n vibrant -y -c conda-forge -c bioconda python=3.7 prodigal hmmer
 mamba activtae vibrant
-pip install biopython pandas matplotlib "seaborn>=0.9.0" "numpy>=1.17.0" "scikit-learn==0.21.3"
-mamba install -y -c bioconda vibrant
-download-db.sh
+pip install --upgrade pip==20.3.4
+pip install numpy==1.17.0 scikit-learn==0.21.3 biopython==1.76 pandas==0.25.3 matplotlib==3.1.3 seaborn==0.9.0
+git clone https://github.com/AnantharamanLab/VIBRANT.git
+cd VIBRANT
+python databases/VIBRANT_setup.py #这个脚本运行会很花时间，建议使用下面的命令代替。
+
+# 构建数据库
+# 本地下载
+mkdir -p vibrant_downloads && cd vibrant_downloads
+aria2c -x 16 -s 16 http://fileshare.csb.univie.ac.at/vog/vog94/vog.hmm.tar.gz
+aria2c -x 16 -s 16 ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam32.0/Pfam-A.hmm.gz
+aria2c -x 16 -s 16 ftp://ftp.genome.jp/pub/db/kofam/archives/2019-08-10/profiles.tar.gz
+# 上传集群
+scp *.tar.gz *.gz user@cluster:/path/to/VIBRANT/databases/
+# 处理
+cd /path/to/VIBRANT/databases
+# 解压
+tar -xzf vog.hmm.tar.gz
+gunzip Pfam-A.hmm.gz
+tar -xzf profiles.tar.gz
+# 合并分散的 HMM 文件
+for v in VOG*.hmm; do cat "$v" >> vog_temp.HMM; done
+rm VOG0*.hmm VOG1*.hmm VOG2*.hmm
+for k in profiles/K*.hmm; do cat "$k" >> kegg_temp.HMM; done
+rm -r profiles
+# 提取我们需要的子集（脚本里用了 profile_names/ 下的列表）
+hmmfetch -o VOGDB94_phage.HMM -f vog_temp.HMM profile_names/VIBRANT_vog_profiles.txt
+hmmfetch -o KEGG_profiles_prokaryotes.HMM -f kegg_temp.HMM profile_names/VIBRANT_kegg_profiles.txt
+# 清理临时文件
+rm vog_temp.HMM kegg_temp.HMM vog.hmm.tar.gz profiles.tar.gz
+mv Pfam-A.hmm Pfam-A_v32.HMM
+# 创建索引（VIBRANT 实际读的是这些 .h3* 文件）
+hmmpress VOGDB94_phage.HMM
+hmmpress KEGG_profiles_prokaryotes.HMM
+hmmpress Pfam-A_v32.HMM
 ```
 
 iphop (https://bitbucket.org/srouxjgi/iphop) 用于从噬菌体基因组中计算预测宿主，数据库很大。
@@ -1671,7 +1703,7 @@ alias ll='ls -lthr' 		# list目录时，按最后修改时间倒序排列
 
 # WSL Proxy Auto-Configuration & Connection Check
 _host=$(ip route show | grep default | awk '{print $3}')
-_port=10808 #根据自己本地的代理软件端口进行替换
+_port=10808 # 根据自己本地的代理软件端口进行替换
 if curl -s -I --connect-timeout 2 --proxy "http://${_host}:${_port}" \
     https://www.google.com >/dev/null 2>&1; then
     export http_proxy="http://${_host}:${_port}"
