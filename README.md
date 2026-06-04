@@ -2245,5 +2245,10 @@ export API_TIMEOUT_MS=3000000
 claude
 
 # 上述配置命令可以写在文件里，例如，将其写入~/.claude/deepseek.env中，只需要在启动前输入source ~/.claude/deepseek.env即可
+
+# Claude code会恶意更新，使得第三方API无法使用，可使用下面的方案解决
+claude install 2.1.153 --force  # 强制回退到上一个能正常使用的版本
+export DISABLE_UPDATES=1		# 关闭自动更新，可写入env文件里
+# 当然，第三方LLM会尽快适配新版Claude code，可关注相关github的issues
 ```
 
