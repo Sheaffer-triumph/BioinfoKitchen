@@ -2238,17 +2238,23 @@ export DISABLE_TELEMETRY=1
 export DISABLE_ERROR_REPORTING=1
 export DISABLE_FEEDBACK_COMMAND=1
 export CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK=1
-export CLAUDE_CODE_EFFORT_LEVEL=max	# 强制思考强度为max
+export CLAUDE_CODE_EFFORT_LEVEL=max
 export API_TIMEOUT_MS=3000000
+export ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES="thinking,adaptive_thinking,interleaved_thinking,effort,xhigh_effort,max_effort"
+export ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES="thinking,adaptive_thinking,interleaved_thinking,effort,xhigh_effort,max_effort"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL_SUPPORTED_CAPABILITIES="effort,max_effort"
 
 # 启动Claude code
 claude
 
 # 上述配置命令可以写在文件里，例如，将其写入~/.claude/deepseek.env中，只需要在启动前输入source ~/.claude/deepseek.env即可
 
+# Claude code更新
+claude update					# 联网检查版本并更新
+
 # Claude code会恶意更新，使得第三方API无法使用，可使用下面的方案解决
 claude install 2.1.153 --force  # 强制回退到上一个能正常使用的版本
-export DISABLE_UPDATES=1		# 关闭自动更新，可写入env文件里
+export DISABLE_UPDATES=1		# 关闭更新，可写入env文件里
 # 当然，第三方LLM会尽快适配新版Claude code，可关注相关github的issues
 ```
 
