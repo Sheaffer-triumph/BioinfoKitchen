@@ -2229,11 +2229,12 @@ curl -fsSL https://claude.ai/install.sh | bash
 # 配置deepseek
 export ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
 export ANTHROPIC_AUTH_TOKEN="sk-7c4oays3u6ihpx2wmy5wgckjgh9xyai2" # 替换成自己的api key
-export ANTHROPIC_MODEL=deepseek-v4-pro[1m]	# 要有[1m]标记Claude code才会使用1m上下文
-export ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m]
-export ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_MODEL=deepseek-v4-flash[1m]	# 要有[1m]标记Claude code才会使用1m上下文
+export ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-flash[1m]
+export ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-flash[1m]
 export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash[1m]
-export CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-pro[1m]
+export CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-flash[1m]
+export ANTHROPIC_DEFAULT_FABLE_MODEL=deepseek-v4-flash[1m]
 export DISABLE_TELEMETRY=1
 export DISABLE_ERROR_REPORTING=1
 export DISABLE_FEEDBACK_COMMAND=1
@@ -2243,6 +2244,7 @@ export API_TIMEOUT_MS=3000000
 export ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES="thinking,adaptive_thinking,interleaved_thinking,effort,xhigh_effort,max_effort"
 export ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES="thinking,adaptive_thinking,interleaved_thinking,effort,xhigh_effort,max_effort"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL_SUPPORTED_CAPABILITIES="effort,max_effort"
+export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 
 # 启动Claude code
 claude
