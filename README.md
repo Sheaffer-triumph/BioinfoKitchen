@@ -1077,7 +1077,7 @@ trusted-host = pypi.tuna.tsinghua.edu.cn
 >
 > channel中的软件版本可能不是最新的，而且有些软件包并非由原作者上传和维护，版本更新可能滞后。
 >
-> 对于重要的分析软件，优先使用官方推荐的安装方式，conda版本可作为备选。
+> 对于重要的分析软件，优先使用官方推荐的安装方式（至于如何找到官方，也是需要学习的内容），conda版本可作为备选。
 
 BWA (https://github.com/lh3/bwa) 是用来将测序数据比对到参考基因组的工具，相当于把测序得到的短片段DNA序列找到它们在完整基因组上的正确位置。
 
@@ -1417,7 +1417,7 @@ phold run -i phage.fa -o test_output_phold -t 8 -f -d /path/to/database
 # -o 输出文件夹，该文件夹是被phold创建的，如果该文件夹已经存在，则会报错，可以添加-f参数强制覆盖
 # -d 数据库路径，如果数据库存在于默认路径，则不用指定
 # 运行时会检测系统是否有GPU，如果没有，会使用CPU模式，很慢。建议使用GPU运行
-# phold使用pyrodigal预测蛋白序列，且写死了一些预测 ，也许与其他途径生成的蛋白序列有差别
+# phold使用pyrodigal预测蛋白序列，且写死了一些预测参数，也许与其他途径生成的蛋白序列有差别
 # 为了避免由于蛋白序列差异带来的注释问题，可以直接向其提供蛋白序列
 # 运行蛋白质结构预测，预测输入蛋白质氨基酸序列的3D结构
 phold proteins-predict -i protein.faa -o predict_result -t 8 -d /path/to/database -f
