@@ -1417,7 +1417,7 @@ phold run -i phage.fa -o test_output_phold -t 8 -f -d /path/to/database
 # -o 输出文件夹，该文件夹是被phold创建的，如果该文件夹已经存在，则会报错，可以添加-f参数强制覆盖
 # -d 数据库路径，如果数据库存在于默认路径，则不用指定
 # 运行时会检测系统是否有GPU，如果没有，会使用CPU模式，很慢。建议使用GPU运行
-# phold使用pyrodigal预测蛋白序列，也许与其他途径生成的蛋白序列有差别
+# phold使用pyrodigal预测蛋白序列，且写死了一些预测 ，也许与其他途径生成的蛋白序列有差别
 # 为了避免由于蛋白序列差异带来的注释问题，可以直接向其提供蛋白序列
 # 运行蛋白质结构预测，预测输入蛋白质氨基酸序列的3D结构
 phold proteins-predict -i protein.faa -o predict_result -t 8 -d /path/to/database -f
@@ -2224,7 +2224,7 @@ samtools index ERR1620272-meta/bowtie2/mapped_bowtie2.bam
 samtools idxstats ERR1620272-meta/bowtie2/mapped_bowtie2.bam > ERR1620272-meta/bowtie2/mapped_bowtie2.bam.idxstats
 ```
 
-Claude Code 是驻留在终端中的智能编码工具，能够理解你的代码库，并通过自然语言命令执行日常任务、解释复杂代码、处理 git 工作流，从而帮助你更快地编码。简单介绍下载安装Claude code并将deepseek-v4系列模型接入其中。详情可参考：https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
+Claude Code 是可在终端中使用的AI harness工具，能够理解你的代码库，并通过自然语言命令执行日常任务、解释复杂代码、处理 git 工作流，从而帮助你更快地编码。简单介绍如何下载安装Claude code并将deepseek-v4系列模型接入其中。详情可参考：https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
 
 ```bash
 # 下载安装（对网络环境有要求）
@@ -2263,5 +2263,16 @@ claude update					# 联网检查版本并更新
 claude install 2.1.223 --force  # 强制回退到一个能正常使用的版本
 export DISABLE_UPDATES=1		# 关闭更新，可写入env文件里
 # 当然，第三方LLM会尽快适配新版Claude code，可关注相关github的issues
+```
+
+Codex是OpenAI开发的AI harness工具。具体安装以及如何接入deepseek-v4模型如下
+
+```bash
+# 下载安装
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
+# 配置deepseek-v4模型
+mkdir -p ~/.codex
+bash <(curl -fsSL https://cdn.deepseek.com/api-docs/codex-deepseek-setup.sh)
+# 运行后按菜单选择要使用的模型。首次运行会提示输入API Key（以sk-开头，在DeepSeek Platform获取）
 ```
 
