@@ -940,6 +940,10 @@ cat part_* > merged_file.txt     # 按字母/数字顺序合并
 
 `conda` (https://github.com/conda/conda) 是跨平台的包管理和环境管理工具，`mamba` (https://github.com/mamba-org/mamba) 是用C++重写的conda，解决依赖速度更快，命令与`conda`基本相同。
 
+conda很重要。几乎无法避开。但在使用conda前，先想清楚自己需要什么：Anaconda是预装了几百个软件包的全家桶，只是里面刚好有你需要的conda而已。如果你只是需要一个包管理器，Miniconda里的conda或Miniforge里的mamba就够了。
+
+还有一点容易混淆：我要从Anaconda上下载软件，这里的Anaconda指的是conda的软件channel（anaconda.org，即`-c anaconda`），不是那个全家桶软件。
+
 ```bash
 # 下载Miniforge3安装脚本
 wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
@@ -2230,11 +2234,12 @@ curl -fsSL https://claude.ai/install.sh | bash
 export ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
 export ANTHROPIC_AUTH_TOKEN="sk-7c4oays3u6ihpx2wmy5wgckjgh9xyai2" # 替换成自己的api key
 export ANTHROPIC_MODEL=deepseek-v4-flash[1m]	# 要有[1m]标记Claude code才会使用1m上下文
+export ANTHROPIC_DEFAULT_FABLE_MODEL=deepseek-v4-flash[1m]
 export ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-flash[1m]
 export ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-flash[1m]
 export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash[1m]
 export CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-flash[1m]
-export ANTHROPIC_DEFAULT_FABLE_MODEL=deepseek-v4-flash[1m]
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW="1048576"
 export DISABLE_TELEMETRY=1
 export DISABLE_ERROR_REPORTING=1
 export DISABLE_FEEDBACK_COMMAND=1
@@ -2254,8 +2259,8 @@ claude
 # Claude code更新
 claude update					# 联网检查版本并更新
 
-# Claude code会恶意更新，使得第三方API无法使用，可使用下面的方案解决
-claude install 2.1.153 --force  # 强制回退到上一个能正常使用的版本
+# Claude code曾有恶意更新的行为，使得第三方LLM API无法使用，可使用下面的方案解决
+claude install 2.1.223 --force  # 强制回退到一个能正常使用的版本
 export DISABLE_UPDATES=1		# 关闭更新，可写入env文件里
 # 当然，第三方LLM会尽快适配新版Claude code，可关注相关github的issues
 ```
