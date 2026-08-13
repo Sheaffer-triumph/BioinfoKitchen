@@ -2274,5 +2274,8 @@ curl -fsSL https://chatgpt.com/codex/install.sh | sh
 mkdir -p ~/.codex
 bash <(curl -fsSL https://cdn.deepseek.com/api-docs/codex-deepseek-setup.sh)
 # 运行后按菜单选择要使用的模型。首次运行会提示输入API Key（以sk-开头，在DeepSeek Platform获取）
+# 安装一些插件，在终端中运行
+codex plugin add ngs-analysis@openai-curated
+codex plugin add life-science-research@openai-curated
 ```
 
