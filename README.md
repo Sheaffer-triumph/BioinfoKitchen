@@ -2,51 +2,9 @@
 
 大致分3个板块：基础的Linux command line；我常用的生信工具下载安装及运行；其他。
 
-### Linux command line
+## Linux command line
 
-`ssh`是用于远程连接服务器的命令，如下：
-
-```bash
-# 以用户eleanor连接到IP地址为31.41.59.26的服务器，使用22端口（22是SSH默认端口，可省略-p 22）
-ssh eleanor@192.168.61.7 -p 22
-```
-
-`sftp`是用来在本地和远程服务器之间安全传输文件的命令
-
-```bash
-# 连接到服务器的文件传输界面
-sftp eleanor@31.41.59.26
-# 使用sftp连接上服务器，可执行以下命令
-# 把本地电脑的A文件夹整个上传到服务器并重命名为B文件夹（-R表示递归传输整个文件夹）
-put -R Adir Bdir                
-# 把服务器的A文件夹整个下载到本地电脑并重命名为B文件夹
-get -R Adir Bdir
-# 不同终端软件功能不同
-# iTerm2支持通配符*，可以批量传输文件，比如 get *.fasta
-# Xshell不支持通配符，只能传单个文件
-# 如果文件很多，可以先打包成.tar.gz再传输，或者直接用Xftp软件图形化操作界面批量拖拽文件
-```
-
-`vim`是Linux系统中的文本编辑器，按`i`进入编辑模式，按`Esc`退出编辑模式，输入`:wq`保存并退出。
-
-```bash
-# 用vim编辑器打开文件A(后续内容中的A也是如此，不再赘述)，如果文件不存在会自动创建
-vim A
-# 在vim中的复制粘贴操作：按v键进入选择模式，移动光标选中要复制的内容。按y键复制选中的内容，自动回到普通模式，移动光标到想粘贴的位置，按p键粘贴
-# 编辑系统配置文件（以.开头的文件是隐藏的系统配置文件，很重要不能乱动）
-vim ~/.bashrc
-```
-
-`gpg`是用来加密和解密文件的工具，可以给重要文件设置密码保护。
-
-```bash
-# 用密码xxxxxxxx加密文件A，生成加密文件A.gpg
-gpg --batch --yes --passphrase 'xxxxxxxx' -c A                  
-# 用密码xxxxxxxx解密文件A.gpg，输出解密内容到文件A
-gpg --batch --yes --passphrase 'xxxxxxxx' -d A.gpg > A          
-# 可以省略--batch --yes --passphrase参数，这样会弹出密码输入框手动输入
-# 手动输入更安全但不能批量处理，命令行直接写密码可以批量处理但安全性较低
-```
+#### cd
 
 `cd`是用来切换目录（文件夹）的命令，是Linux中最基本的导航命令。
 
@@ -69,133 +27,11 @@ cd ./data/genome          # 切换到当前目录下的data/genome文件夹
 cd /usr/local/bin         # 从根目录开始的完整路径
 ```
 
-`ls`是用来查看目录中文件和文件夹列表的命令，相当于Windows中双击打开文件夹查看内容。
-
-```bash
-# 查看当前目录下的文件和文件夹
-ls
-# 显示详细信息（权限、大小、修改时间等）
-ls -l
-# 显示所有文件，包括隐藏文件（以.开头的文件）
-ls -a
-ls -al                                  # 显示所有文件的详细信息，包括隐藏文件
-ll -a                                   # 同上（ll是ls -l的简写别名，Ubuntu系统的配置文件里已经设置，其他系统不一定有）
-# 以人类可读的方式显示文件大小（KB、MB、GB）
-ls -lh
-# 按修改时间排序显示（最新的在前面）
-ls -lt
-# 按时间排序，倒序显示，人类可读格式（最老的文件在前面）
-ls -lthr                                # -l详细信息 -t按时间排序 -h人类可读 -r倒序
-# 按时间排序，文件夹优先显示在前面
-ls -lthr --group-directories-first      
-# 查看指定目录的内容
-ls /home/user/data
-# 使用通配符查看特定类型文件
-ls *.fasta              # 查看所有.fasta格式的基因组文件
-ls sample*              # 查看所有以sample开头的文件
-```
-
-`mkdir`是用来创建新文件夹（目录）的命令。
-
-```bash
-# 创建一个名为data的文件夹
-mkdir data
-# 一次创建多个文件夹
-mkdir project1 project2 project3
-# 创建多层嵌套文件夹（如果父目录不存在会一起创建）
-mkdir -p data/genome/human/chr1
-# 创建文件夹并设置权限
-mkdir -m 755 public_data
-# 显示创建过程的详细信息
-mkdir -v new_folder
-```
-
-`rm`是用来删除文件和文件夹的命令，删除后无法恢复，需谨慎使用。
-
-```bash
-# 删除单个文件
-rm file.txt
-# 删除多个文件
-rm file1.txt file2.txt file3.txt
-# 删除文件夹及其所有内容（递归删除）
-rm -r folder_name
-# 强制删除，不询问确认（危险操作）
-rm -f file.txt
-# 递归强制删除文件夹，不询问确认（非常危险）
-rm -rf folder_name
-# 删除前询问确认（安全做法）
-rm -i file.txt
-# 使用通配符批量删除
-rm *.tmp                # 删除所有.tmp文件
-rm sample_*             # 删除所有以sample_开头的文件
-# 特别提醒：rm -rf /* 会删除整个系统，千万不要执行！
-```
-
-`echo`是用来在终端输出（显示）文本内容的命令，相当于编程语言中的print功能。
-
-```bash
-# 输出简单文本
-echo "Hello World"
-# 输出变量内容
-echo $HOME                      # 显示家目录路径
-echo $USER                      # 显示当前用户名
-# 将内容写入文件（覆盖原内容）
-echo "sample data" > output.txt
-# 将内容追加到文件末尾
-echo "new line" >> output.txt
-# 输出多行内容
-echo -e "A\nB\nC"     # -e启用转义字符解释
-# 不换行输出
-echo -n "abc"
-# 创建简单的配置文件
-echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc
-# 大括号展开（批量生成序列）
-echo a{1..100}                  # 输出 a1 a2 a3 a4 ...... a100
-echo file{1..5}.txt             # 输出 file1.txt file2.txt file3.txt file4.txt file5.txt
-echo {A..Z}                     # 输出 A B C D ...... Z
-echo test{001..010}             # 输出 test001 test002 ...... test010
-```
-
-`cat`是用来查看和显示文件内容的命令，也可以用来合并文件。
-
-```bash
-# 查看文件内容
-cat file.txt
-# 查看多个文件内容（按顺序显示）
-cat file1.txt file2.txt
-# 显示行号
-cat -n file.txt
-# 合并多个文件并保存到新文件
-cat file1.txt file2.txt > merged.txt
-# 将内容追加到文件
-cat file1.txt >> existing_file.txt
-# 查看文件并显示特殊字符（如制表符、换行符）
-cat -A file.txt
-# 创建新文件并输入内容（按Ctrl+D结束输入）
-cat > new_file.txt
-# 查看大文件的前几行（通常用head命令更合适）
-cat large_file.txt | head -10
-```
-
-Linux系统不能直接进行数学运算，需要使用 `expr` 命令进行整数运算，或使用 `bc` 命令进行小数运算。
-
-```bash
-# expr命令：整数运算
-expr 1 + 1                 # 加法运算，结果为2
-expr 1 \* 2                # 乘法运算，结果为2，*前需要加\避免被视为通配符
-expr 1 / 2                 # 除法运算，结果为0（整数除法）
-expr 1 % 2                 # 取余运算，结果为1
-expr $a + $b               # 将变量a和b相加
-# bc命令：支持小数运算
-echo "scale=2; 1/3" | bc   # scale=2表示保留2位小数，结果为0.33
-echo "1/3" | bc -l         # -l使用标准库支持小数运算，结果为0.33333333333333333333
-echo "${a}/${b}" | bc      # 将变量a和b相除
-# bc支持的运算符：+ - * / % ^（^表示乘方）
-echo "2^3" | bc            # 2的3次方，结果为8
-echo "scale=3; 22/7" | bc  # 计算π的近似值，保留3位小数
-```
+#### 绝对路径
 
 **绝对路径**是从根目录/开始的完整路径，如 /home/user/data/sample.fasta，无论在哪个目录下，绝对路径都指向同一个文件
+
+#### 相对路径
 
 **相对路径**是相对于当前目录的路径，如 ./data/sample.fasta，会随着当前所在目录的改变而改变含义
 
@@ -223,27 +59,155 @@ ls data/genome.fa           # 相对路径，实际指向：/home/user/data/geno
 ls /home/user/data/genome.fa # 绝对路径，明确指向这个文件
 ```
 
-`watch` 是用来定期重复执行命令并实时观察输出变化的工具，常用于监控系统状态或任务进度。
+#### ls
+
+`ls`是用来查看目录中文件和文件夹列表的命令，相当于Windows中双击打开文件夹查看内容。
 
 ```bash
-# 每隔1秒执行一次指定命令，高亮显示变化部分
-watch -n 1 -d 'A command'   
-# 实用示例：
-# 监控系统资源使用情况
-watch -n 2 -d 'free -h'                    # 每2秒查看内存使用情况
-# 监控目录文件变化
-watch -n 5 -d 'ls -lh /data/analysis/'     # 每5秒查看分析目录文件变化
-# 监控任务队列状态  
-watch -n 3 -d 'qstat'                      # 每3秒查看集群任务状态
-# 监控磁盘使用情况
-watch -n 10 -d 'df -h'                     # 每10秒查看磁盘空间
-# 监控进程状态
-watch -n 1 -d 'ps aux | grep python'       # 监控python进程
-# 参数说明：
-# -n 秒数：设置刷新间隔
-# -d：高亮显示发生变化的部分
-# 按Ctrl+C退出监控
+# 查看当前目录下的文件和文件夹
+ls
+# 显示详细信息（权限、大小、修改时间等）
+ls -l
+# 显示所有文件，包括隐藏文件（以.开头的文件）
+ls -a
+ls -al                                  # 显示所有文件的详细信息，包括隐藏文件
+ll -a                                   # 同上（ll是ls -l的简写别名，Ubuntu系统的配置文件里已经设置，其他系统不一定有）
+# 以人类可读的方式显示文件大小（KB、MB、GB）
+ls -lh
+# 按修改时间排序显示（最新的在前面）
+ls -lt
+# 按时间排序，倒序显示，人类可读格式（最老的文件在前面）
+ls -lthr                                # -l详细信息 -t按时间排序 -h人类可读 -r倒序
+# 按时间排序，文件夹优先显示在前面
+ls -lthr --group-directories-first      
+# 查看指定目录的内容
+ls /home/user/data
+# 使用通配符查看特定类型文件
+ls *.fasta              # 查看所有.fasta格式的基因组文件
+ls sample*              # 查看所有以sample开头的文件
 ```
+
+#### mkdir
+
+`mkdir`是用来创建新文件夹（目录）的命令。
+
+```bash
+# 创建一个名为data的文件夹
+mkdir data
+# 一次创建多个文件夹
+mkdir project1 project2 project3
+# 创建多层嵌套文件夹（如果父目录不存在会一起创建）
+mkdir -p data/genome/human/chr1
+# 创建文件夹并设置权限
+mkdir -m 755 public_data
+# 显示创建过程的详细信息
+mkdir -v new_folder
+```
+
+#### cp / mv / touch
+
+`cp` 用于复制文件或目录，`mv` 用于移动或重命名文件，`touch` 用于创建空文件或更新文件时间戳，是日常文件管理中最常用的三个命令。
+
+```bash
+# 复制文件
+cp A B                          # 把文件A复制为B
+cp A dir/                       # 把文件A复制到dir目录下（保持原名）
+cp -r Adir Bdir                 # 递归复制整个文件夹
+cp -p A B                       # 复制时保留权限、时间戳等属性
+# 移动 / 重命名
+mv A B                          # 把A重命名为B，或移动到路径B
+mv A dir/                       # 把A移动到dir目录下
+mv *.fasta data/                # 批量移动所有fasta文件
+# 创建空文件 / 更新时间戳
+touch newfile.txt               # 文件不存在则创建空文件
+touch existing.txt              # 更新已有文件的时间戳
+# 实用场景
+cp -r results results_backup    # 备份分析结果目录
+mv raw_data/ processed_data/    # 整理目录结构
+touch analysis.log              # 提前创建日志文件
+```
+
+#### rm
+
+`rm`是用来删除文件和文件夹的命令，删除后无法恢复，需谨慎使用。
+
+```bash
+# 删除单个文件
+rm file.txt
+# 删除多个文件
+rm file1.txt file2.txt file3.txt
+# 删除文件夹及其所有内容（递归删除）
+rm -r folder_name
+# 强制删除，不询问确认（危险操作）
+rm -f file.txt
+# 递归强制删除文件夹，不询问确认（非常危险）
+rm -rf folder_name
+# 删除前询问确认（安全做法）
+rm -i file.txt
+# 使用通配符批量删除
+rm *.tmp                # 删除所有.tmp文件
+rm sample_*             # 删除所有以sample_开头的文件
+# 特别提醒：rm -rf /* 会删除整个系统，千万不要执行！
+```
+
+#### ln
+
+`ln` 用于创建文件链接（link），类似于 Windows 的快捷方式，但更强大。
+
+```bash
+# 创建符号链接（软链接）- 最常用，软链接是指向文件路径的指针。类似快捷方式，源文件删除会失效
+ln -s source.txt link.txt
+# -f: 强制覆盖已存在的链接
+ln -sf new_source.txt existing_link.txt 
+# 创建硬链接，硬链接是同一文件的另一个入口，删除源文件不受影响
+ln source.txt link.txt
+```
+
+#### find
+
+`find` 是Linux中用来查找文件和目录的强大工具，可以根据文件名、大小、类型等条件递归搜索。
+
+```bash
+# 根据文件大小查找
+find A -size 0                       # 递归查找A路径下大小为0的文件
+find A -maxdepth 1 -size 0           # 仅在A路径中查找大小为0的文件，不搜索子目录
+find A -maxdepth 1 -size 0 -delete   # 查找并删除A路径下大小为0的文件（-maxdepth要放在前面）
+# 根据文件名查找
+find A -name "*a*"                  # 递归查找A路径下名字包含a的文件
+find A ! -name "*a*"                # 查找名字不包含a的文件
+find A -not -name "*a*"             # 同上，另一种写法
+# 根据文件类型查找
+find A -type d                      # 递归查找A路径下的所有目录（d=directory）
+find A -type f                      # 递归查找A路径下的所有普通文件（f=file）
+find A -type l                      # 查找符号链接文件（l=link）
+# 执行操作（-exec）, {}代表找到的文件名, \;是-exec的终止符
+find A -name "*a*" -exec ls -l {} \;     # 对找到的每个文件执行ls -l命令
+find A -name "*a*" -exec du -sh {} \;    # 显示找到文件的大小
+find A -type f -exec wc -l {} \;          # 统计所有文件的行数
+# 更多查找条件
+find A -size +100M                  # 查找大于100MB的文件
+find A -size -1k                    # 查找小于1KB的文件
+find A -mtime -7                    # 查找7天内修改的文件
+find A -name "*.txt" -mtime +30     # 查找30天前的txt文件
+# 组合条件
+find A -name "*.log" -size +10M     # 查找大于10MB的log文件
+find A -type f -name "*.tmp" -delete # 查找并删除所有.tmp文件
+# 生物信息学应用示例：
+find /data -name "*.fasta" -size 0 -delete    # 删除空的fasta文件
+find /analysis -name "*.log" -mtime +30       # 查找30天前的日志文件
+find /genome -type d -exec chmod 755 {} \;    # 给所有目录设置755权限
+```
+
+#### which
+
+`which` 命令用来查找可执行程序的完整路径，告诉你系统在哪里找到了某个命令。
+
+```bash
+# 查找单个命令的位置
+which python                    # 显示python命令的完整路径，如 /usr/bin/python
+```
+
+#### basename
 
 `basename` 是用来从路径中提取文件名，或者去掉文件后缀的命令。
 
@@ -258,53 +222,103 @@ basename /home/user/data/genome.fasta .fasta    # 显示 genome
 basename sample.tar.gz .tar.gz                  # 显示 sample
 ```
 
-`head` 和 `tail` 是用来查看文件开头和结尾部分内容的命令，在查看大文件时非常有用。
+#### split
+
+`split` 是用来将大文件拆分成多个小文件的工具，常用于处理大型数据文件，便于传输和处理。
 
 ```bash
-# head：查看文件开头部分
-head -n 20 A                # 显示文件A的前20行
-head A                      # 不指定行数时，默认显示前10行
-head -20 A                  # 也可以省略-n，直接写数字
-# tail：查看文件结尾部分  
-tail -n 20 A                # 显示文件A的最后20行
-tail A                      # 不指定行数时，默认显示最后10行
-tail -20 A                  # 也可以省略-n，直接写数字
-# 实用场景：
-head -5 sample.fasta        # 快速查看fasta文件格式和前几条序列
-tail -100 analysis.log      # 查看分析日志的最后100行，检查是否出错
-# tail的特殊用法：
-tail -f analysis.log        # 实时监控日志文件变化（程序运行时查看输出）
-tail -f +1 A                # 从第1行开始持续显示文件内容
-# 组合使用：
-head -100 A | tail -10      # 显示第91-100行内容
+# 按文件大小拆分（保持行完整性）
+split -C 1M A.fasta nc_ -a 1 --numeric-suffixes=1 --additional-suffix=.fasta
+# 将A.fasta拆分成1M大小的文件，命名为nc_1.fasta, nc_2.fasta...
+# -C: 按大小拆分但保持行完整性
+# -a 1: 后缀只用1个字符
+# --numeric-suffixes=1: 从数字1开始命名生成文件
+# --additional-suffix=.fasta: 生成文件添加.fasta后缀
+# 按文件大小拆分（精确切割，可能断行）
+split -b 1M A.fasta nc_ -a 2 -d --additional-suffix=.fasta
+# -b: 严格按大小拆分，可能会在行中间切割
+# -d: 使用数字后缀，从0开始（等同于--numeric-suffixes=0）
+# 按行数拆分
+split -l 1000 A.fasta nc_ -a 1 --numeric-suffixes=1 --additional-suffix=.fasta
+# 每1000行拆分成一个文件
+split -l 1 A.fasta nc_ -a 1 --numeric-suffixes=1 --additional-suffix=.fasta
+# 每行拆分成一个文件，每个文件只有一行
+# 大小单位说明
+split -C 500K file.txt part_
+split -C 2G file.txt part_  
+split -C 1T file.txt part_
+# 支持单位：K M G T P E Z Y
+# 后缀格式控制
+split -l 1000 file.txt part_ -a 3 -d
+# 生成part_000, part_001, part_002...（3位数字后缀）
+split -l 1000 file.txt part_ -a 2
+# 生成part_aa, part_ab, part_ac...（2位字母后缀，默认）
+# 生物信息学应用示例：
+# 拆分大型FASTA文件
+split -C 100M genome.fasta chr_ -a 2 -d --additional-suffix=.fasta
+# 生成chr_00.fasta, chr_01.fasta...
+# 拆分FASTQ文件（按reads数量）
+split -l 40000 reads.fastq sample_ -a 3 --numeric-suffixes=1 --additional-suffix=.fastq
+# 每10000条reads一个文件（FASTQ每条reads占4行）
+# 拆分基因列表
+split -l 100 gene_list.txt batch_ -a 2 -d --additional-suffix=.txt
+# 每100个基因一个批次文件
+# 拆分大型表达矩阵
+split -C 50M expression_matrix.txt matrix_part_ -a 2 --numeric-suffixes=1 --additional-suffix=.tsv
+# 与其他命令结合使用
+# 统计拆分后的文件
+ls part_* | wc -l                # 统计拆分出多少个文件
+wc -l part_*                     # 统计每个文件的行数
+# 重新合并文件
+cat part_* > merged_file.txt     # 按字母/数字顺序合并
+# 实用技巧：
+# 1. -C比-b更适合处理文本文件，因为保持行完整性
+# 2. 处理生物序列文件时建议用-C避免序列被截断
+# 3. -a参数要根据预期的拆分文件数量来设置，避免后缀不够用
 ```
 
-管道符 `|` 是将前一个命令的输出传递给后一个命令作为输入，重定向符`> <`是将命令的输出保存到文件或从文件读取输入。
+#### 压缩与解压
+
+压缩与解压是Linux中常用的文件管理操作，可以节省存储空间和加快文件传输速度。
 
 ```bash
-# 管道符 | ：将前一个命令的输出传给后一个命令
-ls -l | grep ".txt"         # 先列出文件，再筛选出.txt文件
-cat file.fasta | head -10   # 先显示文件内容，再取前10行
-history | grep ssh          # 先显示历史命令，再搜索包含ssh的命令
-# 多个管道连用
-cat data.txt | grep "sample" | wc -l    # 统计包含"sample"的行数
-# 重定向符：
-# > 输出重定向（覆盖文件）
-ls -l > file_list.txt       # 将文件列表保存到文件中
-echo "Hello" > output.txt   # 将文本写入文件（覆盖原内容）
-# >> 输出追加重定向
-echo "World" >> output.txt  # 将文本追加到文件末尾
-ls >> log.txt               # 将文件列表追加到日志文件
-# < 输入重定向
-wc -l < data.txt            # 从文件读取内容并统计行数
-# 2> 错误信息重定向
-ls /nonexistent 2> error.log    # 将错误信息保存到文件
-ls /nonexistent 2>/dev/null     # 将错误信息丢弃（不显示）
-# &> 所有输出重定向
-command &> all_output.txt   # 将正常输出和错误信息都保存到文件
-# 实用组合：
-grep "gene" *.fasta | head -20 > results.txt    # 搜索基因信息并保存前20个结果
+# zip格式（跨平台兼容性好）
+zip -r A.zip A                          # 将A文件夹递归压缩成A.zip格式
+unzip A.zip                             # 解压A.zip文件，直接生成原文件夹
+# gzip格式（Linux最常用）
+gzip A                                  # 压缩文件A，生成A.gz，原文件被删除
+gzip -d A.gz                            # 解压.gz文件，原压缩文件被删除
+gunzip A.gz                             # 同上，解压.gz文件
+gunzip -c A.gz > A                      # 解压并重定向输出，保留原压缩文件
+# tar打包（常与gzip结合使用）
+tar cvzf A.tar.gz A                     # 将A文件夹打包压缩成A.tar.gz
+tar xvzf A.tgz                          # 解压.tgz或.tar.gz文件到当前目录
+tar -cI 'gzip -9' -f A.tar.gz A         # 使用最高压缩级别打包
+# tar参数说明：
+# c=创建打包  x=解压  v=显示详细过程  f=指定文件名
+# z=使用gzip  j=使用bzip2 J=使用xz 
+# t=列出内容  r=追加文件
+# pigz（gzip的多线程版本，速度更快），系统不自带，需自行下载
+pigz -p 4 -k -6 A                       # -p 4用4线程压缩文件A，-k保留原文件，-6压缩级别6
+tar cf - A | pigz -p 4 -6 > A.tar.gz    # 打包并用pigz压缩文件夹
+pigz -d -p 4 A.gz                       # 用4线程解压.gz文件
+# 多线程压缩时pigz将数据分块，每个线程压缩一个块，生成多块gzip格式。只有用pigz多线程压缩生成的gzip文件，才能真正实现多线程解压。
+# 特殊用法
+tar --no-same-owner -xvf archive.tar    # 解压时不保留原文件所有者，使用当前用户
+# 压缩级别说明：
+# 1-9：数字越大压缩率越高，但耗时越长
+# 默认通常是6，最高是9，pigz有更高的压缩等级10，更加耗时但不会明显提高压缩率，不推荐
+# 生物信息学常用场景：
+gzip *.fastq                            	 # 压缩所有测序文件
+tar cvzf analysis_results.tar.gz results/    # 打包分析结果
+pigz -p 8 -k large_genome.fasta         	 # 多线程压缩大基因组文件
+# 查看压缩文件内容（不解压）
+tar -tvf archive.tar.gz                 	 # 列出tar.gz文件内容
+zcat file.gz                            	 # 直接查看.gz文件内容
+# 如果觉得以上命令太过复杂，可以安装ouch软件
 ```
+
+#### 文件权限
 
 Linux文件权限是控制谁可以对文件进行什么操作的安全机制。
 
@@ -343,36 +357,161 @@ setfacl -x u:username file.txt      # 删除特定用户的ACL权限
 getfacl file.txt                    # 查看文件的ACL权限设置
 ```
 
-Linux可以将耗时的命令放在后台运行，这样不会阻塞终端，可以继续执行其他操作。
+#### cat
+
+`cat`是用来查看和显示文件内容的命令，也可以用来合并文件。
 
 ```bash
-# 后台运行命令
-command 1>std 2>err &       # 将command放到后台运行
-                            # 1>std: 正常输出重定向到std文件
-                            # 2>err: 错误信息重定向到err文件
-                            # &: 放到后台执行
-                            # 注意：如果command内部已有重定向，这里的1>std会覆盖它
-nohup command &             # 使用nohup在后台执行命令
-                            # 正常输出和错误都重定向到nohup.out文件
-                            # 不会覆盖command内部的输出重定向
-                            # 即使关闭终端，程序也会继续运行
-# 查看后台任务
-top                         # 查看系统所有进程状态（按q退出）
-htop                        # top的增强版，界面更友好，部分系统不自带，需要自行安装
-top -u eleanor           	# 只查看指定用户eleanor的进程
-jobs                        # 查看当前终端启动的后台任务状态
-jobs -l                     # 显示后台任务的详细信息，包括jobID
-ps aux                      # 显示系统所有进程详细信息
-                            # a=所有进程 u=显示用户 x=包括无终端进程
-ps jobID                    # 显示指定ID进程的详细信息（运行时间、命令等）
-pwdx jobID                  # 显示指定ID进程的工作目录路径
-# 终止后台任务
-kill jobID                  # 温和地终止指定ID的后台任务
-kill -9 jobID               # 强制终止指定ID的后台任务（无法拒绝）
-# htop中终止任务：在htop界面中选择进程，按F9键，选择15 SIGTERM（温和终止）或9 SIGKILL（强制终止）
-# 实用示例：
-nohup python analysis.py > result.log 2>&1 &    # 后台运行Python分析，所有输出保存到result.log
+# 查看文件内容
+cat file.txt
+# 查看多个文件内容（按顺序显示）
+cat file1.txt file2.txt
+# 显示行号
+cat -n file.txt
+# 合并多个文件并保存到新文件
+cat file1.txt file2.txt > merged.txt
+# 将内容追加到文件
+cat file1.txt >> existing_file.txt
+# 查看文件并显示特殊字符（如制表符、换行符）
+cat -A file.txt
+# 创建新文件并输入内容（按Ctrl+D结束输入）
+cat > new_file.txt
+# 查看大文件的前几行（通常用head命令更合适）
+cat large_file.txt | head -10
 ```
+
+#### head / tail
+
+`head` 和 `tail` 是用来查看文件开头和结尾部分内容的命令，在查看大文件时非常有用。
+
+```bash
+# head：查看文件开头部分
+head -n 20 A                # 显示文件A的前20行
+head A                      # 不指定行数时，默认显示前10行
+head -20 A                  # 也可以省略-n，直接写数字
+# tail：查看文件结尾部分  
+tail -n 20 A                # 显示文件A的最后20行
+tail A                      # 不指定行数时，默认显示最后10行
+tail -20 A                  # 也可以省略-n，直接写数字
+# 实用场景：
+head -5 sample.fasta        # 快速查看fasta文件格式和前几条序列
+tail -100 analysis.log      # 查看分析日志的最后100行，检查是否出错
+# tail的特殊用法：
+tail -f analysis.log        # 实时监控日志文件变化（程序运行时查看输出）
+tail -f +1 A                # 从第1行开始持续显示文件内容
+# 组合使用：
+head -100 A | tail -10      # 显示第91-100行内容
+```
+
+#### echo
+
+`echo`是用来在终端输出（显示）文本内容的命令，相当于编程语言中的print功能。
+
+```bash
+# 输出简单文本
+echo "Hello World"
+# 输出变量内容
+echo $HOME                      # 显示家目录路径
+echo $USER                      # 显示当前用户名
+# 将内容写入文件（覆盖原内容）
+echo "sample data" > output.txt
+# 将内容追加到文件末尾
+echo "new line" >> output.txt
+# 输出多行内容
+echo -e "A\nB\nC"     # -e启用转义字符解释
+# 不换行输出
+echo -n "abc"
+# 创建简单的配置文件
+echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc
+# 大括号展开（批量生成序列）
+echo a{1..100}                  # 输出 a1 a2 a3 a4 ...... a100
+echo file{1..5}.txt             # 输出 file1.txt file2.txt file3.txt file4.txt file5.txt
+echo {A..Z}                     # 输出 A B C D ...... Z
+echo test{001..010}             # 输出 test001 test002 ...... test010
+```
+
+#### vim
+
+`vim`是Linux系统中的文本编辑器，按`i`进入编辑模式，按`Esc`退出编辑模式，输入`:wq`保存并退出。
+
+```bash
+# 用vim编辑器打开文件A(后续内容中的A也是如此，不再赘述)，如果文件不存在会自动创建
+vim A
+# 在vim中的复制粘贴操作：按v键进入选择模式，移动光标选中要复制的内容。按y键复制选中的内容，自动回到普通模式，移动光标到想粘贴的位置，按p键粘贴
+# 编辑系统配置文件（以.开头的文件是隐藏的系统配置文件，很重要不能乱动）
+vim ~/.bashrc
+```
+
+#### gpg
+
+`gpg`是用来加密和解密文件的工具，可以给重要文件设置密码保护。
+
+```bash
+# 用密码xxxxxxxx加密文件A，生成加密文件A.gpg
+gpg --batch --yes --passphrase 'xxxxxxxx' -c A                  
+# 用密码xxxxxxxx解密文件A.gpg，输出解密内容到文件A
+gpg --batch --yes --passphrase 'xxxxxxxx' -d A.gpg > A          
+# 可以省略--batch --yes --passphrase参数，这样会弹出密码输入框手动输入
+# 手动输入更安全但不能批量处理，命令行直接写密码可以批量处理但安全性较低
+```
+
+#### ssh
+
+`ssh`是用于远程连接服务器的命令，如下：
+
+```bash
+# 以用户eleanor连接到IP地址为31.41.59.26的服务器，使用22端口（22是SSH默认端口，可省略-p 22）
+ssh eleanor@31.41.59.26 -p 22
+```
+
+#### sftp
+
+`sftp`是用来在本地和远程服务器之间安全传输文件的命令
+
+```bash
+# 连接到服务器的文件传输界面
+sftp eleanor@31.41.59.26
+# 使用sftp连接上服务器，可执行以下命令
+# 把本地电脑的A文件夹整个上传到服务器并重命名为B文件夹（-R表示递归传输整个文件夹）
+put -R Adir Bdir                
+# 把服务器的A文件夹整个下载到本地电脑并重命名为B文件夹
+get -R Adir Bdir
+# 不同终端软件功能不同
+# iTerm2支持通配符*，可以批量传输文件，比如 get *.fasta
+# Xshell不支持通配符，只能传单个文件
+# 如果文件很多，可以先打包成.tar.gz再传输，或者直接用Xftp软件图形化操作界面批量拖拽文件
+```
+
+#### 管道与重定向
+
+管道符 `|` 是将前一个命令的输出传递给后一个命令作为输入，重定向符`> <`是将命令的输出保存到文件或从文件读取输入。
+
+```bash
+# 管道符 | ：将前一个命令的输出传给后一个命令
+ls -l | grep ".txt"         # 先列出文件，再筛选出.txt文件
+cat file.fasta | head -10   # 先显示文件内容，再取前10行
+history | grep ssh          # 先显示历史命令，再搜索包含ssh的命令
+# 多个管道连用
+cat data.txt | grep "sample" | wc -l    # 统计包含"sample"的行数
+# 重定向符：
+# > 输出重定向（覆盖文件）
+ls -l > file_list.txt       # 将文件列表保存到文件中
+echo "Hello" > output.txt   # 将文本写入文件（覆盖原内容）
+# >> 输出追加重定向
+echo "World" >> output.txt  # 将文本追加到文件末尾
+ls >> log.txt               # 将文件列表追加到日志文件
+# < 输入重定向
+wc -l < data.txt            # 从文件读取内容并统计行数
+# 2> 错误信息重定向
+ls /nonexistent 2> error.log    # 将错误信息保存到文件
+ls /nonexistent 2>/dev/null     # 将错误信息丢弃（不显示）
+# &> 所有输出重定向
+command &> all_output.txt   # 将正常输出和错误信息都保存到文件
+# 实用组合：
+grep "gene" *.fasta | head -20 > results.txt    # 搜索基因信息并保存前20个结果
+```
+
+#### 命令嵌套与参数传递
 
 Linux可以将一个命令的输出结果作为另一个命令的参数，我称之为命令嵌套和参数传递。
 
@@ -403,72 +542,43 @@ find -name "M*gz" | grep -v "rmhost" | xargs seqkit stat -a -j 32
 # 4. 如果不使用占位符，xargs会把所有的内容一次性全部传递给后面的命令
 ```
 
-`awk` 是Linux中强大的文本处理工具，专门用于处理结构化数据（如表格），可以提取列、计算、筛选和格式化数据。
+#### grep
+
+`grep` 是Linux中的文本搜索工具，用来在文件中查找匹配指定模式的行，支持正则表达式。
 
 ```bash
-# awk基本用法（awk和gawk功能相同，gawk是awk的增强版）
-# 提取指定列
-awk '{print $1}' A                                              # 提取A文件的第一列，默认用空格分隔
-awk '{print $1, $3}' A                                          # 提取第一列和第三列
-# 指定分隔符
-awk -F '>' '{print $1}' A                                       # 用>作为分隔符
-awk -F '\\.e' '{print $1}' A                                    # 用.e作为分隔符，.需要转义成\\.
-awk -F[:\\t] '{if($4>=60){print ($9/$11)}else{print 0}}' A.txt  # 用:或制表符\t作为分隔符，[:\\t]表示多种分隔符
-# 指定输出格式
-awk 'BEGIN {OFS = ","} {print $1, $3}' filename                 # 用逗号作为输出分隔符
-# 特殊字段变量
-awk -F '/' '{print $NF}' A                                      # $NF表示最后一个字段
-                                                                # $0=整行 $1=第一列 $NR=行号
-# 数据处理
-awk '!a[$1]++{print}' A                                         # 根据第一列去重（去除重复行）
-awk '{sum+=$1}'END'{print sum}'                                 # 对第一列数字求和
-awk '{ print "Line " NR ": Length = " length($0) }' A           # 输出每行的长度
-# 条件筛选
-awk 'NR%3==2' tmp1.txt                                          # 输出行号除以3余数为2的行
-awk '{if($4>=60){print ($9/$11)}else{print 0}}' A               # 条件判断：第4列>=60就计算比值
-# 输出指定范围的列
-awk '{for(i=3;i<=NF;i++) printf $i"\t"; print ""}' filename     # 输出第3列到最后一列
-awk '{$1=$2=""; print $0}' filename                             # 将前两列置空，输出其余列
-# 传递变量
-for((i=1;i<=100;i++)); do awk -v a=$i '{print $a}' A; done     # 用-v传递变量，提取第1-100列
+# grep基本用法
+grep "a" A                          # 在A文件中匹配包含字母a的每一行
+# 正则表达式使用（需要注意转义）
+grep "0\.8" A                       # 匹配包含0.8的行，\.表示字面意思的点号
+grep "0.8" A                        # .是正则通配符，匹配0加任意字符加8（如008、018、0x8等）
+# 上下文输出
+grep "a" -A 1 A                     # 匹配包含a的行，并输出该行和下一行(-A 1表示after 1行)
+grep "a" -B 2 A                     # 输出匹配行和前2行(-B表示before)
+grep "a" -C 3 A                     # 输出匹配行和前后各3行(-C表示context)
+# 反向匹配
+grep "a" -v A                       # 输出不包含a的行(-v表示取反)
+# 从文件读取匹配模式
+grep -wf A B                        # 在B文件中匹配A文件的每一行内容，A应为B的子集
+                                    # -w表示精确匹配整个单词，-f表示从文件读取模式
+grep -wvf A B                       # 在B中查找不匹配A文件内容的行（取反）
+# 使用Perl正则表达式
+grep -P "a\db" A                    # 匹配a和b之间有一个数字的行
+                                    # -P启用Perl正则，\d表示数字，不加-P则\d被视为普通字符
+# 只输出文件名
+grep -l "a" *                       # 在当前目录查找内容包含a的文件，只输出文件名
+# 其他常用选项
+grep -i "Hello" A                   # 忽略大小写匹配
+grep -n "pattern" A                 # 显示匹配行的行号
+grep -c "pattern" A                 # 只显示匹配行的数量
+grep -r "pattern" directory/        # 递归搜索目录下的所有文件
 # 生物信息学应用示例：
-awk -F '\t' '{if($3=="gene") print $1,$4,$5}' annotation.gff    # 从GFF文件提取基因信息
-awk '{if(length($2)>50) print $1}' sequences.fasta             # 筛选长度大于50的序列ID
+grep ">" sequences.fasta            # 查找FASTA文件中的序列头
+grep -c "^>" sequences.fasta        # 统计FASTA文件中的序列数量
+grep -v "^#" annotation.gff         # 过滤掉GFF文件中的注释行
 ```
 
-`cut` 是用来从文件中提取指定列或字符位置内容的工具，常用于处理结构化数据文件。
-
-```bash
-# 按列提取（默认制表符分隔）
-cut -f1 A                           # 提取A文件的第1列
-cut -f1,3 A                         # 提取第1列和第3列
-cut -f1-3 A                         # 提取第1到3列
-cut -f1,3-5 A                       # 提取第1列和第3到5列
-# 指定分隔符
-cut -d, -f1 A                       # 用逗号作为分隔符，提取第1列
-cut -d: -f1,3 /etc/passwd           # 用冒号分隔，提取用户名和用户ID
-cut -d' ' -f2 A                     # 用空格作为分隔符
-# 按字符位置提取
-cut -c1-10 A                        # 提取每行的第1到10个字符
-cut -c1,5,9 A                       # 提取第1、5、9个字符
-cut -c-5 A                          # 提取每行前5个字符
-cut -c10- A                         # 提取第10个字符到行尾
-# 排除指定列
-cut --complement -f2 A              # 提取除第2列外的所有列
-# 指定输出分隔符
-cut -d, -f1,3 --output-delimiter=: A    # 输入用逗号分隔，输出用冒号分隔
-# 实用示例：
-cut -f1 gene_list.txt > gene_names.txt         # 提取基因列表的第一列
-cut -d, -f2,4 sample_data.csv                  # 从CSV文件提取第2和4列
-cut -c1-20 sequences.fasta                     # 提取序列的前20个字符
-# 生物信息学应用：
-cut -f1,4,5 annotation.gff > gene_coords.txt   # 从GFF文件提取基因坐标
-cut -d'|' -f2 protein_ids.txt                  # 从蛋白质ID中提取特定部分
-cut -f2- expression_matrix.txt                 # 提取表达矩阵的数据列（去掉基因名）
-# 与其他命令结合：
-ls -l | cut -d' ' -f1,9                        # 提取文件权限和文件名
-cat /etc/passwd | cut -d: -f1,3               # 提取用户名和用户ID
-```
+#### sed
 
 `sed` 是Linux中的流编辑器，用来对文本进行查找、替换、删除等编辑操作，支持正则表达式。
 
@@ -512,72 +622,78 @@ sed '/^>/!d' sequences.fasta        # 只保留序列头（以>开头的行）
 sed 's/T/U/g' dna.txt              # 将DNA序列中的T替换为U（转录）
 ```
 
-`grep` 是Linux中的文本搜索工具，用来在文件中查找匹配指定模式的行，支持正则表达式。
+#### awk
+
+`awk` 是Linux中强大的文本处理工具，专门用于处理结构化数据（如表格），可以提取列、计算、筛选和格式化数据。
 
 ```bash
-# grep基本用法
-grep "a" A                          # 在A文件中匹配包含字母a的每一行
-# 正则表达式使用（需要注意转义）
-grep "0\.8" A                       # 匹配包含0.8的行，\.表示字面意思的点号
-grep "0.8" A                        # .是正则通配符，匹配0加任意字符加8（如008、018、0x8等）
-# 上下文输出
-grep "a" -A 1 A                     # 匹配包含a的行，并输出该行和下一行(-A 1表示after 1行)
-grep "a" -B 2 A                     # 输出匹配行和前2行(-B表示before)
-grep "a" -C 3 A                     # 输出匹配行和前后各3行(-C表示context)
-# 反向匹配
-grep "a" -v A                       # 输出不包含a的行(-v表示取反)
-# 从文件读取匹配模式
-grep -wf A B                        # 在B文件中匹配A文件的每一行内容，A应为B的子集
-                                    # -w表示精确匹配整个单词，-f表示从文件读取模式
-grep -wvf A B                       # 在B中查找不匹配A文件内容的行（取反）
-# 使用Perl正则表达式
-grep -P "a\db" A                    # 匹配a和b之间有一个数字的行
-                                    # -P启用Perl正则，\d表示数字，不加-P则\d被视为普通字符
-# 只输出文件名
-grep -l "a" *                       # 在当前目录查找内容包含a的文件，只输出文件名
-# 其他常用选项
-grep -i "Hello" A                   # 忽略大小写匹配
-grep -n "pattern" A                 # 显示匹配行的行号
-grep -c "pattern" A                 # 只显示匹配行的数量
-grep -r "pattern" directory/        # 递归搜索目录下的所有文件
+# awk基本用法（awk和gawk功能相同，gawk是awk的增强版）
+# 提取指定列
+awk '{print $1}' A                                              # 提取A文件的第一列，默认用空格分隔
+awk '{print $1, $3}' A                                          # 提取第一列和第三列
+# 指定分隔符
+awk -F '>' '{print $1}' A                                       # 用>作为分隔符
+awk -F '\\.e' '{print $1}' A                                    # 用.e作为分隔符，.需要转义成\\.
+awk -F[:\\t] '{if($4>=60){print ($9/$11)}else{print 0}}' A.txt  # 用:或制表符\t作为分隔符，[:\\t]表示多种分隔符
+# 指定输出格式
+awk 'BEGIN {OFS = ","} {print $1, $3}' filename                 # 用逗号作为输出分隔符
+# 特殊字段变量
+awk -F '/' '{print $NF}' A                                      # $NF表示最后一个字段
+                                                                # $0=整行 $1=第一列 $NR=行号
+# 数据处理
+awk '!a[$1]++{print}' A                                         # 根据第一列去重（去除重复行）
+awk '{sum+=$1}'END'{print sum}'                                 # 对第一列数字求和
+awk '{ print "Line " NR ": Length = " length($0) }' A           # 输出每行的长度
+# 条件筛选
+awk 'NR%3==2' tmp1.txt                                          # 输出行号除以3余数为2的行
+awk '{if($4>=60){print ($9/$11)}else{print 0}}' A               # 条件判断：第4列>=60就计算比值
+# 输出指定范围的列
+awk '{for(i=3;i<=NF;i++) printf $i"\t"; print ""}' filename     # 输出第3列到最后一列
+awk '{$1=$2=""; print $0}' filename                             # 将前两列置空，输出其余列
+# 传递变量
+for((i=1;i<=100;i++)); do awk -v a=$i '{print $a}' A; done     # 用-v传递变量，提取第1-100列
 # 生物信息学应用示例：
-grep ">" sequences.fasta            # 查找FASTA文件中的序列头
-grep -c "^>" sequences.fasta        # 统计FASTA文件中的序列数量
-grep -v "^#" annotation.gff         # 过滤掉GFF文件中的注释行
+awk -F '\t' '{if($3=="gene") print $1,$4,$5}' annotation.gff    # 从GFF文件提取基因信息
+awk '{if(length($2)>50) print $1}' sequences.fasta             # 筛选长度大于50的序列ID
 ```
 
-`find` 是Linux中用来查找文件和目录的强大工具，可以根据文件名、大小、类型等条件递归搜索。
+#### cut
+
+`cut` 是用来从文件中提取指定列或字符位置内容的工具，常用于处理结构化数据文件。
 
 ```bash
-# 根据文件大小查找
-find A -size 0                       # 递归查找A路径下大小为0的文件
-find A -maxdepth 1 -size 0           # 仅在A路径中查找大小为0的文件，不搜索子目录
-find A -maxdepth 1 -size 0 -delete   # 查找并删除A路径下大小为0的文件（-maxdepth要放在前面）
-# 根据文件名查找
-find A -name "*a*"                  # 递归查找A路径下名字包含a的文件
-find A ! -name "*a*"                # 查找名字不包含a的文件
-find A -not -name "*a*"             # 同上，另一种写法
-# 根据文件类型查找
-find A -type d                      # 递归查找A路径下的所有目录（d=directory）
-find A -type f                      # 递归查找A路径下的所有普通文件（f=file）
-find A -type l                      # 查找符号链接文件（l=link）
-# 执行操作（-exec）, {}代表找到的文件名, \;是-exec的终止符
-find A -name "*a*" -exec ls -l {} \;     # 对找到的每个文件执行ls -l命令
-find A -name "*a*" -exec du -sh {} \;    # 显示找到文件的大小
-find A -type f -exec wc -l {} \;          # 统计所有文件的行数
-# 更多查找条件
-find A -size +100M                  # 查找大于100MB的文件
-find A -size -1k                    # 查找小于1KB的文件
-find A -mtime -7                    # 查找7天内修改的文件
-find A -name "*.txt" -mtime +30     # 查找30天前的txt文件
-# 组合条件
-find A -name "*.log" -size +10M     # 查找大于10MB的log文件
-find A -type f -name "*.tmp" -delete # 查找并删除所有.tmp文件
-# 生物信息学应用示例：
-find /data -name "*.fasta" -size 0 -delete    # 删除空的fasta文件
-find /analysis -name "*.log" -mtime +30       # 查找30天前的日志文件
-find /genome -type d -exec chmod 755 {} \;    # 给所有目录设置755权限
+# 按列提取（默认制表符分隔）
+cut -f1 A                           # 提取A文件的第1列
+cut -f1,3 A                         # 提取第1列和第3列
+cut -f1-3 A                         # 提取第1到3列
+cut -f1,3-5 A                       # 提取第1列和第3到5列
+# 指定分隔符
+cut -d, -f1 A                       # 用逗号作为分隔符，提取第1列
+cut -d: -f1,3 /etc/passwd           # 用冒号分隔，提取用户名和用户ID
+cut -d' ' -f2 A                     # 用空格作为分隔符
+# 按字符位置提取
+cut -c1-10 A                        # 提取每行的第1到10个字符
+cut -c1,5,9 A                       # 提取第1、5、9个字符
+cut -c-5 A                          # 提取每行前5个字符
+cut -c10- A                         # 提取第10个字符到行尾
+# 排除指定列
+cut --complement -f2 A              # 提取除第2列外的所有列
+# 指定输出分隔符
+cut -d, -f1,3 --output-delimiter=: A    # 输入用逗号分隔，输出用冒号分隔
+# 实用示例：
+cut -f1 gene_list.txt > gene_names.txt         # 提取基因列表的第一列
+cut -d, -f2,4 sample_data.csv                  # 从CSV文件提取第2和4列
+cut -c1-20 sequences.fasta                     # 提取序列的前20个字符
+# 生物信息学应用：
+cut -f1,4,5 annotation.gff > gene_coords.txt   # 从GFF文件提取基因坐标
+cut -d'|' -f2 protein_ids.txt                  # 从蛋白质ID中提取特定部分
+cut -f2- expression_matrix.txt                 # 提取表达矩阵的数据列（去掉基因名）
+# 与其他命令结合：
+ls -l | cut -d' ' -f1,9                        # 提取文件权限和文件名
+cat /etc/passwd | cut -d: -f1,3               # 提取用户名和用户ID
 ```
+
+#### paste
 
 `paste` 是用来将多个文件按行对行拼接合并的工具，就像把两张表格并排放在一起。
 
@@ -602,6 +718,8 @@ paste -d, gene_ids.txt expression_values.txt        # 制作CSV格式的基因�
 # 与其他命令结合：
 paste <(ls *.fasta) <(wc -l *.fasta)               # 列出文件名和对应的行数
 ```
+
+#### sort
 
 `sort` 是用来对文件内容按行进行排序的工具，可以按字母、数字、指定列等多种方式排序。
 
@@ -635,6 +753,8 @@ sort -k1,1 -k2,2nr results.txt      # 先按样本名排序，再按数值倒序
 sort -k1,1 -k4,4n annotation.gff    # GFF文件按染色体和位置排序
 sort -nr -k6 blast_results.txt      # BLAST结果按得分倒序排列
 ```
+
+#### uniq
 
 `uniq` 是用来处理重复行的工具，可以去除相邻的重复行、统计重复次数。uniq只能处理相邻的重复行，所以通常先用sort排序。如果要处理整个文件的重复行，必须先排序。
 
@@ -670,6 +790,8 @@ cat *.txt | sort | uniq -c > word_count.txt            # 统计词频
 sort protein_ids.txt | uniq -u > unique_proteins.txt   # 提取唯一蛋白质
 ```
 
+#### shuf
+
 `shuf` 是用来随机打乱文件行顺序的工具，常用于随机抽样和数据随机化，每行内容保持不变。`shuf` 每次运行结果都不同（真随机）
 
 ```bash
@@ -698,62 +820,84 @@ shuf patient_data.txt -n 200 > training_set.txt         # 随机选择200个患�
 cat *.fastq | shuf > shuffled_reads.fastq               # 随机打乱测序reads顺序
 ```
 
-压缩与解压是Linux中常用的文件管理操作，可以节省存储空间和加快文件传输速度。
+#### expr / bc
+
+Linux系统不能直接进行数学运算，需要使用 `expr` 命令进行整数运算，或使用 `bc` 命令进行小数运算。
 
 ```bash
-# zip格式（跨平台兼容性好）
-zip -r A.zip A                          # 将A文件夹递归压缩成A.zip格式
-unzip A.zip                             # 解压A.zip文件，直接生成原文件夹
-# gzip格式（Linux最常用）
-gzip A                                  # 压缩文件A，生成A.gz，原文件被删除
-gzip -d A.gz                            # 解压.gz文件，原压缩文件被删除
-gunzip A.gz                             # 同上，解压.gz文件
-gunzip -c A.gz > A                      # 解压并重定向输出，保留原压缩文件
-# tar打包（常与gzip结合使用）
-tar cvzf A.tar.gz A                     # 将A文件夹打包压缩成A.tar.gz
-tar xvzf A.tgz                          # 解压.tgz或.tar.gz文件到当前目录
-tar -cI 'gzip -9' -f A.tar.gz A         # 使用最高压缩级别打包
-# tar参数说明：
-# c=创建打包  x=解压  v=显示详细过程  f=指定文件名
-# z=使用gzip  j=使用bzip2 J=使用xz 
-# t=列出内容  r=追加文件
-# pigz（gzip的多线程版本，速度更快），系统不自带，需自行下载
-pigz -p 4 -k -6 A                       # -p 4用4线程压缩文件A，-k保留原文件，-6压缩级别6
-tar cf - A | pigz -p 4 -6 > A.tar.gz    # 打包并用pigz压缩文件夹
-pigz -d -p 4 A.gz                       # 用4线程解压.gz文件
-# 多线程压缩时pigz将数据分块，每个线程压缩一个块，生成多块gzip格式。只有用pigz多线程压缩生成的gzip文件，才能真正实现多线程解压。
-# 特殊用法
-tar --no-same-owner -xvf archive.tar    # 解压时不保留原文件所有者，使用当前用户
-# 压缩级别说明：
-# 1-9：数字越大压缩率越高，但耗时越长
-# 默认通常是6，最高是9，pigz有更高的压缩等级10，更加耗时但不会明显提高压缩率，不推荐
-# 生物信息学常用场景：
-gzip *.fastq                            	 # 压缩所有测序文件
-tar cvzf analysis_results.tar.gz results/    # 打包分析结果
-pigz -p 8 -k large_genome.fasta         	 # 多线程压缩大基因组文件
-# 查看压缩文件内容（不解压）
-tar -tvf archive.tar.gz                 	 # 列出tar.gz文件内容
-zcat file.gz                            	 # 直接查看.gz文件内容
-# 如果觉得以上命令太过复杂，可以安装ouch软件
+# expr命令：整数运算
+expr 1 + 1                 # 加法运算，结果为2
+expr 1 \* 2                # 乘法运算，结果为2，*前需要加\避免被视为通配符
+expr 1 / 2                 # 除法运算，结果为0（整数除法）
+expr 1 % 2                 # 取余运算，结果为1
+expr $a + $b               # 将变量a和b相加
+# bc命令：支持小数运算
+echo "scale=2; 1/3" | bc   # scale=2表示保留2位小数，结果为0.33
+echo "1/3" | bc -l         # -l使用标准库支持小数运算，结果为0.33333333333333333333
+echo "${a}/${b}" | bc      # 将变量a和b相除
+# bc支持的运算符：+ - * / % ^（^表示乘方）
+echo "2^3" | bc            # 2的3次方，结果为8
+echo "scale=3; 22/7" | bc  # 计算π的近似值，保留3位小数
 ```
 
-`ln` 用于创建文件链接（link），类似于 Windows 的快捷方式，但更强大。
+#### watch
+
+`watch` 是用来定期重复执行命令并实时观察输出变化的工具，常用于监控系统状态或任务进度。
 
 ```bash
-# 创建符号链接（软链接）- 最常用，软链接是指向文件路径的指针。类似快捷方式，源文件删除会失效
-ln -s source.txt link.txt
-# -f: 强制覆盖已存在的链接
-ln -sf new_source.txt existing_link.txt 
-# 创建硬链接，硬链接是同一文件的另一个入口，删除源文件不受影响
-ln source.txt link.txt
+# 每隔1秒执行一次指定命令，高亮显示变化部分
+watch -n 1 -d 'A command'   
+# 实用示例：
+# 监控系统资源使用情况
+watch -n 2 -d 'free -h'                    # 每2秒查看内存使用情况
+# 监控目录文件变化
+watch -n 5 -d 'ls -lh /data/analysis/'     # 每5秒查看分析目录文件变化
+# 监控任务队列状态  
+watch -n 3 -d 'qstat'                      # 每3秒查看集群任务状态
+# 监控磁盘使用情况
+watch -n 10 -d 'df -h'                     # 每10秒查看磁盘空间
+# 监控进程状态
+watch -n 1 -d 'ps aux | grep python'       # 监控python进程
+# 参数说明：
+# -n 秒数：设置刷新间隔
+# -d：高亮显示发生变化的部分
+# 按Ctrl+C退出监控
 ```
 
-`which` 命令用来查找可执行程序的完整路径，告诉你系统在哪里找到了某个命令。
+#### 后台运行
+
+Linux可以将耗时的命令放在后台运行，这样不会阻塞终端，可以继续执行其他操作。
 
 ```bash
-# 查找单个命令的位置
-which python                    # 显示python命令的完整路径，如 /usr/bin/python
+# 后台运行命令
+command 1>std 2>err &       # 将command放到后台运行
+                            # 1>std: 正常输出重定向到std文件
+                            # 2>err: 错误信息重定向到err文件
+                            # &: 放到后台执行
+                            # 注意：如果command内部已有重定向，这里的1>std会覆盖它
+nohup command &             # 使用nohup在后台执行命令
+                            # 正常输出和错误都重定向到nohup.out文件
+                            # 不会覆盖command内部的输出重定向
+                            # 即使关闭终端，程序也会继续运行
+# 查看后台任务
+top                         # 查看系统所有进程状态（按q退出）
+htop                        # top的增强版，界面更友好，部分系统不自带，需要自行安装
+top -u eleanor           		# 只查看指定用户eleanor的进程
+jobs                        # 查看当前终端启动的后台任务状态
+jobs -l                     # 显示后台任务的详细信息，包括jobID
+ps aux                      # 显示系统所有进程详细信息
+                            # a=所有进程 u=显示用户 x=包括无终端进程
+ps jobID                    # 显示指定ID进程的详细信息（运行时间、命令等）
+pwdx jobID                  # 显示指定ID进程的工作目录路径
+# 终止后台任务
+kill jobID                  # 温和地终止指定ID的后台任务
+kill -9 jobID               # 强制终止指定ID的后台任务（无法拒绝）
+# htop中终止任务：在htop界面中选择进程，按F9键，选择15 SIGTERM（温和终止）或9 SIGKILL（强制终止）
+# 实用示例：
+nohup python analysis.py > result.log 2>&1 &    # 后台运行Python分析，所有输出保存到result.log
 ```
+
+#### 条件判断
 
 Linux中的条件判断用来根据变量值、文件状态等条件执行不同操作，主要有`[ ]`和`(( ))`两种语法。
 
@@ -824,6 +968,8 @@ if (( a**2 == b )); then echo "1"; else echo "0"; fi    # 幂运算
 # 4. (( ))中变量的$可省略，但建议保留以保持一致性
 ```
 
+#### 循环
+
 Linux中的循环用来重复执行命令，主要有for、while、until三种类型，可以遍历数字、字符、文件内容等。
 
 ```bash
@@ -881,62 +1027,9 @@ do
 done < expression_data.txt
 ```
 
-`split` 是用来将大文件拆分成多个小文件的工具，常用于处理大型数据文件，便于传输和处理。
+## Bioinformatics Software Download, Installation, and Execution
 
-```bash
-# 按文件大小拆分（保持行完整性）
-split -C 1M A.fasta nc_ -a 1 --numeric-suffixes=1 --additional-suffix=.fasta
-# 将A.fasta拆分成1M大小的文件，命名为nc_1.fasta, nc_2.fasta...
-# -C: 按大小拆分但保持行完整性
-# -a 1: 后缀只用1个字符
-# --numeric-suffixes=1: 从数字1开始命名生成文件
-# --additional-suffix=.fasta: 生成文件添加.fasta后缀
-# 按文件大小拆分（精确切割，可能断行）
-split -b 1M A.fasta nc_ -a 2 -d --additional-suffix=.fasta
-# -b: 严格按大小拆分，可能会在行中间切割
-# -d: 使用数字后缀，从0开始（等同于--numeric-suffixes=0）
-# 按行数拆分
-split -l 1000 A.fasta nc_ -a 1 --numeric-suffixes=1 --additional-suffix=.fasta
-# 每1000行拆分成一个文件
-split -l 1 A.fasta nc_ -a 1 --numeric-suffixes=1 --additional-suffix=.fasta
-# 每行拆分成一个文件，每个文件只有一行
-# 大小单位说明
-split -C 500K file.txt part_
-split -C 2G file.txt part_  
-split -C 1T file.txt part_
-# 支持单位：K M G T P E Z Y
-# 后缀格式控制
-split -l 1000 file.txt part_ -a 3 -d
-# 生成part_000, part_001, part_002...（3位数字后缀）
-split -l 1000 file.txt part_ -a 2
-# 生成part_aa, part_ab, part_ac...（2位字母后缀，默认）
-# 生物信息学应用示例：
-# 拆分大型FASTA文件
-split -C 100M genome.fasta chr_ -a 2 -d --additional-suffix=.fasta
-# 生成chr_00.fasta, chr_01.fasta...
-# 拆分FASTQ文件（按reads数量）
-split -l 40000 reads.fastq sample_ -a 3 --numeric-suffixes=1 --additional-suffix=.fastq
-# 每10000条reads一个文件（FASTQ每条reads占4行）
-# 拆分基因列表
-split -l 100 gene_list.txt batch_ -a 2 -d --additional-suffix=.txt
-# 每100个基因一个批次文件
-# 拆分大型表达矩阵
-split -C 50M expression_matrix.txt matrix_part_ -a 2 --numeric-suffixes=1 --additional-suffix=.tsv
-# 与其他命令结合使用
-# 统计拆分后的文件
-ls part_* | wc -l                # 统计拆分出多少个文件
-wc -l part_*                     # 统计每个文件的行数
-# 重新合并文件
-cat part_* > merged_file.txt     # 按字母/数字顺序合并
-# 实用技巧：
-# 1. -C比-b更适合处理文本文件，因为保持行完整性
-# 2. 处理生物序列文件时建议用-C避免序列被截断
-# 3. -a参数要根据预期的拆分文件数量来设置，避免后缀不够用
-```
-
-
-
-### Bioinformatics Software Download, Installation, and Execution
+#### conda / mamba
 
 `conda` (https://github.com/conda/conda) 是跨平台的包管理和环境管理工具，`mamba` (https://github.com/mamba-org/mamba) 是用C++重写的conda，解决依赖速度更快，命令与`conda`基本相同。
 
@@ -1036,6 +1129,8 @@ CONDA_CHANNELS="" CONDA_OVERRIDE_CHANNELS=1
 mamba install -y -c https://conda.anaconda.org/conda-forge -c https://conda.anaconda.org/bioconda --override-channels --no-channel-priority taxmyphage
 ```
 
+#### pip
+
 `pip`  (https://pypi.org/project/pip/) 是Python的包管理工具，用来安装和管理Python软件包，很多生物信息学的Python工具除了通过conda安装外，也可以通过pip安装。使用conda在环境里安装了python时，也会一并安装pip及相关的工具。
 
 ```bash
@@ -1079,6 +1174,8 @@ trusted-host = pypi.tuna.tsinghua.edu.cn
 >
 > 对于重要的分析软件，优先使用官方推荐的安装方式（至于如何找到官方，也是需要学习的内容），conda版本可作为备选。
 
+#### BWA
+
 BWA (https://github.com/lh3/bwa) 是用来将测序数据比对到参考基因组的工具，相当于把测序得到的短片段DNA序列找到它们在完整基因组上的正确位置。
 
 ```bash
@@ -1093,6 +1190,8 @@ bwa index reference.fasta
 bwa mem -t 8 reference.fasta sample_R1.fastq sample_R2.fastq > sample.sam  # -t指定线程数
 ```
 
+#### SOAPnuke
+
 SOAPnuke (https://github.com/BGI-flexlab/SOAPnuke) 是BGI开发的二代测序数据质量控制工具，用来去除低质量序列、接头序列和污染序列，提高测序数据质量。我没用过，就不介绍用法了。
 
 ```bash
@@ -1101,6 +1200,8 @@ git clone https://github.com/BGI-flexlab/SOAPnuke.git
 cd SOAPnuke
 make
 ```
+
+#### seqkit
 
 seqkit (https://bioinf.shenwei.me/seqkit/) 是一个高效的序列处理工具包，用来对FASTA/FASTQ格式的序列文件进行统计、过滤、格式转换、序列提取等各种操作。
 
@@ -1138,6 +1239,8 @@ seqkit seq -m 6000 -M 10000 A.fa > B.fa                         #将序列长度
 cat CPB0314_test8.fa | head -n 1 | sed 's/>//g' | xargs -I @ seqkit replace -p "@" -r CPB0314 CPB0314_test8.fa > CPB0314.fa #将CPB0314_test8.fa文件中的第一行的ID替换为CPB0314，输出至CPB0314.fa文件
 ```
 
+#### fastp
+
 fastp (https://github.com/OpenGene/fastp) 是一个快速的FASTQ数据质控和预处理工具，集成了质量过滤、接头去除、质量报告等功能。
 
 ```bash
@@ -1161,6 +1264,8 @@ fastp -i A_1.fastq.gz -o A_1.fq.gz -I A_2.fastq.gz -O A_2.fq.gz -5 -3 -q 20 -w 8
 # -z 9     压缩等级（1-9，数字越大压缩越好但耗时更长）
 ```
 
+#### CheckV
+
 CheckV (https://bitbucket.org/berkeleylab/checkv) 是一款全自动命令行流程工具，用于评估单条连续病毒基因组质量，其功能包括：识别整合原病毒中的宿主污染、评估基因组片段的完整性，以及鉴定完整闭合基因组。
 
 ```bash
@@ -1176,6 +1281,8 @@ diamond makedb --in checkv_reps.faa --db checkv_reps
 # 使用
 checkv end_to_end input.fa output_path -d checkv-db-v1.5 -t 8
 ```
+
+#### prodigal
 
 prodigal (https://github.com/hyattpd/Prodigal) 是用来预测原核生物（细菌和古菌）基因组中蛋白质编码基因的工具，能够自动识别和标注基因的位置和方向。有分支prodigal-gv以及python版本的pyrodigal和pyrodigal-gv
 
@@ -1195,6 +1302,8 @@ prodigal -i input_genome.fasta -o genes.gff -a proteins.faa -d genes.fna -p meta
 # -f gff                  指定输出格式为GFF
 # -c                      只预测完整基因（不预测部分基因）
 ```
+
+#### BLAST
 
 BLAST (https://blast.ncbi.nlm.nih.gov/Blast.cgi) 是用来比较序列相似性的工具，能找到与你的查询序列相似的已知序列，用于基因功能注释和同源性分析。需要先用makeblastdb建立数据库索引，再用blastn/blastp等程序进行序列比对。绝大多数工作流都会使用到BLAST
 
@@ -1227,6 +1336,8 @@ blastn -query CPB1015.fa -db ./index -outfmt "6 qseqid sseqid qcovs qcovhsp pide
 # bitscore: bit分数
 ```
 
+#### HMMER
+
 HMMER (http://hmmer.org/) 是基于隐马尔科夫模型(HMM)的蛋白质序列分析工具包，主要用于蛋白质功能域预测和同源序列搜索。绝大多数工作流都会使用到HMMER。
 
 ```bash
@@ -1240,6 +1351,8 @@ make check
 make install
 ```
 
+#### seqtk
+
 seqtk (https://github.com/lh3/seqtk) 是一个轻量级的序列处理工具包，用来对FASTA/FASTQ文件进行采样、过滤、格式转换、统计等快速操作。
 
 ```bash
@@ -1250,6 +1363,8 @@ make
 # 随机抽提
 seqtk sample -s 25 input.fastq 1000 > sample.fastq   # 设定随机种子抽样
 ```
+
+#### SPAdes
 
 SPAdes (https://ablab.github.io/spades/) - St. Petersburg genome assembler - a versatile toolkit designed for assembling and analyzing sequencing data from Illumina and IonTorrent technologies. In addition, most of SPAdes pipelines support a hybrid mode allowing the use of long reads (PacBio and Oxford Nanopore) as supplementary data.
 
@@ -1278,6 +1393,8 @@ python spades.py --meta -1 A_1.fq -2 A_2.fq -o result -t 32
 # spades.log       		- 运行日志
 ```
 
+#### QUAST
+
 QUAST (https://github.com/ablab/quast) 是用来评估基因组组装质量的工具，能够统计组装结果的各种指标如N50、组装长度等。
 
 ```bash
@@ -1286,6 +1403,8 @@ mamba create -n quast -y -c conda-forge -c bioconda quast
 # 使用
 python quast.py -o result input.fa
 ```
+
+#### seqret
 
 seqret (http://emboss.open-bio.org/) 是EMBOSS软件包中的序列格式转换工具，能在各种序列格式之间进行转换。
 
@@ -1303,6 +1422,8 @@ seqret -sequence input.fa -feature -fformat gff -fopenfile input.gff -osformat g
 # -outseq           	输出文件名
 ```
 
+#### Bowtie2
+
 Bowtie2 (https://github.com/BenLangmead/bowtie2) 是一个快速准确的短序列比对工具，用来将测序数据比对到参考基因组上。
 
 ```bash
@@ -1319,6 +1440,8 @@ bowtie2 -p 32 -x ref.fa -1 A_1.fastq -2 A_2.fastq --very-sensitive | samtools vi
 # -2 A_2.fastq       	双端测序的第二个文件（R2）
 # --very-sensitive   	使用最敏感的比对模式（更准确但较慢）
 ```
+
+#### Samtools
 
 Samtools (https://github.com/samtools/samtools) 是用来处理SAM/BAM格式比对文件的工具包，提供格式转换、排序、索引、统计、提取等各种操作功能。
 
@@ -1341,6 +1464,8 @@ samtools stats sorted.bam						  # 给出整体详细统计
 samtools idxstats sorted.bam					  # 给出按序列分组的简要统计，必须用排序和索引后的
 ```
 
+#### bedtools
+
 bedtools (https://bedtools.readthedocs.io/) ，功能很多，我只用过bamToFastq
 
 ```bash
@@ -1350,6 +1475,8 @@ tar -zxvf bedtools-2.31.1.tar.gz
 # bamtofq
 bedtools bamtofastq -i input.bam -fq output_R1.fastq -fq2 output_R2.fastq
 ```
+
+#### Prokka
 
 Prokka (https://github.com/tseemann/prokka) 是一个快速的原核生物基因组注释工具，能够自动预测基因、tRNA、rRNA并进行功能注释，是细菌基因组注释的标准工具。
 
@@ -1370,7 +1497,9 @@ prokka --prefix ID --locustag ID --addgenes --addmrna --plasmid Plasmid --gcode 
 # A.fasta             		输入的基因组序列文件
 ```
 
-Batka (https://github.com/oschwengers/bakta)：Rapid & standardized annotation of bacterial genomes, MAGs & plasmids, considered by the author of Prokka to be the successor to Prokka
+#### Bakta
+
+Bakta (https://github.com/oschwengers/bakta)：Rapid & standardized annotation of bacterial genomes, MAGs & plasmids, considered by the author of Prokka to be the successor to Prokka
 
 ```bash
 # 安装
@@ -1384,6 +1513,8 @@ bakta --db <db-path> --verbose --output results/ --prefix ecoli123 --locus-tag e
 # 详细输出结果写入results目录，包含ecoli123文件prefix和eco634 locus-tag ，使用现有prodigal训练文件，附加复制子信息，并启用8线程处理
 ```
 
+#### Pharokka
+
 Pharokka (https://github.com/gbouras13/pharokka) is a rapid standardised annotation tool for bacteriophage genomes and metagenomes.
 
 ```bash
@@ -1394,6 +1525,8 @@ install_databases.py -o path/to/databse_dir
 # 使用
 pharokka.py -i phage.fa -o output -d path/to/database_dir -t threads
 ```
+
+#### Phold
 
 Phold (https://github.com/gbouras13/phold) is a sensitive annotation tool for bacteriophage genomes and metagenomes using protein structural homology. 
 
@@ -1430,6 +1563,8 @@ pip install -U huggingface_hub
 huggingface-cli download --resume-download Rostlab/ProstT5_fp16 --local-dir /path/to/database/Rostlab/ProstT5_fp16 --local-dir-use-symlinks False
 ```
 
+#### MEGAHIT
+
 MEGAHIT (https://github.com/voutcn/megahit) 是一个快速、内存高效的宏基因组组装工具，专门用于从复杂微生物群落的测序数据中组装基因组片段。
 
 ```bash
@@ -1448,6 +1583,8 @@ megahit --continue -o megahit_result
 # --continue				直接读取-o指定的文件夹megahit_result中的中间文件进行组装
 ```
 
+#### DeepVirFinder
+
 DeepVirFinder (https://github.com/jessieren/DeepVirFinder) 使用深度学习方法预测病毒序列。该方法对短病毒序列具有良好的预测准确性，可用于预测来自宏基因组数据的序列。DeepVirFinder 的输入是包含待预测序列的 fasta 文件，输出是一个 .txt 文件，其中包含每个输入序列的预测分数和 p 值。分数越高或 p 值越低表示是病毒序列的可能性越高。
 
 ```bash
@@ -1464,6 +1601,8 @@ python dvf.py -i meta.fa -o dvf_result -m /path/to/DeepVirFinder/models -l 1500
 # 运行脚本前，执行以下命令即可解决
 export THEANO_FLAGS='base_compiledir=/path/to/work,cxx=/usr/bin/g++'
 ```
+
+#### VirSorter2
 
 VirSorter2 (https://github.com/jiarong/VirSorter2) applies a multi-classifier, expert-guided approach to detect diverse DNA and RNA virus genomes.
 
@@ -1486,6 +1625,8 @@ virsorter run -w vs2 -i meta.fa --min-length 1500 -j 4 all
 # all                 运行所有分析步骤（预测+分类+质量评估）
 ```
 
+#### geNomad
+
 geNomad (https://portal.nersc.gov/genomad/index.html) 的主要目标是在测序数据（分离株、宏基因组和宏转录组）中识别病毒和质粒。
 
 ```bash
@@ -1505,6 +1646,8 @@ genomad end-to-end --cleanup --splits 8 meta.fa genomad_result /path/to/genomad_
 # 如果在大型服务器上运行geNomad，可能不需要分割搜索，这样可以提高执行速度。
 # geNomad支持压缩为.gz/.bz2/.xz 的输入文件。
 ```
+
+#### VIBRANT
 
 VIBRANT (https://github.com/AnantharamanLab/VIBRANT) 利用混合机器学习和蛋白质相似性方法，不依赖于序列特征，可从宏基因组组装中自动恢复和注释病毒，确定基因组质量和完整性，并表征病毒群落功能。
 
@@ -1549,6 +1692,8 @@ hmmpress KEGG_profiles_prokaryotes.HMM
 hmmpress Pfam-A_v32.HMM
 ```
 
+#### iphop
+
 iphop (https://bitbucket.org/srouxjgi/iphop) 用于从噬菌体基因组中计算预测宿主，数据库很大。
 
 ```bash
@@ -1561,6 +1706,8 @@ tar zxvf iPHoP.latest_rw.tar.gz
 iphop predict --fa_file virus.fa --db_dir /path/to/db --out_dir result -t 8   
 ```
 
+#### MAFFT
+
 MAFFT (https://mafft.cbrc.jp/alignment/software/) 是一个用于类 Unix 操作系统的多序列比对程序。它提供了多种多序列比对方法。 
 
 ```bash
@@ -1569,6 +1716,8 @@ mamba install -y -c bioconda mafft
 # 使用，将输入的序列对齐
 mafft --auto input.fasta > algined.fasta
 ```
+
+#### iqtree
 
 iqtree  (https://iqtree.github.io/) 是用来构建系统发育树的工具，使用最大似然法从序列比对结果推断物种或基因的进化关系。
 
@@ -1586,7 +1735,9 @@ iqtree -s algined_tree.fasta -bb 1000 --runs 8 -T 8 --mem 50G --prefix my_tree
 # --prefix my_tree              输出文件前缀
 ```
 
-vContact2（）是用来对病毒基因组进行聚类和分类的工具，通过比较病毒蛋白质相似性构建网络来识别相关的病毒群体和家族。软件已停止维护，数据库较老。建议使用下面介绍的`vContact3`
+#### vContact2
+
+vContact2是用来对病毒基因组进行聚类和分类的工具，通过比较病毒蛋白质相似性构建网络来识别相关的病毒群体和家族。软件已停止维护，数据库较老。建议使用下面介绍的`vContact3`
 
 ```bash
 # 安装
@@ -1599,6 +1750,8 @@ vcontact2_gene2genome -s Prodigal-FAA -p A.faa -o A.csv
 vcontact2 --rel-mode 'Diamond' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin cluster_one-1.0.jar --db 'ProkaryoticViralRefSeq211-Merged' --verbose --threads 4 --raw-proteins A.faa --proteins-fp A.csv --output-dir result
 ```
 
+#### vContact3
+
 vContact3 (https://bitbucket.org/MAVERICLab/vcontact3) 是用来对病毒基因组进行聚类和分类的工具，通过比较病毒蛋白质相似性构建网络来识别相关的病毒群体和家族。相比起vContact2, 使用更简单，速度更快。
 
 ```bash
@@ -1609,6 +1762,8 @@ vcontact3 prepare_databases --get-version "latest" --set-location /path/to/downl
 # 使用
 vcontact3 run --nucleotide virus_genomes.fasta --output output_directory
 ```
+
+#### cdhit
 
 cdhit (https://github.com/weizhongli/cdhit) 是用来对蛋白质或核酸序列进行聚类和去冗余的工具，能将相似序列合并成代表性序列，常用于构建非冗余数据库。
 
@@ -1634,6 +1789,8 @@ cd-hit-est -i A.fa -o B.fa -c 0.95 -aL 0.9 -M 16000 -T 8
 # cd-hit-est用于处理核酸序列，cd-hit用于处理蛋白质序列
 ```
 
+#### MMseqs
+
 MMseqs (https://github.com/soedinglab/MMseqs2) 是一个高速的蛋白质序列搜索和聚类工具，比BLAST快100-1000倍，比CD-HIT更快更准确，常用于大规模序列分析。
 
 > [!WARNING]
@@ -1655,6 +1812,8 @@ mmseqs easy-linclust -e 0.001 --cov-mode 1 -c 0.8 --min-seq-id 0.9 --kmer-per-se
 # --threads 16         使用16线程并行处理
 ```
 
+#### parallel-fastq-dump
+
 `parallel-fastq-dump`: 如需分析公开发表在NCBI上的宏基因组测序数据，需要先下载SRA数据，再使用fastq-dump将sra数据转化成fastq数据。此工具通过将工作分配到多个线程来加速这一过程。
 
 ```bash
@@ -1665,6 +1824,8 @@ parallel-fastq-dump --sra-id SRR2244401 --threads 4 --outdir ./SRR2244401 --spli
 # 输出fq.gz文件
 ```
 
+#### EggNOG-mapper
+
 EggNOG-mapper是一款用于快速功能注释新序列的工具。它利用 eggNOG 数据库（http://eggnog5.embl.de）中预先计算好的直系同源群和系统发育树，仅通过精细直系同源物传递功能信息。
 
 ```bash
@@ -1672,6 +1833,8 @@ EggNOG-mapper是一款用于快速功能注释新序列的工具。它利用 egg
 mamba create -n emapper -y -c bioconda -c conda-forge eggnog-mapper
 # 用法见宏基因组分析
 ```
+
+#### Kraken2
 
 Kraken2是一种用于为短 DNA 序列分配分类学标签的系统，通常通过宏基因组学研究获得。
 
@@ -1681,9 +1844,11 @@ mamba create -n kraken2 -y -c bioconda kraken2
 # 用法见宏基因组分析
 ```
 
-### Others
+## Others
 
 这一版块的内容很散乱，大抵是一些我觉得有用的命令、配置、知识点，以及和AI一起写的一些小玩意。脚本及其依赖文件放在scripts文件夹下。
+
+#### ~/.bashrc 配置
 
 `~/.bashrc` 的配置，基于学习时的先入为主，我个人习惯使用Bash，Zsh和Fish都有体验过，最后还是换成了Bash。Bash历史最久，虽简陋，但学习成本低，易入门。
 
@@ -1721,6 +1886,8 @@ else
 fi
 unset _host _port
 ```
+
+#### yi.py
 
 `yi.py`：灵感来源于2023年看过一个介绍蓍草占卜法的视频。周易·系辞有载：大衍之数五十，其用四十有九，分而为二，以象两，挂一象三，揲之以四，以象四时，归奇于扐，以象闰，五岁再闰，故再扐而后挂。
 
@@ -1816,6 +1983,8 @@ python yi.py
 ==================================================
 ```
 
+#### phagex
+
 `phagex`：噬菌体基因组组装注释脚本。是项目组积累的流程，最早是shell脚本，后续基于shell开发成perl脚本，经由我开发成python脚本，整合了先前的众多依赖脚本。
 
 脚本流程包括fastp质控，seqkit/seqtk随机抽提，spades组装，checkv评估完整度，prodigal预测cds，blastp/hmmerscan/phmmer注释并去冗余，seqret转化成gbk。
@@ -1882,6 +2051,8 @@ PhageX - 噬菌体基因组组装与注释流程
     使用 -f 强制重新开始
 ```
 
+#### dcp
+
 `dcp`：DCS cloud离线任务批量投递脚本。基于DCS cloud的终端命令行开发，仅在DCS cloud个性分析里可用。输入的scipts.txt的内容应为所需投递的脚本路径。使用前需提前安装依赖，详见：https://cloud.stomics.tech/helpcenter/zh/cli/cli.html
 
 ```bash
@@ -1929,6 +2100,8 @@ dcp - DCS任务批量投递工具
   镜像前缀: vscode（自动查询最新），可在脚本第54行，配置区域里修改查询前缀。
 ```
 
+#### phold-circos.py
+
 `phold-circos.py`: 噬菌体基因组环状可视化脚本。基于phold的plot功能模块二次开发。
 
 ```bash
@@ -1970,6 +2143,8 @@ options:
   python phold_plot_standalone.py -i phold.gbk -o output.pdf --title "My Phage"
   python phold_plot_standalone.py -i phold.gbk -o output.pdf --no_labels
 ```
+
+#### autoqsub
 
 `autoqsub`：自动使用qsub投递任务脚本，基于qsub、sleep等一系列bash命令开发。开发背景是当时需要跑大量的病毒组分析，每个分析都会有接近50G的中间文件，因此分析任务无法一次性全部投递，只能分批投递。
 
@@ -2013,6 +2188,8 @@ Examples:
     autoqsub -l jobs.list -n 20 -d 80.5
 ```
 
+#### pytorch_cudatest.py
+
 `pytorch_cudatest.py`：基于PyTorch的cuda检测脚本。用于判断当前工作环境的PyTorch以及cuda版本。
 
 ```bash
@@ -2027,6 +2204,8 @@ tensor([[0.6117, 0.7539, 0.2959],
         [1.4000, 0.1608, 1.0276],
         [0.9358, 1.2633, 1.4139]], device='cuda:0')
 ```
+
+#### treescan.py
 
 `treescan.py`：用于扫描指定目录，并将结果记录为json文件，该json文件可用于`resturct.py`的输入，在指定目录下，重构treescan文件所扫描的目录
 
@@ -2043,6 +2222,8 @@ positional arguments:
 options:
   -h, --help   show this help message and exit
 ```
+
+#### resturct.py
 
 `resturct.py`：用于重构目录。输入文件除`treescan.py`扫描的json文件外，还需提供所有文件的绝对路径
 
@@ -2061,6 +2242,8 @@ options:
   -h, --help         show this help message and exit
   --workers WORKERS  Number of parallel workers (default: 4)
 ```
+
+#### 宏基因组分析流程
 
 宏基因组分析流程：从宏基因组测序下机数据出发，进行分析。我结合接触到的脚本进行整理的。所使用的软件在第二部分都有介绍。
 
@@ -2183,6 +2366,8 @@ kreport2krona.py -r ERR1620272-meta/bacteria/kraken2/ERR1620272.report.kraken -o
 KronaTools-2.8.1/scripts/ImportText.pl -o ERR1620272-meta/bacteria/kraken2/ERR1620272.kraken2.krona.html ERR1620272-meta/bacteria/kraken2/ERR1620272.report.krona
 ```
 
+#### 丰富与流行度分析
+
 丰富与流行度分析：分析目标序列（例如噬菌体序列）与某一个样本的宏基因组测序数据的比对结果，进而判断目标序列是否存在于该样本中，以及目标片段在该样本中的丰富如何。
 
 > [!WARNING]
@@ -2224,6 +2409,8 @@ samtools index ERR1620272-meta/bowtie2/mapped_bowtie2.bam
 samtools idxstats ERR1620272-meta/bowtie2/mapped_bowtie2.bam > ERR1620272-meta/bowtie2/mapped_bowtie2.bam.idxstats
 ```
 
+#### Claude Code
+
 Claude Code 是可在终端中使用的AI harness工具，能够理解你的代码库，并通过自然语言命令执行日常任务、解释复杂代码、处理 git 工作流，从而帮助你更快地编码。简单介绍如何下载安装Claude code并将deepseek-v4系列模型接入其中。详情可参考：https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
 
 ```bash
@@ -2264,6 +2451,8 @@ claude install 2.1.223 --force  # 强制回退到一个能正常使用的版本
 export DISABLE_UPDATES=1		# 关闭更新，可写入env文件里
 # 当然，第三方LLM会尽快适配新版Claude code，可关注相关github的issues
 ```
+
+#### Codex
 
 Codex是OpenAI开发的AI harness工具。具体安装以及如何接入deepseek-v4模型如下
 
