@@ -2462,9 +2462,27 @@ curl -fsSL https://chatgpt.com/codex/install.sh | sh
 # 配置deepseek-v4模型
 mkdir -p ~/.codex
 bash <(curl -fsSL https://cdn.deepseek.com/api-docs/codex-deepseek-setup.sh)
-# 运行后按菜单选择要使用的模型。首次运行会提示输入API Key（以sk-开头，在DeepSeek Platform获取）
+# 运行后按菜单选择要使用的模型。首次运行会提示输入API Key（以sk-开头，在https://platform.deepseek.com/api_keys获取）
 # 安装一些插件，在终端中运行
 codex plugin add ngs-analysis@openai-curated
 codex plugin add life-science-research@openai-curated
 ```
+
+#### Deepseek Harness
+
+Deepseek Harness是Deepseek官方发布的harness，目前处于刚发布阶段，十分简陋。属于战未来产品。
+
+```bash
+# 安装npm，如有，可跳过
+mamba install -y -c conda-forge nodejs=24
+# 安装deepseek harness并启动
+npx @deepseek-ai/dsh web
+# 运行完后，会输出如下：
+dsh web: http://127.0.0.1:3080
+# 复制http://127.0.0.1:3080至浏览器打开即可与Harness进行交互。
+```
+
+
+
+
 
